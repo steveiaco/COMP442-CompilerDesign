@@ -3,6 +3,10 @@
 #include <fstream>
 
 class Lexer {
-	Lexer(std::ifstream input);
+private:
+	std::ifstream& input;
+
+public:
+	Lexer(std::ifstream &input);
 	Token nextToken();
 };

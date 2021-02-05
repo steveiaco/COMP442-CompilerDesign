@@ -14,9 +14,6 @@ enum TokenType {
 	IF,
 	THEN,
 	ELSE,
-	INTEGER,
-	FLOAT,
-	STRING,
 	VOID,
 	PUBLIC,
 	PRIVATE,
@@ -61,7 +58,8 @@ enum TokenType {
 	NOT, //!
 	QUESTION_MARK, //? TO BE RENAMED
 	// Other
-	ERROR
+	ERROR,
+	END_OF_FILE	
 };
 
 class Token {
@@ -72,4 +70,5 @@ private:
 
 public:
 	Token(TokenType token, string lexeme);
+	inline TokenType getTokenType() const { return tokenType; };
 };
