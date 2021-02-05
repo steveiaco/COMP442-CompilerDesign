@@ -1,0 +1,10 @@
+id: [a-zA-Z][a-zA-Z0-9_]* 
+alphanum: [a-zA-Z0-9_]
+integer: [1-9][0-9]*|[0]
+float: ([1-9][0-9]*|[0])([.][0-9]*[1-9]|(\.0))([e][+-][1-9][0-9]*|[0])?
+fraction: [.][0-9]*[1-9]|(\.0)
+letter: [a-zA-Z]
+digit: [0-9]
+non-zero: [1-9]
+string: "[a-zA-Z0-9\s]*"
+character: [a-zA-Z0-9\s]
