@@ -1,10 +1,54 @@
+﻿REGEX:
+
 id: [a-zA-Z][a-zA-Z0-9_]* 
-alphanum: [a-zA-Z0-9_]
 integer: [1-9][0-9]*|[0]
 float: ([1-9][0-9]*|[0])([.][0-9]*[1-9]|(\.0))([e][+-][1-9][0-9]*|[0])?
+string: "[a-zA-Z0-9\s]*"
+
+
+alphanum: [a-zA-Z0-9_]
 fraction: [.][0-9]*[1-9]|(\.0)
 letter: [a-zA-Z]
 digit: [0-9]
 non-zero: [1-9]
-string: "[a-zA-Z0-9\s]*"
-character: [a-zA-Z0-9\s]
+character: [a-zA-Z0-9_\s]
+
+Regular Expressions:
+
+#alphanum
+a = (l)|(d)|(_)
+
+#fraction
+r = (.(n|0)*n)|(.0) = (.d*n)|(.0)
+
+#letter
+l = (a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)|(A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z)
+
+#digit
+d = (0)|(n)
+
+#non-zero
+n = (1|2|3|4|5|6|7|8|9)
+
+#character
+c = (a)|(ϵ)
+
+// main expressions
+
+#id
+i = (la*)
+
+#integer
+t = ((nd*)|(0))
+
+#float
+f = (tr)(e(+|-)?t)?
+
+#string
+s = "c*"
+
+#block comment (s = *, a = ∑ / {/,*})
+bc = (/s)((/|a)|(s+a))*(ss*/)
+
+#inline comment
+ic = (//)(a*)(l)

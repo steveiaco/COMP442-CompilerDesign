@@ -59,6 +59,7 @@ enum TokenType {
 	QUESTION_MARK, //? TO BE RENAMED
 	// Other
 	ERROR,
+	COMMENT,
 	END_OF_FILE	
 };
 
@@ -69,6 +70,7 @@ private:
 	//datatype location; // location of lexeme in the code
 
 public:
+	Token();
 	Token(TokenType token, string lexeme);
 	inline TokenType getTokenType() const { return tokenType; };
 };
