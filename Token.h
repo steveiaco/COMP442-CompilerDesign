@@ -69,10 +69,11 @@ class Token {
 private:
 	TokenType tokenType;
 	string lexeme;
+	int lineNumber;
 	//datatype location; // location of lexeme in the code
 
 public:
 	Token();
-	Token(TokenType token, string lexeme);
+	Token(TokenType token, string lexeme, int line);
 	inline TokenType getTokenType() const { return tokenType; };
 };

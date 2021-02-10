@@ -12,7 +12,9 @@ private:
 	// Input variables and functions
 	std::ifstream& input;
 	char lastChar;
-	char getChar();
+	int currentLine;
+	void getChar();
+	void getChar(stringstream& s);
 
 
 	// Atomic helper functions

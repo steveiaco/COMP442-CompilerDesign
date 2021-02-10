@@ -8,6 +8,19 @@ using std::regex;
 using std::string;
 
 
+void Lexer::getChar()
+{
+	if (lastChar == '\n') {
+		currentLine++;
+	}
+	input.get(lastChar);
+}
+
+void Lexer::getChar(stringstream& s) {
+	s << lastChar;
+	getChar();
+}
+
 bool Lexer::isAlphaNum(char c)
 {
 	return isLetter(c) || isDigit(c) || c == '_';
@@ -45,7 +58,7 @@ bool Lexer::isFraction(char c)
 
 Token Lexer::generateError(stringstream& s)
 {
-	return Token(ERROR, s.str());
+	return Token(ERROR, s.str(), currentLine);
 }
 
 Token Lexer::tryGetFloat(stringstream& s)
@@ -56,8 +69,7 @@ Token Lexer::tryGetFloat(stringstream& s)
 		while (isDigit(lastChar)) {
 			// State S4->S4
 			while (isNonZero(lastChar)) {
-				s.put(lastChar);
-				input.get(lastChar);
+				getChar(s);
 			}
 
 			// State S4 -> S12
@@ -65,13 +77,12 @@ Token Lexer::tryGetFloat(stringstream& s)
 
 				// State S12 -> S12
 				do {
-					s.put(lastChar);
-					input.get(lastChar);
+					getChar(s);
 				} while (lastChar == '0');
 
 				// Represents an invalid state (digit.xxZero)
 				if (!isNonZero(lastChar)) {
-					return Token(ERROR, s.str());
+					return Token(ERROR, s.str(), currentLine);
 				}
 
 				// Exit represents S12 -> S4
@@ -80,27 +91,23 @@ Token Lexer::tryGetFloat(stringstream& s)
 
 		// S4 -> S5
 		if (lastChar == 'e') {
-			s.put(lastChar);
-			input.get(lastChar);
+			getChar(s);
 
 			// S5 -> S6
 			if (lastChar == '+' || lastChar == '-') {
-				s.put(lastChar);
-				input.get(lastChar);
+				getChar(s);
 			}
 
 			// S5/S6 -> S8
 			if (isNonZero(lastChar)) {
 				do {
-					s.put(lastChar);
-					input.get(lastChar);
+					getChar(s);
 				} while (isDigit(lastChar));
 				// TODO - DECIDE WHETHER TO ADD INVALID STATE WHERE THE SYMBOL FOLLOWING A VALID FLOAT IS NOT VALID (maybe look for operators, symbols, punctuation, instead of a non-digit)
 			}
 			// S5/S6 -> S7
 			else if (lastChar == '0') {
-				s.put(lastChar);
-				input.get(lastChar);
+				getChar(s);
 				// TODO - DECIDE WHETHER TO ADD INVALID STATE WHERE THE SYMBOL FOLLOWING A VALID FLOAT IS NOT VALID (maybe look for operators, symbols, punctuation, instead of a non-digit)
 			}
 			// Represents invalid state (digit.xxxe)
@@ -114,19 +121,20 @@ Token Lexer::tryGetFloat(stringstream& s)
 		return generateError(s);
 	}
 
-	return Token(FLOAT, s.str());
+	return Token(FLOAT, s.str(), currentLine);
 }
 
 Lexer::Lexer(std::ifstream& input) : input(input)
 {
 	lastChar = ' ';
+	currentLine = 1;
 }
 
 Token Lexer::nextToken()
 {
 	// fastforward the file-read position if we are at a whitespace
 	while (isWhitespace(lastChar)) {
-		input.get(lastChar);
+		getChar();
 	}
 
 	// State S1
@@ -135,35 +143,34 @@ Token Lexer::nextToken()
 
 		// Read characters until we encounter a non-alphanum
 		do {
-			stringStream.put(lastChar);
-			input.get(lastChar);
+			getChar(stringStream);
 		} while (isAlphaNum(lastChar));
 
 		string lexeme = stringStream.str();
 		
 		// Keywords
-		if (lexeme == "break")			{	return Token(BREAK, lexeme);	}
-		else if (lexeme == "class")		{	return Token(CLASS, lexeme );	}
-		else if (lexeme == "continue")	{	return Token(CONTINUE, lexeme);	}
-		else if (lexeme == "else")		{	return Token(ELSE, lexeme);		}
-		else if (lexeme == "float")		{	return Token(FLOAT_ID, lexeme);	}
-		else if (lexeme == "func")		{	return Token(FUNC, lexeme);		}
-		else if (lexeme == "if")		{	return Token(IF, lexeme);		}
-		else if (lexeme == "inherits")	{	return Token(INHERITS, lexeme);	}
-		else if (lexeme == "integer")	{	return Token(INTEGER_ID, lexeme);	}
-		else if (lexeme == "main")		{	return Token(MAIN, lexeme);		}
-		else if (lexeme == "private")	{	return Token(PRIVATE, lexeme);	}
-		else if (lexeme == "public")	{	return Token(PUBLIC, lexeme);	}
-		else if (lexeme == "read")		{	return Token(READ, lexeme);		}
-		else if (lexeme == "return")	{	return Token(RETURN, lexeme);	}
-		else if (lexeme == "string")	{	return Token(STRING_ID, lexeme);}
-		else if (lexeme == "then")		{	return Token(THEN, lexeme);		}
-		else if (lexeme == "var")		{	return Token(VAR, lexeme);		}
-		else if (lexeme == "void")		{	return Token(VOID, lexeme);		}
-		else if (lexeme == "while")		{	return Token(WHILE, lexeme);	}
-		else if (lexeme == "write")		{	return Token(WRITE, lexeme);	}
+		if (lexeme == "break")			{	return Token(BREAK, lexeme, currentLine);	}
+		else if (lexeme == "class")		{	return Token(CLASS, lexeme, currentLine);	}
+		else if (lexeme == "continue")	{	return Token(CONTINUE, lexeme, currentLine);	}
+		else if (lexeme == "else")		{	return Token(ELSE, lexeme, currentLine);		}
+		else if (lexeme == "float")		{	return Token(FLOAT_ID, lexeme, currentLine);	}
+		else if (lexeme == "func")		{	return Token(FUNC, lexeme, currentLine);		}
+		else if (lexeme == "if")		{	return Token(IF, lexeme, currentLine);		}
+		else if (lexeme == "inherits")	{	return Token(INHERITS, lexeme, currentLine);	}
+		else if (lexeme == "integer")	{	return Token(INTEGER_ID, lexeme, currentLine);	}
+		else if (lexeme == "main")		{	return Token(MAIN, lexeme, currentLine);		}
+		else if (lexeme == "private")	{	return Token(PRIVATE, lexeme, currentLine);	}
+		else if (lexeme == "public")	{	return Token(PUBLIC, lexeme, currentLine);	}
+		else if (lexeme == "read")		{	return Token(READ, lexeme, currentLine);		}
+		else if (lexeme == "return")	{	return Token(RETURN, lexeme, currentLine);	}
+		else if (lexeme == "string")	{	return Token(STRING_ID, lexeme, currentLine);}
+		else if (lexeme == "then")		{	return Token(THEN, lexeme, currentLine);		}
+		else if (lexeme == "var")		{	return Token(VAR, lexeme, currentLine);		}
+		else if (lexeme == "void")		{	return Token(VOID, lexeme, currentLine);		}
+		else if (lexeme == "while")		{	return Token(WHILE, lexeme, currentLine);	}
+		else if (lexeme == "write")		{	return Token(WRITE, lexeme, currentLine);	}
 		// ID
-		else { return Token(ID, lexeme); }
+		else { return Token(ID, lexeme, currentLine); }
 	}
 	// States S2/S3
 	else if (isDigit(lastChar)) {
@@ -173,19 +180,17 @@ Token Lexer::nextToken()
 
 			// S2 -> S2
 			do {
-				s << lastChar;
-				input.get(lastChar);
+				getChar(s);
 			} while (isDigit(lastChar));
 
 			// S2 -> S11
 			if (lastChar == '.') {
-				s << lastChar;
-				input.get(lastChar);
+				getChar(s);
 				return tryGetFloat(s);
 			}
 			// S2 -> INT
 			else {
-				return Token(INTEGER, s.str());
+				return Token(INTEGER, s.str(), currentLine);
 			}
 		}
 		// START -> S3
@@ -193,18 +198,16 @@ Token Lexer::nextToken()
 			stringstream s;
 
 			// contains a single 0
-			s << lastChar;
-			input.get(lastChar);
+			getChar(s);
 
 			// S3 -> S11
 			if (lastChar == '.') {
-				s << lastChar;
-				input.get(lastChar);
+				getChar(s);
 				return tryGetFloat(s);
 			}
 			// S3 -> INT
 			else {
-				return Token(INTEGER, s.str());
+				return Token(INTEGER, s.str(), currentLine);
 			}
 		}
 	} 
@@ -212,24 +215,25 @@ Token Lexer::nextToken()
 
 		TokenType t;
 		stringstream s;
+		int l = currentLine;
 
 		// First, handle the simple cases
-		if (lastChar == '+') { t = ADDITION;	s.put(lastChar); input.get(lastChar); }
-		else if (lastChar == '-') { t = SUBTRACTION;	s.put(lastChar); input.get(lastChar); }
-		else if (lastChar == '*') { t = MULTIPLICATION; s.put(lastChar); input.get(lastChar); }
-		else if (lastChar == '|') { t = OR;				s.put(lastChar); input.get(lastChar); }
-		else if (lastChar == '&') { t = AND;			s.put(lastChar); input.get(lastChar); }
-		else if (lastChar == '!') { t = NOT;			s.put(lastChar); input.get(lastChar); }
-		else if (lastChar == '?') { t = QUESTION_MARK;			s.put(lastChar); input.get(lastChar); }
-		else if (lastChar == '(') {	t = LEFT_PARENTHESIS;		s.put(lastChar); input.get(lastChar); }
-		else if (lastChar == ')') { t = RIGHT_PARENTHESIS;		s.put(lastChar); input.get(lastChar); }
-		else if (lastChar == '{') { t = LEFT_CURLY_BRACKET;		s.put(lastChar); input.get(lastChar); }
-		else if (lastChar == '}') { t = RIGHT_CURLY_BRACKET;	s.put(lastChar); input.get(lastChar); }
-		else if (lastChar == '[') { t = LEFT_SQUARE_BRACKET;	s.put(lastChar); input.get(lastChar); }
-		else if (lastChar == ']') { t = RIGHT_SQUARE_BRACKET;	s.put(lastChar); input.get(lastChar); }
-		else if (lastChar == ';') { t = SEMICOLON;				s.put(lastChar); input.get(lastChar); }
-		else if (lastChar == ',') { t = COMMA;					s.put(lastChar); input.get(lastChar); }
-		else if (lastChar == '.') { t = PERIOD;					s.put(lastChar); input.get(lastChar); }
+		if (lastChar == '+') { t = ADDITION;	getChar(s); }
+		else if (lastChar == '-') { t = SUBTRACTION;	getChar(s); }
+		else if (lastChar == '*') { t = MULTIPLICATION; getChar(s); }
+		else if (lastChar == '|') { t = OR;				getChar(s); }
+		else if (lastChar == '&') { t = AND;			getChar(s); }
+		else if (lastChar == '!') { t = NOT;			getChar(s); }
+		else if (lastChar == '?') { t = QUESTION_MARK;			getChar(s); }
+		else if (lastChar == '(') {	t = LEFT_PARENTHESIS;		getChar(s); }
+		else if (lastChar == ')') { t = RIGHT_PARENTHESIS;		getChar(s); }
+		else if (lastChar == '{') { t = LEFT_CURLY_BRACKET;		getChar(s); }
+		else if (lastChar == '}') { t = RIGHT_CURLY_BRACKET;	getChar(s); }
+		else if (lastChar == '[') { t = LEFT_SQUARE_BRACKET;	getChar(s); }
+		else if (lastChar == ']') { t = RIGHT_SQUARE_BRACKET;	getChar(s); }
+		else if (lastChar == ';') { t = SEMICOLON;				getChar(s); }
+		else if (lastChar == ',') { t = COMMA;					getChar(s); }
+		else if (lastChar == '.') { t = PERIOD;					getChar(s); }
 
 		// Next, handle the edge cases
 
@@ -240,33 +244,46 @@ Token Lexer::nextToken()
 
 			// S9 -> S9
 			do {
-				s << lastChar;
-				input.get(lastChar);
+				getChar(s);
 			} while (lastChar != '"');
 
 			// Append the "
-			s.put(lastChar);
-			input.get(lastChar);
+			getChar(s);
 		}
 		
 		// START -> S23
 		else if (lastChar == '/') { 
 
-			s << lastChar;
-			input.get(lastChar); 
+			getChar(s);
 
 			// S23 -> S118 - Line comment
 			if (lastChar == '/') {
 				t = COMMENT;
 				do {
-					s << lastChar;
-					input.get(lastChar);
+					getChar(s);
 				} while (lastChar != '\n');
 			}
 			// S23 -> S116 - Block comment
 			else if (lastChar == '*') {
 				t = COMMENT;
 
+				getChar(s);
+
+				do {
+					// S116 -> S116
+					while (lastChar != '*') {
+						getChar(s);
+					} // Exiting this while loop signifies S116 -> S117
+
+					// S117 -> S117
+					while (lastChar == '*') {
+						getChar(s);
+					} 
+				} while (lastChar != '/');
+				// If the while evaluates to true, represents S117 -> S116
+				// If the while evaluates to false, represents S117 -> CMT
+
+				getChar(s);
 			}
 			else {
 				t = DIVISION;
@@ -277,11 +294,11 @@ Token Lexer::nextToken()
 		// START -> S13
 		else if (lastChar == '=') {
 			
-			input.get(lastChar);
+			getChar();
 
 			// S13 -> S14
 			if (lastChar == '=') {
-				input.get(lastChar);
+				getChar();
 				t = EQUAL_TO;
 				s << "==";
 			}
@@ -294,17 +311,17 @@ Token Lexer::nextToken()
 		// START -> S15
 		else if (lastChar == '<') {
 
-			input.get(lastChar);
+			getChar();
 
 			// S15 -> S16
 			if (lastChar == '=') {
-				input.get(lastChar);
+				getChar();
 				t = LESS_THAN_EQUAL_TO;
 				s << "<=";
 			}
 			// S15 -> S17
 			else if (lastChar == '>') {
-				input.get(lastChar);
+				getChar();
 				t = NOT_EQUAL_TO;
 				s << "<>";
 			}
@@ -316,11 +333,11 @@ Token Lexer::nextToken()
 
 		// START -> S18
 		else if (lastChar == '>') {
-			input.get(lastChar);
+			getChar();
 
 			// S18 -> S19
 			if (lastChar == '=') {
-				input.get(lastChar);
+				getChar();
 				t = GREATER_THAN_EQUAL_TO;
 				s << ">=";
 			}
@@ -332,11 +349,11 @@ Token Lexer::nextToken()
 
 		// START -> S37
 		else if (lastChar == ':') {
-			input.get(lastChar);
+			getChar();
 
 			// S37 -> S38
 			if (lastChar == ':') {
-				input.get(lastChar);
+				getChar();
 				t = DOUBLE_COLON;
 				s << "::";
 			}
@@ -349,11 +366,10 @@ Token Lexer::nextToken()
 		// Invalid alphabet
 		else {
 			t = ERROR;
-			s << lastChar;
-			input.get(lastChar);
+			getChar(s);
 		}
 
-		return Token(t, s.str());
+		return Token(t, s.str(), l);
 	}
 
 }
