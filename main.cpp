@@ -20,12 +20,12 @@ int main(int argc, char* argv[])
 
 	Lexer lexer(file);
 
-	vector<Token*> tokens;
+	vector<Token> tokens;
 	
-	Token* toAdd = &lexer.nextToken();
+	Token toAdd = lexer.nextToken();
 
-	while (toAdd->getTokenType() != END_OF_FILE) {
+	while (toAdd.getTokenType() != END_OF_FILE) {
 		tokens.push_back(toAdd);
-		toAdd = &lexer.nextToken();
+		toAdd = lexer.nextToken();
 	}
 }

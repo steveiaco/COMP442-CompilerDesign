@@ -1,0 +1,296 @@
+
+digraph finite_state_machine {
+	rankdir=LR;
+	size="8,5"
+	node [shape = doublecircle]; 
+	# Regular
+	ID INT FLT STR CMT;
+	# Operators + punctuation
+	"==" "<>" "<" ">" "<=" ">=";
+	"+" "-" "*" "/" "=";
+	"|" "&" "!" "?";
+	"(" ")" "{" "}" "[" "]" ";" "," "." ":" "::"
+	# Reserved words
+	integer float string 
+	if then else void
+	public private func var class while
+	read write return main inherits break continue
+	node [shape = circle];
+	#ID
+	START -> S1 [ label = "letter" ];
+	S1 -> S1 [ label = "alphanum" ];
+	S1 -> ID [ label = "ω"];
+	
+	#INTEGER
+	START -> S2 [ label = "non-zero"];
+	S2 -> S2 [label = "digit"];
+	S2 -> INT [ label = "ω"];
+	START -> S3 [label = "0"];
+	S3 -> INT [label = "ω"];
+	
+	#FLOAT
+	S2 -> S11 [label = "."];
+	S3 -> S11 [label = "."];
+	S4 -> FLT [label = "ω"];
+	#FLOAT-Exponent
+	S4 -> S5 [label = "e"];
+	S5 -> S6 [label = "+,-"];
+	S5 -> S8 [label = "non-zero"];
+	S5 -> S7 [label = "0"];
+	S6 -> S7 [label = "0"];
+	S7 -> FLT [label = "ω"]
+	S6 -> S8 [label = "non-zero"];
+	S8 -> S8 [label = "digit"];
+	S8 -> FLT [label = "ω"];
+	
+	#FRACTION
+	S11 -> S4 [label = "digit"];
+	S4 -> S4 [label = "non-zero"];
+	S4 -> S12 [label = "0"];
+	S12 -> S12 [label = "0"];
+	S12 -> S4 [label = "non-zero"];
+	
+	#STRING
+	START -> S9 [label = "\""];
+	S9 -> S9 [label = "character"];
+	S9 -> S10 [label = "\""];
+	S10 -> STR [label = "ω"];
+	
+	#BLOCK COMMENTS
+	S23 -> S116 [label = "*"];
+	S116 -> S116 [label = "/, ∑ / {*}"];
+	S116 -> S117 [label = "*"];
+	S117 -> S116 [label = "∑ / {/,*}"];
+	S117 -> S117 [label = "*"];
+	S117 -> CMT [label = "/"];
+
+	#INLINE COMMENTS
+	S23 -> S118 [label = "/"];
+	S118 -> S118 [label = "∑"];
+	S118 -> CMT [label = "newline"];
+	
+	#Operators and Punctuation
+	
+	#Equals and comparison
+	START -> S13 [label = "="];
+	S13 -> S14 [label = "="];
+	S13 -> "=" [label = "ω"];
+	S14 -> "==" [label = "ω"];
+	
+	#Less than, less than equal, not equal
+	START -> S15 [label = "<"];
+	S15 -> "<" [label = "ω"];
+	S15 -> S16 [label = "="];
+	S16 -> "<=" [label = "ω"];
+	S15 -> S17 [label = ">"];
+	S17 -> "<>" [label = "ω"];
+	
+	#greater than, greater than equal
+	START -> S18 [label = ">"];
+	S18 -> ">" [label = "ω"];
+	S18 -> S19 [label = "="];
+	S19 -> ">=" [label = "ω"];
+	
+	#arithmetic
+	START -> S20 [label = "+"];
+	S20 -> "+" [label = "ω"];
+	START -> S21 [label = "-"];
+	S21 -> "-" [label = "ω"];
+	START -> S22 [label = "*"];
+	S22 -> "*" [label = "ω"];
+	START -> S23 [label = "/"];
+	S23 -> "/" [label = "ω"];
+	
+	#bitwise
+	START -> S24 [label = "|"];
+	S24 -> "|" [label = "ω"];
+	START -> S25 [label = "&"];
+	S25 -> "&" [label = "ω"];
+	START -> S26 [label = "!"];
+	S26 -> "!" [label = "ω"];
+    START -> S27 [label = "?"];
+	S27 -> "?" [label = "ω"];
+	
+	#brackets
+	START -> S28 [label = "["];
+	S28 -> "[" [label = "ω"];
+	START -> S29 [label = "]"];
+	S29 -> "]" [label = "ω"];
+	
+	START -> S30 [label = "{"];
+	S30 -> "{" [label = "ω"];
+	START -> S31 [label = "}"];
+	S31 -> "}" [label = "ω"];
+	
+	START -> S32 [label = "("];
+	S32 -> "(" [label = "ω"];
+	START -> S33 [label = ")"];
+	S33 -> ")" [label = "ω"];
+	
+	#punctuation
+	START -> S34 [label = ";"];
+	S34 -> ";" [label = "ω"];
+	
+	START -> S35 [label = ","];
+	S35 -> "," [label = "ω"];
+	
+	START -> S36 [label = "."];
+	S36 -> "." [label = "ω"];
+	
+	START -> S37 [label = ":"];
+	S37 -> ":" [label = "ω"];
+	S37 -> S38 [label = ":"];
+	S38 -> "::" [label = "ω"];
+	
+	#keywords
+	
+	#break
+	START -> S39 [label = "b"];
+    S39 -> S40 [label = "r"];
+    S40 -> S41 [label = "e"];
+    S41 -> S42 [label = "a"];
+    S42 -> S43 [label = "k"]
+    S43 -> "break" [label = "ω"];
+    
+    START -> S44 [label = "c"];
+    #class
+    S44 -> S45 [label = "l"];
+    S45 -> S46 [label = "a"];
+    S46 -> S47 [label = "s"];
+    S47 -> S48 [label = "s"];
+    S48 -> "class" [label = "ω"];
+    
+    #continue
+    S44 -> S49 [label = "o"];
+    S49 -> S50 [label = "n"];
+    S50 -> S51 [label = "t"];
+    S51 -> S52 [label = "i"];
+    S52 -> S53 [label = "n"];
+    S53 -> S54 [label = "u"];
+    S54 -> S55 [label = "e"];
+    S55 -> "continue"  [label = "ω"];
+    
+    #else
+    START -> S56 [label = "e"];
+    S56 -> S57 [label = "l"];
+    S57 -> S58 [label = "s"];
+    S58 -> S59 [label = "e"];
+    S59 -> "else" [label = "ω"];
+    
+    START -> S60 [label = "f"];
+    #float 
+	S60 -> S125 [label = "l"];
+	S125 -> S126 [label = "o"];
+	S126 -> S127 [label = "a"];
+	S127 -> S128 [label = "t"];
+    S128 -> "float" [label = "ω"];
+
+    #func
+    S60 -> S61 [label = "u"];
+    S61 -> S62 [label = "n"];
+    S62 -> S63 [label = "c"];
+    S63 -> "func" [label = "ω"];
+    
+    START -> S64 [label = "i"];
+    S64 -> S66 [label = "n"];
+    #if
+    S64 -> S65 [label = "f"];
+    S65 -> "if" [label = "ω"];
+    #inherits
+    S66 -> S67 [label = "h"];
+    S67 -> S68 [label = "e"];
+    S68 -> S69 [label = "r"];
+    S69 -> S70 [label = "i"];
+    S70 -> S71 [label = "t"];
+    S71 -> S72 [label = "s"];
+    S72 -> "inherits" [label = "ω"] ;
+	#integer
+	S66 -> S129 [label = "t"];
+	S129 -> S130 [label = "e"];
+	S130 -> S131 [label = "g"];
+	S131 -> S132 [label = "e"];
+	S132 -> S133 [label = "r"];
+    
+    #main
+    START -> S73 [label = "m"];
+    S73 -> S74 [label = "a"];
+    S74 -> S75 [label = "i"];
+    S75 -> S76 [label = "n"];
+    S76 -> "main" [label = "ω"];
+    
+    START -> S77 [label = "p"];
+    #private
+    S77 -> S78 [label = "r"];
+    S78 -> S79 [label = "i"];
+    S79 -> S80 [label = "v"];
+    S80 -> S81 [label = "a"];
+    S81 -> S82 [label = "t"];
+    S82 -> S83 [label = "e"];
+    S83 -> "private" [label = "ω"];
+	
+	#public
+    S77 -> S84 [label = "u"];
+    S84 -> S85 [label = "b"];
+    S85 -> S86 [label = "l"];
+    S86 -> S87 [label = "i"];
+    S87 -> S88 [label = "c"];
+	S88 -> "public" [label = "ω"];
+
+    START -> S89 [label = "r"];
+    S89 -> S90 [label = "e"];
+	#read
+    S90 -> S91 [label = "a"];
+    S91 -> S92 [label = "d"];
+	S92 -> "read" [label = "ω"];
+
+	#return
+    S90 -> S93 [label = "t"];
+    S93 -> S94 [label = "u"];
+    S94 -> S95 [label = "r"];
+    S95 -> S96 [label = "n"];
+	S96 -> "return" [label = "ω"];
+
+    #string
+    START -> S119 [label = "s"];
+    S119 -> S120 [label = "t"];
+	S120 -> S121 [label = "r"];
+	S121 -> S122 [label = "i"];
+	S122 -> S123 [label = "n"];
+	S123 -> S124 [label = "g"];
+	S124 -> "string" [label = "ω"];	
+
+	#then
+	START -> S97 [label = "t"];
+	S97 -> S98 [label = "h"];
+    S98 -> S99 [label = "e"];
+    S99 -> S100 [label = "n"];
+	S100 -> "then" [label = "ω"];
+
+	START -> S101 [label = "v"];
+	#var 
+	S101 -> S114 [label = "a"];
+	S114 -> S115 [label = "r"];
+	S115 -> "var" [label =  "ω"];
+
+	#void
+	S101 -> S102 [label = "o"];
+	S102 -> S103 [label = "i"];
+	S103 -> S104 [label = "d"];
+	S104 -> "void" [label =  "ω"];
+
+	START -> S105 [label = "w"];
+	#while
+	S105 -> S106 [label = "h"];
+	S106 -> S107 [label = "i"];
+	S107 -> S108 [label = "l"];
+	S108 -> S109 [label = "e"];
+	S109 -> "while" [label = "ω"]
+
+	#write
+	S105 -> S110 [label = "r"];
+	S110 -> S111 [label = "i"];
+	S111 -> S112 [label = "t"];
+	S112 -> S113 [label = "e"];
+	S113 -> "write" [label = "ω"]
+}
+

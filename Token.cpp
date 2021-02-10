@@ -1,10 +1,10 @@
 #include "Token.h"
 
-//TODO CHANGE THIS
-Token::Token() : tokenType(ERROR)
+Token::Token() : tokenType(ERROR), lexeme("uninitialized")
 {
 }
 
 Token::Token(TokenType token, string lexeme) : tokenType(token), lexeme(lexeme)
 {
 }
+

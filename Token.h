@@ -4,13 +4,15 @@
 using std::string;
 
 enum TokenType {
-	// Identifiers
 	ID,
+	// Types
 	INTEGER,
 	FLOAT,
-	// Literals
 	STRING,
 	// Keywords
+	INTEGER_ID,
+	FLOAT_ID,
+	STRING_ID,
 	IF,
 	THEN,
 	ELSE,
@@ -42,7 +44,7 @@ enum TokenType {
 	DOUBLE_COLON,
 	QUOTE,
 	// Operators
-	EQUAL_TO,
+	EQUAL_TO,	// ==
 	NOT_EQUAL_TO,
 	LESS_THAN,
 	GREATER_THAN,
@@ -52,7 +54,7 @@ enum TokenType {
 	SUBTRACTION,
 	MULTIPLICATION,
 	DIVISION,
-	ASSIGNMENT_EQUALS,
+	ASSIGNMENT, // =
 	OR,
 	AND,
 	NOT, //!
@@ -65,8 +67,8 @@ enum TokenType {
 
 class Token {
 private:
-	const TokenType tokenType;
-	const string lexeme;
+	TokenType tokenType;
+	string lexeme;
 	//datatype location; // location of lexeme in the code
 
 public:
