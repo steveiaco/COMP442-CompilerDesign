@@ -1,7 +1,9 @@
 #pragma once
 #include <string>
+#include <ostream>
 
 using std::string;
+using std::ostream;
 
 enum TokenType {
 	ID,
@@ -60,7 +62,12 @@ enum TokenType {
 	NOT, //!
 	QUESTION_MARK, //? TO BE RENAMED
 	// Other
-	ERROR,
+	INVALID_CHARACTER,
+	INVALID_NUMBER,
+	INVALID_IDENTIFIER,
+	INVALID_COMMENT,
+	INVALID_STRING,
+	UNDEFINED,
 	COMMENT,
 	END_OF_FILE	
 };
@@ -73,7 +80,17 @@ private:
 	//datatype location; // location of lexeme in the code
 
 public:
+	static string tokenToString(TokenType t);
 	Token();
 	Token(TokenType token, string lexeme, int line);
+
+	static string tokenToString(Token t);
+
 	inline TokenType getTokenType() const { return tokenType; };
+	inline void setTokenType(TokenType t) { tokenType = t; }
+	inline string getLexeme() const { return lexeme; }
+	inline int getLineNumber() const { return lineNumber; }
+
 };
+
+ostream& operator<<(ostream& os, Token& t);

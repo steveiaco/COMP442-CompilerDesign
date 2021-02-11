@@ -3,6 +3,7 @@
 #include <string>
 
 
+
 using std::regex_match;
 using std::regex;
 using std::string;
@@ -13,12 +14,18 @@ void Lexer::getChar()
 	if (lastChar == '\n') {
 		currentLine++;
 	}
+	
 	input.get(lastChar);
+	if (input.eof()) {
+		lastChar = -1;
+	}
 }
 
 void Lexer::getChar(stringstream& s) {
-	s << lastChar;
-	getChar();
+	if (lastChar != -1) {
+		s << lastChar;
+		getChar();
+	}
 }
 
 bool Lexer::isAlphaNum(char c)
@@ -56,11 +63,6 @@ bool Lexer::isFraction(char c)
 	return false;
 }
 
-Token Lexer::generateError(stringstream& s)
-{
-	return Token(ERROR, s.str(), currentLine);
-}
-
 Token Lexer::tryGetFloat(stringstream& s)
 {
 	// State S11 -> S4
@@ -82,7 +84,7 @@ Token Lexer::tryGetFloat(stringstream& s)
 
 				// Represents an invalid state (digit.xxZero)
 				if (!isNonZero(lastChar)) {
-					return Token(ERROR, s.str(), currentLine);
+					return Token(INVALID_NUMBER, s.str(), currentLine);
 				}
 
 				// Exit represents S12 -> S4
@@ -92,7 +94,6 @@ Token Lexer::tryGetFloat(stringstream& s)
 		// S4 -> S5
 		if (lastChar == 'e') {
 			getChar(s);
-
 			// S5 -> S6
 			if (lastChar == '+' || lastChar == '-') {
 				getChar(s);
@@ -103,7 +104,6 @@ Token Lexer::tryGetFloat(stringstream& s)
 				do {
 					getChar(s);
 				} while (isDigit(lastChar));
-				// TODO - DECIDE WHETHER TO ADD INVALID STATE WHERE THE SYMBOL FOLLOWING A VALID FLOAT IS NOT VALID (maybe look for operators, symbols, punctuation, instead of a non-digit)
 			}
 			// S5/S6 -> S7
 			else if (lastChar == '0') {
@@ -112,16 +112,50 @@ Token Lexer::tryGetFloat(stringstream& s)
 			}
 			// Represents invalid state (digit.xxxe)
 			else {
-				return generateError(s);
+				return Token(INVALID_NUMBER, s.str(), currentLine);
 			}
 		}
 	}
 	// Represents an invalid state (digit.non-digit)
 	else {
-		return generateError(s);
+		return Token(INVALID_NUMBER, s.str(), currentLine);
 	}
 
 	return Token(FLOAT, s.str(), currentLine);
+}
+
+Token Lexer::tryGetIdentifier(stringstream& s)
+{
+	// Read characters until we encounter a non-alphanum
+	do {
+		getChar(s);
+	} while (isAlphaNum(lastChar));
+
+	string lexeme = s.str();
+
+	// Keywords
+	if (lexeme == "break") { return Token(BREAK, lexeme, currentLine); }
+	else if (lexeme == "class") { return Token(CLASS, lexeme, currentLine); }
+	else if (lexeme == "continue") { return Token(CONTINUE, lexeme, currentLine); }
+	else if (lexeme == "else") { return Token(ELSE, lexeme, currentLine); }
+	else if (lexeme == "float") { return Token(FLOAT_ID, lexeme, currentLine); }
+	else if (lexeme == "func") { return Token(FUNC, lexeme, currentLine); }
+	else if (lexeme == "if") { return Token(IF, lexeme, currentLine); }
+	else if (lexeme == "inherits") { return Token(INHERITS, lexeme, currentLine); }
+	else if (lexeme == "integer") { return Token(INTEGER_ID, lexeme, currentLine); }
+	else if (lexeme == "main") { return Token(MAIN, lexeme, currentLine); }
+	else if (lexeme == "private") { return Token(PRIVATE, lexeme, currentLine); }
+	else if (lexeme == "public") { return Token(PUBLIC, lexeme, currentLine); }
+	else if (lexeme == "read") { return Token(READ, lexeme, currentLine); }
+	else if (lexeme == "return") { return Token(RETURN, lexeme, currentLine); }
+	else if (lexeme == "string") { return Token(STRING_ID, lexeme, currentLine); }
+	else if (lexeme == "then") { return Token(THEN, lexeme, currentLine); }
+	else if (lexeme == "var") { return Token(VAR, lexeme, currentLine); }
+	else if (lexeme == "void") { return Token(VOID, lexeme, currentLine); }
+	else if (lexeme == "while") { return Token(WHILE, lexeme, currentLine); }
+	else if (lexeme == "write") { return Token(WRITE, lexeme, currentLine); }
+	// ID
+	else { return Token(ID, lexeme, currentLine); }
 }
 
 Lexer::Lexer(std::ifstream& input) : input(input)
@@ -139,38 +173,9 @@ Token Lexer::nextToken()
 
 	// State S1
 	if (isLetter(lastChar)) {
-		stringstream stringStream;
+		stringstream s;
 
-		// Read characters until we encounter a non-alphanum
-		do {
-			getChar(stringStream);
-		} while (isAlphaNum(lastChar));
-
-		string lexeme = stringStream.str();
-		
-		// Keywords
-		if (lexeme == "break")			{	return Token(BREAK, lexeme, currentLine);	}
-		else if (lexeme == "class")		{	return Token(CLASS, lexeme, currentLine);	}
-		else if (lexeme == "continue")	{	return Token(CONTINUE, lexeme, currentLine);	}
-		else if (lexeme == "else")		{	return Token(ELSE, lexeme, currentLine);		}
-		else if (lexeme == "float")		{	return Token(FLOAT_ID, lexeme, currentLine);	}
-		else if (lexeme == "func")		{	return Token(FUNC, lexeme, currentLine);		}
-		else if (lexeme == "if")		{	return Token(IF, lexeme, currentLine);		}
-		else if (lexeme == "inherits")	{	return Token(INHERITS, lexeme, currentLine);	}
-		else if (lexeme == "integer")	{	return Token(INTEGER_ID, lexeme, currentLine);	}
-		else if (lexeme == "main")		{	return Token(MAIN, lexeme, currentLine);		}
-		else if (lexeme == "private")	{	return Token(PRIVATE, lexeme, currentLine);	}
-		else if (lexeme == "public")	{	return Token(PUBLIC, lexeme, currentLine);	}
-		else if (lexeme == "read")		{	return Token(READ, lexeme, currentLine);		}
-		else if (lexeme == "return")	{	return Token(RETURN, lexeme, currentLine);	}
-		else if (lexeme == "string")	{	return Token(STRING_ID, lexeme, currentLine);}
-		else if (lexeme == "then")		{	return Token(THEN, lexeme, currentLine);		}
-		else if (lexeme == "var")		{	return Token(VAR, lexeme, currentLine);		}
-		else if (lexeme == "void")		{	return Token(VOID, lexeme, currentLine);		}
-		else if (lexeme == "while")		{	return Token(WHILE, lexeme, currentLine);	}
-		else if (lexeme == "write")		{	return Token(WRITE, lexeme, currentLine);	}
-		// ID
-		else { return Token(ID, lexeme, currentLine); }
+		return tryGetIdentifier(s);
 	}
 	// States S2/S3
 	else if (isDigit(lastChar)) {
@@ -242,13 +247,20 @@ Token Lexer::nextToken()
 
 			t = STRING;
 
-			// S9 -> S9
-			do {
-				getChar(s);
-			} while (lastChar != '"');
+			//Skip "
+			getChar();
 
-			// Append the "
-			getChar(s);
+			// S9 -> S9
+			while (lastChar != '"' && lastChar != -1) {
+				getChar(s);
+			}
+			
+			if (lastChar == -1) {
+				t = INVALID_STRING;
+			}
+			
+			//Skip "
+			getChar();
 		}
 		
 		// START -> S23
@@ -261,7 +273,7 @@ Token Lexer::nextToken()
 				t = COMMENT;
 				do {
 					getChar(s);
-				} while (lastChar != '\n');
+				} while (lastChar != '\n' && lastChar != -1);
 			}
 			// S23 -> S116 - Block comment
 			else if (lastChar == '*') {
@@ -269,20 +281,36 @@ Token Lexer::nextToken()
 
 				getChar(s);
 
-				do {
-					// S116 -> S116
-					while (lastChar != '*') {
-						getChar(s);
-					} // Exiting this while loop signifies S116 -> S117
+				int detectedCommentBlocks = 1;
 
-					// S117 -> S117
-					while (lastChar == '*') {
-						getChar(s);
-					} 
-				} while (lastChar != '/');
-				// If the while evaluates to true, represents S117 -> S116
-				// If the while evaluates to false, represents S117 -> CMT
+				for (int i = 0; i < detectedCommentBlocks; i++) {
+					do {
+						// S116 -> S116
+						while (lastChar != '*' && lastChar != -1) {
 
+							// Nested block detection
+							if (lastChar == '/') {
+								getChar(s);
+								if (lastChar == '*') {
+									detectedCommentBlocks++;
+								}
+							}
+							getChar(s);
+						} // Exiting this while loop signifies S116 -> S117
+
+						// S117 -> S117
+						while (lastChar == '*') {
+							getChar(s);
+						}
+
+						// We've reached EOF and must 
+						if (lastChar == -1) {
+							t = INVALID_COMMENT;
+						}
+					} while (lastChar != '/' && lastChar != -1);
+					// If the while evaluates to true, represents S117 -> S116
+					// If the while evaluates to false, represents S117 -> CMT
+				}
 				getChar(s);
 			}
 			else {
@@ -363,9 +391,20 @@ Token Lexer::nextToken()
 			}
 		}
 
+		// Identifier that starts with a _
+		else if (lastChar == '_') {
+			t = INVALID_CHARACTER;
+			getChar(s);
+		}
+
+		// End of file
+		else if (lastChar == -1) {
+			t = END_OF_FILE;
+		}
+
 		// Invalid alphabet
 		else {
-			t = ERROR;
+			t = INVALID_CHARACTER;
 			getChar(s);
 		}
 
@@ -373,3 +412,5 @@ Token Lexer::nextToken()
 	}
 
 }
+
+

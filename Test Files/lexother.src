@@ -1,0 +1,14 @@
+// 5.16 - Invalid characters
+@ # $ ' \ ~ 
+
+// 5.17 - Space character not necessary
+a=x+y+z;"this is a string";555;12.3;
+
+// 5.18 - Specific Token for each operator, punctuation and reserved word
+==	+	|	(	;	if 	public	read
+<>	-	&	)	,	then	private	write
+<	*	!	{	.	else	func	return
+>	/	?	}	:	integer	var	main
+<=	=		[	::	float	class	inherits
+>=			]		string	while	break
+					void		continue

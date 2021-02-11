@@ -1,0 +1,5 @@
+x = y + z;
+
+/* 5.4 This is an unterminated comment block
+
+x = y + z;

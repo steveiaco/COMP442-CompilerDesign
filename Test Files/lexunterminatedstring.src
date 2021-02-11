@@ -1,0 +1,3 @@
+// 5.12 - Unterminated string
+"this is an unterminated string
+y = x + z;
