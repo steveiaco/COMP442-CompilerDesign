@@ -8,60 +8,79 @@
 
 using namespace std;
 
+void writeOutlexErrorFile(vector<Token> tokens, string path) {
+	ofstream file(path);
+
+	if (file.fail()) { return; }
+
+	// Print out errors
+	for (Token t : tokens) {
+		switch (t.getTokenType()) {
+		case INVALID_CHARACTER:
+			file << "Lexical error: Invalid character: \"" << t.getLexeme() << "\": line " << t.getLineNumber() << "." << endl;
+			break;
+		case INVALID_IDENTIFIER:
+			file << "Lexical error: Invalid identifier: \"" << t.getLexeme() << "\": line " << t.getLineNumber() << "." << endl;
+			break;
+		case INVALID_NUMBER:
+			file << "Lexical error: Invalid number: \"" << t.getLexeme() << "\": line " << t.getLineNumber() << "." << endl;
+			break;
+		case INVALID_COMMENT:
+			file << "Lexical error: End of file reached before end of comment: \"" << t.getLexeme() << "\": line " << t.getLineNumber() << "." << endl;
+		case INVALID_STRING:
+			file << "Lexical error: End of file reached before end of string: \"" << t.getLexeme() << "\": line " << t.getLineNumber() << "." << endl;
+		}
+	}
+}
+
+void writeOutlexTokensFile(vector<Token> tokens, string path) {
+	ofstream file(path);
+
+	if (file.fail()) { return; }
+
+	// Print out tokens
+	int currentLine = 1;
+	for (Token t : tokens) {
+		if (t.getLineNumber() != currentLine) {
+			currentLine = t.getLineNumber();
+			file << endl;
+		}
+		file << t;
+	}
+}
 
 int main(int argc, char* argv[]) 
 { 
-	if (argc != 2) {
-		std::cout << "Please include source file location surrounded by quotations";
+	boost::filesystem::path p(argv[1]);
+
+	if (argc != 2 || !p.has_filename()) {
+		std::cout << "Error: Please include source file location.";
 		return 0;
 	}
 
-	boost::filesystem::path p(argv[1]);
-
-	string filename = p.filename().string();
+	string filename = p.stem().string();
 	string ext = p.extension().string();
+
+	if (ext != ".src") {
+		cout << "Error: Invalid file extension, this application only support .src source files.";
+		return 0;
+	}
+
+	string outlexErrorsPath = p.parent_path().string() + "\\" + filename + ".outlexerrors";
+	string outlexTokensPath = p.parent_path().string() + "\\" + filename + ".outlextokens";
 
 	ifstream file(argv[1]);
 
 	Lexer lexer(file);
 
 	vector<Token> tokens;
-	
-	Token toAdd = lexer.nextToken();
 
+	Token toAdd = lexer.nextToken();
 	while (toAdd.getTokenType() != END_OF_FILE) {
 		tokens.push_back(toAdd);
 		toAdd = lexer.nextToken();
 	}
 
-	cout << endl;
-	// Print out errors
-	for (Token t : tokens) {
-		switch (t.getTokenType()) {
-		case INVALID_CHARACTER:
-			cout << "Lexical error: Invalid character: \"" << t.getLexeme() << "\": line " << t.getLineNumber() << "." << endl;
-			break;
-		case INVALID_IDENTIFIER:
-			cout << "Lexical error: Invalid identifier: \"" << t.getLexeme() << "\": line " << t.getLineNumber() << "." << endl;
-			break;
-		case INVALID_NUMBER:
-			cout << "Lexical error: Invalid number: \"" << t.getLexeme() << "\": line " << t.getLineNumber() << "." << endl;
-			break;
-		case INVALID_COMMENT:
-			cout << "Lexical error: End of file reached before end of comment: \"" << t.getLexeme() << "\": line " << t.getLineNumber() << "." << endl;
-		case INVALID_STRING:
-			cout << "Lexical error: End of file reached before end of string: \"" << t.getLexeme() << "\": line " << t.getLineNumber() << "." << endl;
-		}
-	}
-
-	cout << endl;
-	// Print out tokens
-	int currentLine = -1;
-	for (Token t : tokens) {
-		if (t.getLineNumber() != currentLine) {
-			currentLine = t.getLineNumber();
-			cout << endl;
-		}
-		cout << t;
-	}
+	writeOutlexErrorFile(tokens, outlexErrorsPath);
+	writeOutlexTokensFile(tokens, outlexTokensPath);
 }
