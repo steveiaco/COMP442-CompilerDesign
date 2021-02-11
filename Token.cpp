@@ -1,4 +1,5 @@
 #include "Token.h"
+#include <regex>
 
 string Token::tokenToString(TokenType t) {
 	switch (t) {
@@ -195,5 +196,6 @@ Token::Token(TokenType token, string lexeme, int line) : tokenType(token), lexem
 
 ostream& operator<<(ostream& os, Token& t)
 {
-	return os << '[' << Token::tokenToString(t.getTokenType()) << ", " << t.getLexeme() << ", " << t.getLineNumber() << "] ";
+	string l = std::regex_replace(t.getLexeme(), std::regex("\n"), "\\n");
+	return os << '[' << Token::tokenToString(t.getTokenType()) << ", " << l << ", " << t.getLineNumber() << "] ";
 }

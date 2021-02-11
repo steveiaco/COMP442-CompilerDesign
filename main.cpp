@@ -5,6 +5,7 @@
 #include <vector>
 #include <functional>
 #include <boost/filesystem.hpp>
+#include <regex>
 
 using namespace std;
 
@@ -15,20 +16,24 @@ void writeOutlexErrorFile(vector<Token> tokens, string path) {
 
 	// Print out errors
 	for (Token t : tokens) {
+		string l = std::regex_replace(t.getLexeme(), std::regex("\n"), "\\n");
+		
 		switch (t.getTokenType()) {
 		case INVALID_CHARACTER:
-			file << "Lexical error: Invalid character: \"" << t.getLexeme() << "\": line " << t.getLineNumber() << "." << endl;
+			file << "Lexical error: Invalid character: \"" << l << "\": line " << t.getLineNumber() << "." << endl;
 			break;
 		case INVALID_IDENTIFIER:
-			file << "Lexical error: Invalid identifier: \"" << t.getLexeme() << "\": line " << t.getLineNumber() << "." << endl;
+			file << "Lexical error: Invalid identifier: \"" << l << "\": line " << t.getLineNumber() << "." << endl;
 			break;
 		case INVALID_NUMBER:
-			file << "Lexical error: Invalid number: \"" << t.getLexeme() << "\": line " << t.getLineNumber() << "." << endl;
+			file << "Lexical error: Invalid number: \"" << l << "\": line " << t.getLineNumber() << "." << endl;
 			break;
 		case INVALID_COMMENT:
-			file << "Lexical error: End of file reached before end of comment: \"" << t.getLexeme() << "\": line " << t.getLineNumber() << "." << endl;
+			file << "Lexical error: End of file reached before end of comment: \"" << l << "\": line " << t.getLineNumber() << "." << endl;
+			break;
 		case INVALID_STRING:
-			file << "Lexical error: End of file reached before end of string: \"" << t.getLexeme() << "\": line " << t.getLineNumber() << "." << endl;
+			file << "Lexical error: End of file reached before end of string: \"" << l << "\": line " << t.getLineNumber() << "." << endl;
+			break;
 		}
 	}
 }

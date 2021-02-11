@@ -1,7 +1,6 @@
 #pragma once
 #include "Token.h"
 #include <fstream>
-#include <regex>
 #include <sstream>
 
 using std::stringstream;

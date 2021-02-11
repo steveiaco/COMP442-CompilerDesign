@@ -1,4 +1,5 @@
 #include "Lexer.h"
+#include <regex>
 #include <iostream>
 #include <string>
 
