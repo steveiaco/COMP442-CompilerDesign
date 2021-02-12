@@ -210,6 +210,7 @@ digraph finite_state_machine {
 	S130 -> S131 [label = "g"];
 	S131 -> S132 [label = "e"];
 	S132 -> S133 [label = "r"];
+	S133 -> "integer" [label = "ω"];
     
     #main
     START -> S73 [label = "m"];

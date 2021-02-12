@@ -56,9 +56,14 @@ void writeOutlexTokensFile(vector<Token> tokens, string path) {
 
 int main(int argc, char* argv[]) 
 { 
+	if (argc != 2) {
+		std::cout << "Error: Please include one parameter.";
+		return 0;
+	}
+
 	boost::filesystem::path p(argv[1]);
 
-	if (argc != 2 || !p.has_filename()) {
+	if (!p.has_filename()) {
 		std::cout << "Error: Please include source file location.";
 		return 0;
 	}
