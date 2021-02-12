@@ -23,12 +23,8 @@ private:
 	bool isDigit(char c);
 	bool isNonZero(char c);
 	bool isCharacter(char c);
-
 	bool isWhitespace(char c);
-
 	bool isFraction(char c);
-
-	// Main lexical elements
 	
 	// Helper functions
 

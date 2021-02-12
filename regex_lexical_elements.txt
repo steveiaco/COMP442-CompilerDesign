@@ -47,8 +47,8 @@ f = (tr)(e(+|-)?t)?
 #string
 s = "c*"
 
-#block comment (s = *, a = ∑ / {/,*})
-bc = (/s)((/|a)|(s+a))*(ss*/)
+#block comment (s = *, x = ∑ / {/,*})
+bc = (/s)((/|x)|(s+x))*(ss*/)
 
 #inline comment
 ic = (//)(a*)(l)
