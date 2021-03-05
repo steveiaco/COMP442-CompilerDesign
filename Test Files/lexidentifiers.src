@@ -8,6 +8,7 @@ a1bc
 abc_abc	
 a_abc
 _abc
+_$abcd
 
 // 5.15 - Identifiers with digit after first letter
 abc1

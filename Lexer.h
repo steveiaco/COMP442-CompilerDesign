@@ -4,7 +4,7 @@
 #include <sstream>
 
 using std::stringstream;
-
+using std::ifstream;
 
 class Lexer {
 private:
@@ -33,6 +33,6 @@ private:
 	Token tryGetFloat(stringstream& s);
 	Token tryGetIdentifier(stringstream& s);
 public:
-	Lexer(std::ifstream &input);
+	Lexer(ifstream &input);
 	Token nextToken();
 };

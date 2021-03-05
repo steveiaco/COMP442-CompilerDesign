@@ -1,0 +1,55 @@
+,nonterminal,first set (set of terminals),follow set (set of terminals),nullable,endable
+"ADDOP,",ADDOP,plus minus or,intnum floatnum stringlit lpar not qm id plus minus,no,yes
+"APARAMSTAIL,",APARAMSTAIL,comma,rpar,yes,no
+"ARITHEXPRTAIL,",ARITHEXPRTAIL,plus minus or,semi eq neq lt gt leq geq comma colon rsqbr rpar,yes,no
+"ASSIGNOP,",ASSIGNOP,assign,intnum floatnum stringlit lpar not qm id plus minus,no,no
+"CLASSDECLBODY,",CLASSDECLBODY,public private func integer float string id,rcurbr,yes,no
+"EXPRTAIL,",EXPRTAIL,eq neq lt gt leq geq,semi comma colon rsqbr rpar,yes,no
+"ARITHEXPR,",ARITHEXPR,intnum floatnum stringlit lpar not qm id plus minus,semi eq neq lt gt leq geq comma colon rsqbr rpar,no,no
+"FPARAMSTAIL,",FPARAMSTAIL,comma,rpar,yes,no
+"CLASSMETHOD,",CLASSMETHOD,sr,lpar,yes,no
+"FPARAMS,",FPARAMS,integer float string id,rpar,yes,no
+"FUNCDECLTAIL,",FUNCDECLTAIL,void integer float string id,lcurbr semi,no,no
+"FUNCORASSIGNSTATIDNESTFUNCTAIL,",FUNCORASSIGNSTATIDNESTFUNCTAIL,dot,semi,yes,no
+"FUNCORASSIGNSTATIDNESTVARTAIL,",FUNCORASSIGNSTATIDNESTVARTAIL,dot assign,semi,no,no
+"FUNCORASSIGNSTATIDNEST,",FUNCORASSIGNSTATIDNEST,lpar lsqbr dot assign,semi,no,no
+"ASSIGNSTATTAIL,",ASSIGNSTATTAIL,assign,semi,no,no
+"FUNCORVAR,",FUNCORVAR,id,mult div and semi eq neq lt gt leq geq plus minus or comma colon rsqbr rpar,no,no
+"FUNCORVARIDNESTTAIL,",FUNCORVARIDNESTTAIL,dot,mult div and semi eq neq lt gt leq geq plus minus or comma colon rsqbr rpar,yes,no
+"FUNCORVARIDNEST,",FUNCORVARIDNEST,lpar lsqbr dot,mult div and semi eq neq lt gt leq geq plus minus or comma colon rsqbr rpar,yes,no
+"APARAMS,",APARAMS,intnum floatnum stringlit lpar not qm id plus minus,rpar,yes,no
+"FUNCSTATTAILIDNEST,",FUNCSTATTAILIDNEST,dot,semi,yes,no
+"FUNCSTATTAIL,",FUNCSTATTAIL,dot lpar lsqbr,semi,no,no
+"FUNCTION,",FUNCTION,func,main func,no,no
+"FUNCHEAD,",FUNCHEAD,func,lcurbr,no,no
+"INHERIT,",INHERIT,inherits,lcurbr,yes,no
+"INTNUM,",INTNUM,intnum,rsqbr,yes,no
+"MEMBERDECL,",MEMBERDECL,func integer float string id,public private func integer float string id rcurbr,no,no
+"FUNCDECL,",FUNCDECL,func,public private func integer float string id rcurbr,no,no
+"METHODBODYVAR,",METHODBODYVAR,var,if while read write return break continue id rcurbr,yes,no
+"NESTEDID,",NESTEDID,comma,lcurbr,yes,no
+"CLASSDECL,",CLASSDECL,class,func main,yes,no
+"FUNCDEF,",FUNCDEF,func,main,yes,no
+"FUNCBODY,",FUNCBODY,lcurbr,main func,no,no
+"RELOP,",RELOP,eq neq lt gt leq geq,intnum floatnum stringlit lpar not qm id plus minus,no,no
+"SIGN,",SIGN,plus minus,intnum floatnum stringlit lpar not qm id plus minus,no,no
+"START,",START,main class func,?,no,no
+"PROG,",PROG,main class func,?,no,no
+"FUNCORASSIGNSTAT,",FUNCORASSIGNSTAT,id,semi,no,no
+"STATBLOCK,",STATBLOCK,lcurbr if while read write return break continue id,else semi,yes,no
+"EXPR,",EXPR,intnum floatnum stringlit lpar not qm id plus minus,semi comma colon rsqbr rpar,no,no
+"STATEMENT,",STATEMENT,if while read write return break continue id,if while read write return break continue id else semi rcurbr,no,no
+"STATEMENTLIST,",STATEMENTLIST,if while read write return break continue id,rcurbr,yes,no
+"TERM,",TERM,intnum floatnum stringlit lpar not qm id plus minus,semi eq neq lt gt leq geq plus minus or comma colon rsqbr rpar,no,no
+"MULTOP,",MULTOP,mult div and,intnum floatnum stringlit lpar not qm id plus minus,no,no
+"FACTOR,",FACTOR,intnum floatnum stringlit lpar not qm id plus minus,mult div and semi eq neq lt gt leq geq plus minus or comma colon rsqbr rpar,no,no
+"TERMTAIL,",TERMTAIL,mult div and,semi eq neq lt gt leq geq plus minus or comma colon rsqbr rpar,yes,no
+"TYPE,",TYPE,integer float string id,lcurbr semi id,no,no
+"ARRAYSIZEREPT,",ARRAYSIZEREPT,lsqbr,rpar comma semi,yes,no
+"VARDECL,",VARDECL,integer float string id,public private func integer float string id rcurbr,no,no
+"VARDECLREP,",VARDECLREP,integer float string id,rcurbr,yes,no
+"VARIABLE,",VARIABLE,id,rpar,no,no
+"INDICEREP,",INDICEREP,lsqbr,mult div and semi assign dot eq neq lt gt leq geq plus minus or comma colon rsqbr rpar,yes,no
+"VARIABLEIDNESTTAIL,",VARIABLEIDNESTTAIL,dot,rpar,yes,no
+"VARIABLEIDNEST,",VARIABLEIDNEST,lsqbr dot,rpar,yes,no
+"VISIBILITY,",VISIBILITY,public private,func integer float string id,yes,no

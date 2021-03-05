@@ -1,4 +1,5 @@
 // 5.11 String literals
 "this is a string"
 "this is another string"
-"this string contains special characters 12345678890!@#$%^&*()[]{}|\:"
+"this string contains special characters 12345678890!@#$%^&*()[]{}|\:""this is another string"
+"#$newstring
