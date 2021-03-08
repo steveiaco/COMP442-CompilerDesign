@@ -21,6 +21,9 @@
     <ClInclude Include="Lexer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RecursiveDescentPredictiveParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Token.cpp">
@@ -30,6 +33,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Lexer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RecursiveDescentPredictiveParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

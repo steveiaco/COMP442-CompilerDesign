@@ -118,16 +118,16 @@ Token Lexer::tryGetFloat(stringstream& s)
 			}
 			// Represents invalid state (digit.xxxe)
 			else {
-				return Token(INVALID_NUMBER, s.str(), currentLine);
+				return Token(TokenType::INVALID_NUMBER, s.str(), currentLine);
 			}
 		}
 	}
 	// Represents an invalid state (digit.non-digit)
 	else {
-		return Token(INVALID_NUMBER, s.str(), currentLine);
+		return Token(TokenType::INVALID_NUMBER, s.str(), currentLine);
 	}
 
-	return Token(FLOAT, s.str(), currentLine);
+	return Token(TokenType::FLOAT, s.str(), currentLine);
 }
 
 Token Lexer::tryGetIdentifier(stringstream& s)
@@ -140,28 +140,28 @@ Token Lexer::tryGetIdentifier(stringstream& s)
 	string lexeme = s.str();
 
 	// Keywords
-	if (lexeme == "break") { return Token(BREAK, lexeme, currentLine); }
-	else if (lexeme == "class") { return Token(CLASS, lexeme, currentLine); }
-	else if (lexeme == "continue") { return Token(CONTINUE, lexeme, currentLine); }
-	else if (lexeme == "else") { return Token(ELSE, lexeme, currentLine); }
-	else if (lexeme == "float") { return Token(FLOAT_ID, lexeme, currentLine); }
-	else if (lexeme == "func") { return Token(FUNC, lexeme, currentLine); }
-	else if (lexeme == "if") { return Token(IF, lexeme, currentLine); }
-	else if (lexeme == "inherits") { return Token(INHERITS, lexeme, currentLine); }
-	else if (lexeme == "integer") { return Token(INTEGER_ID, lexeme, currentLine); }
-	else if (lexeme == "main") { return Token(MAIN, lexeme, currentLine); }
-	else if (lexeme == "private") { return Token(PRIVATE, lexeme, currentLine); }
-	else if (lexeme == "public") { return Token(PUBLIC, lexeme, currentLine); }
-	else if (lexeme == "read") { return Token(READ, lexeme, currentLine); }
-	else if (lexeme == "return") { return Token(RETURN, lexeme, currentLine); }
-	else if (lexeme == "string") { return Token(STRING_ID, lexeme, currentLine); }
-	else if (lexeme == "then") { return Token(THEN, lexeme, currentLine); }
-	else if (lexeme == "var") { return Token(VAR, lexeme, currentLine); }
-	else if (lexeme == "void") { return Token(VOID, lexeme, currentLine); }
-	else if (lexeme == "while") { return Token(WHILE, lexeme, currentLine); }
-	else if (lexeme == "write") { return Token(WRITE, lexeme, currentLine); }
+	if (lexeme == "break") { return Token(TokenType::BREAK, lexeme, currentLine); }
+	else if (lexeme == "class") { return Token(TokenType::CLASS, lexeme, currentLine); }
+	else if (lexeme == "continue") { return Token(TokenType::CONTINUE, lexeme, currentLine); }
+	else if (lexeme == "else") { return Token(TokenType::ELSE, lexeme, currentLine); }
+	else if (lexeme == "float") { return Token(TokenType::FLOAT_ID, lexeme, currentLine); }
+	else if (lexeme == "func") { return Token(TokenType::FUNC, lexeme, currentLine); }
+	else if (lexeme == "if") { return Token(TokenType::IF, lexeme, currentLine); }
+	else if (lexeme == "inherits") { return Token(TokenType::INHERITS, lexeme, currentLine); }
+	else if (lexeme == "integer") { return Token(TokenType::INTEGER_ID, lexeme, currentLine); }
+	else if (lexeme == "main") { return Token(TokenType::MAIN, lexeme, currentLine); }
+	else if (lexeme == "private") { return Token(TokenType::PRIVATE, lexeme, currentLine); }
+	else if (lexeme == "public") { return Token(TokenType::PUBLIC, lexeme, currentLine); }
+	else if (lexeme == "read") { return Token(TokenType::READ, lexeme, currentLine); }
+	else if (lexeme == "return") { return Token(TokenType::RETURN, lexeme, currentLine); }
+	else if (lexeme == "string") { return Token(TokenType::STRING_ID, lexeme, currentLine); }
+	else if (lexeme == "then") { return Token(TokenType::THEN, lexeme, currentLine); }
+	else if (lexeme == "var") { return Token(TokenType::VAR, lexeme, currentLine); }
+	else if (lexeme == "void") { return Token(TokenType::VOID, lexeme, currentLine); }
+	else if (lexeme == "while") { return Token(TokenType::WHILE, lexeme, currentLine); }
+	else if (lexeme == "write") { return Token(TokenType::WRITE, lexeme, currentLine); }
 	// ID
-	else { return Token(ID, lexeme, currentLine); }
+	else { return Token(TokenType::ID, lexeme, currentLine); }
 }
 
 Lexer::Lexer(std::ifstream& input) : input(input)
@@ -201,7 +201,7 @@ Token Lexer::nextToken()
 			}
 			// S2 -> INT
 			else {
-				return Token(INTEGER, s.str(), currentLine);
+				return Token(TokenType::INTEGER, s.str(), currentLine);
 			}
 		}
 		// START -> S3
@@ -218,7 +218,7 @@ Token Lexer::nextToken()
 			}
 			// S3 -> INT
 			else {
-				return Token(INTEGER, s.str(), currentLine);
+				return Token(TokenType::INTEGER, s.str(), currentLine);
 			}
 		}
 	} 
@@ -229,29 +229,29 @@ Token Lexer::nextToken()
 		int l = currentLine;
 
 		// First, handle the simple cases
-		if (lastChar == '+') { t = ADDITION;	getChar(s); }
-		else if (lastChar == '-') { t = SUBTRACTION;	getChar(s); }
-		else if (lastChar == '*') { t = MULTIPLICATION; getChar(s); }
-		else if (lastChar == '|') { t = OR;				getChar(s); }
-		else if (lastChar == '&') { t = AND;			getChar(s); }
-		else if (lastChar == '!') { t = NOT;			getChar(s); }
-		else if (lastChar == '?') { t = QUESTION_MARK;			getChar(s); }
-		else if (lastChar == '(') {	t = LEFT_PARENTHESIS;		getChar(s); }
-		else if (lastChar == ')') { t = RIGHT_PARENTHESIS;		getChar(s); }
-		else if (lastChar == '{') { t = LEFT_CURLY_BRACKET;		getChar(s); }
-		else if (lastChar == '}') { t = RIGHT_CURLY_BRACKET;	getChar(s); }
-		else if (lastChar == '[') { t = LEFT_SQUARE_BRACKET;	getChar(s); }
-		else if (lastChar == ']') { t = RIGHT_SQUARE_BRACKET;	getChar(s); }
-		else if (lastChar == ';') { t = SEMICOLON;				getChar(s); }
-		else if (lastChar == ',') { t = COMMA;					getChar(s); }
-		else if (lastChar == '.') { t = PERIOD;					getChar(s); }
+		if (lastChar == '+') { t = TokenType::ADDITION;						getChar(s); }
+		else if (lastChar == '-') { t = TokenType::SUBTRACTION;				getChar(s); }
+		else if (lastChar == '*') { t = TokenType::MULTIPLICATION;			getChar(s); }
+		else if (lastChar == '|') { t = TokenType::OR;						getChar(s); }
+		else if (lastChar == '&') { t = TokenType::AND;						getChar(s); }
+		else if (lastChar == '!') { t = TokenType::NOT;						getChar(s); }
+		else if (lastChar == '?') { t = TokenType::QUESTION_MARK;			getChar(s); }
+		else if (lastChar == '(') {	t = TokenType::LEFT_PARENTHESIS;		getChar(s); }
+		else if (lastChar == ')') { t = TokenType::RIGHT_PARENTHESIS;		getChar(s); }
+		else if (lastChar == '{') { t = TokenType::LEFT_CURLY_BRACKET;		getChar(s); }
+		else if (lastChar == '}') { t = TokenType::RIGHT_CURLY_BRACKET;		getChar(s); }
+		else if (lastChar == '[') { t = TokenType::LEFT_SQUARE_BRACKET;		getChar(s); }
+		else if (lastChar == ']') { t = TokenType::RIGHT_SQUARE_BRACKET;	getChar(s); }
+		else if (lastChar == ';') { t = TokenType::SEMICOLON;				getChar(s); }
+		else if (lastChar == ',') { t = TokenType::COMMA;					getChar(s); }
+		else if (lastChar == '.') { t = TokenType::PERIOD;					getChar(s); }
 
 		// Next, handle the edge cases
 
 		// START -> S9
 		else if (lastChar == '"') {
 
-			t = STRING;
+			t = TokenType::STRING;
 
 			//Skip "
 			getChar();
@@ -262,7 +262,7 @@ Token Lexer::nextToken()
 			}
 			
 			if (lastChar == -1) {
-				t = INVALID_STRING;
+				t = TokenType::INVALID_STRING;
 			}
 			
 			//Skip "
@@ -276,14 +276,14 @@ Token Lexer::nextToken()
 
 			// S23 -> S118 - Line comment
 			if (lastChar == '/') {
-				t = COMMENT;
+				t = TokenType::COMMENT;
 				do {
 					getChar(s);
 				} while (lastChar != '\n' && lastChar != -1);
 			}
 			// S23 -> S116 - Block comment
 			else if (lastChar == '*') {
-				t = COMMENT;
+				t = TokenType::COMMENT;
 
 				getChar(s);
 
@@ -311,7 +311,7 @@ Token Lexer::nextToken()
 
 						// We've reached EOF and must 
 						if (lastChar == -1) {
-							t = INVALID_COMMENT;
+							t = TokenType::INVALID_COMMENT;
 						}
 					} while (lastChar != '/' && lastChar != -1);
 					// If the while evaluates to true, represents S117 -> S116
@@ -320,7 +320,7 @@ Token Lexer::nextToken()
 				getChar(s);
 			}
 			else {
-				t = DIVISION;
+				t = TokenType::DIVISION;
 				s.put(lastChar); 
 			}
 		}
@@ -333,11 +333,11 @@ Token Lexer::nextToken()
 			// S13 -> S14
 			if (lastChar == '=') {
 				getChar();
-				t = EQUAL_TO;
+				t = TokenType::EQUAL_TO;
 				s << "==";
 			}
 			else {
-				t = ASSIGNMENT;
+				t = TokenType::ASSIGNMENT;
 				s << '=';
 			}
 		}
@@ -350,17 +350,17 @@ Token Lexer::nextToken()
 			// S15 -> S16
 			if (lastChar == '=') {
 				getChar();
-				t = LESS_THAN_EQUAL_TO;
+				t = TokenType::LESS_THAN_EQUAL_TO;
 				s << "<=";
 			}
 			// S15 -> S17
 			else if (lastChar == '>') {
 				getChar();
-				t = NOT_EQUAL_TO;
+				t = TokenType::NOT_EQUAL_TO;
 				s << "<>";
 			}
 			else {
-				t = LESS_THAN;
+				t = TokenType::LESS_THAN;
 				s << '<';
 			}
 		}
@@ -372,11 +372,11 @@ Token Lexer::nextToken()
 			// S18 -> S19
 			if (lastChar == '=') {
 				getChar();
-				t = GREATER_THAN_EQUAL_TO;
+				t = TokenType::GREATER_THAN_EQUAL_TO;
 				s << ">=";
 			}
 			else {
-				t = GREATER_THAN;
+				t = TokenType::GREATER_THAN;
 				s << '>';
 			}
 		}
@@ -388,29 +388,29 @@ Token Lexer::nextToken()
 			// S37 -> S38
 			if (lastChar == ':') {
 				getChar();
-				t = DOUBLE_COLON;
+				t = TokenType::DOUBLE_COLON;
 				s << "::";
 			}
 			else {
-				t = COLON;
+				t = TokenType::COLON;
 				s << ':';
 			}
 		}
 
 		// Identifier that starts with a _
 		else if (lastChar == '_') {
-			t = INVALID_CHARACTER;
+			t = TokenType::INVALID_CHARACTER;
 			getChar(s);
 		}
 
 		// End of file
 		else if (lastChar == -1) {
-			t = END_OF_FILE;
+			t = TokenType::END_OF_FILE;
 		}
 
 		// Invalid alphabet
 		else {
-			t = INVALID_CHARACTER;
+			t = TokenType::INVALID_CHARACTER;
 			getChar(s);
 		}
 

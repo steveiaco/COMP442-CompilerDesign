@@ -3,181 +3,181 @@
 
 string Token::tokenToString(TokenType t) {
 	switch (t) {
-	case ID: 
+	case TokenType::ID: 
 		return "ID";
 		break;
-	case INTEGER: 
+	case TokenType::INTEGER: 
 		return "INTEGER";
 		break;
-	case FLOAT: 
+	case TokenType::FLOAT: 
 		return "FLOAT";
 		break;
-	case STRING: 
+	case TokenType::STRING: 
 		return "STRING";
 		break;
-	case INTEGER_ID: 
+	case TokenType::INTEGER_ID: 
 		return "INTEGER_ID";
 		break;
-	case FLOAT_ID: 
+	case TokenType::FLOAT_ID: 
 		return "FLOAT_ID";
 		break;
-	case STRING_ID: 
+	case TokenType::STRING_ID: 
 		return "STRING_ID";
 		break;
-	case IF: 
+	case TokenType::IF: 
 		return "IF";
 		break;
-	case THEN: 
+	case TokenType::THEN: 
 		return "THEN";
 		break;
-	case ELSE: 
+	case TokenType::ELSE: 
 		return "ELSE";
 		break;
-	case VOID: 
+	case TokenType::VOID: 
 		return "VOID";
 		break;
-	case PUBLIC: 
+	case TokenType::PUBLIC: 
 		return "PUBLIC";
 		break;
-	case PRIVATE: 
+	case TokenType::PRIVATE: 
 		return "PRIVATE";
 		break;
-	case FUNC: 
+	case TokenType::FUNC: 
 		return "FUNC";
 		break;
-	case VAR: 
+	case TokenType::VAR: 
 		return "VAR";
 		break;
-	case CLASS: 
+	case TokenType::CLASS: 
 		return "CLASS";
 		break;
-	case WHILE: 
+	case TokenType::WHILE: 
 		return "WHILE";
 		break;
-	case READ: 
+	case TokenType::READ: 
 		return "READ";
 		break;
-	case WRITE: 
+	case TokenType::WRITE: 
 		return "WRITE";
 		break;
-	case RETURN: 
+	case TokenType::RETURN: 
 		return "RETURN";
 		break;
-	case MAIN: 
+	case TokenType::MAIN: 
 		return "MAIN";
 		break;
-	case INHERITS: 
+	case TokenType::INHERITS: 
 		return "INHERITS";
 		break;
-	case BREAK: 
+	case TokenType::BREAK: 
 		return "BREAK";
 		break;
-	case CONTINUE: 
+	case TokenType::CONTINUE: 
 		return "CONTINUE";
 		break;
-	case LEFT_SQUARE_BRACKET: 
+	case TokenType::LEFT_SQUARE_BRACKET: 
 		return "LEFT_SQUARE_BRACKET";
 		break;
-	case RIGHT_SQUARE_BRACKET: 
+	case TokenType::RIGHT_SQUARE_BRACKET: 
 		return "RIGHT_SQUARE_BRACKET";
 		break;
-	case LEFT_CURLY_BRACKET: 
+	case TokenType::LEFT_CURLY_BRACKET: 
 		return "LEFT_CURLY_BRACKET";
 		break;
-	case RIGHT_CURLY_BRACKET: 
+	case TokenType::RIGHT_CURLY_BRACKET: 
 		return "RIGHT_CURLY_BRACKET";
 		break;
-	case LEFT_PARENTHESIS: 
+	case TokenType::LEFT_PARENTHESIS: 
 		return "LEFT_PARENTHESIS";
 		break;
-	case RIGHT_PARENTHESIS: 
+	case TokenType::RIGHT_PARENTHESIS: 
 		return "RIGHT_PARENTHESIS";
 		break;
-	case SEMICOLON: 
+	case TokenType::SEMICOLON: 
 		return "SEMICOLON";
 		break;
-	case COMMA: 
+	case TokenType::COMMA: 
 		return "COMMA";
 		break;
-	case PERIOD: 
+	case TokenType::PERIOD: 
 		return "PERIOD";
 		break;
-	case COLON: 
+	case TokenType::COLON: 
 		return "COLON";
 		break;
-	case DOUBLE_COLON: 
+	case TokenType::DOUBLE_COLON: 
 		return "DOUBLE_COLON";
 		break;
-	case QUOTE: 
+	case TokenType::QUOTE: 
 		return "QUOTE";
 		break;
-	case EQUAL_TO: 
+	case TokenType::EQUAL_TO: 
 		return "EQUAL_TO";
 		break;
-	case NOT_EQUAL_TO: 
+	case TokenType::NOT_EQUAL_TO: 
 		return "NOT_EQUAL_TO";
 		break;
-	case LESS_THAN: 
+	case TokenType::LESS_THAN: 
 		return "LESS_THAN";
 		break;
-	case GREATER_THAN: 
+	case TokenType::GREATER_THAN: 
 		return "GREATER_THAN";
 		break;
-	case LESS_THAN_EQUAL_TO: 
+	case TokenType::LESS_THAN_EQUAL_TO: 
 		return "LESS_THAN_EQUAL_TO";
 		break;
-	case GREATER_THAN_EQUAL_TO: 
+	case TokenType::GREATER_THAN_EQUAL_TO: 
 		return "GREATER_THAN_EQUAL_TO";
 		break;
-	case ADDITION: 
+	case TokenType::ADDITION: 
 		return "ADDITION";
 		break;
-	case SUBTRACTION: 
+	case TokenType::SUBTRACTION: 
 		return "SUBTRACTION";
 		break;
-	case MULTIPLICATION: 
+	case TokenType::MULTIPLICATION: 
 		return "MULTIPLICATION";
 		break;
-	case DIVISION: 
+	case TokenType::DIVISION: 
 		return "DIVISION";
 		break;
-	case ASSIGNMENT: 
+	case TokenType::ASSIGNMENT: 
 		return "ASSIGNMENT";
 		break;
-	case OR: 
+	case TokenType::OR: 
 		return "OR";
 		break;
-	case AND: 
+	case TokenType::AND: 
 		return "AND";
 		break;
-	case NOT: 
+	case TokenType::NOT: 
 		return "NOT";
 		break;
-	case QUESTION_MARK: 
+	case TokenType::QUESTION_MARK: 
 		return "QUESTION_MARK";
 		break;
-	case INVALID_CHARACTER: 
+	case TokenType::INVALID_CHARACTER: 
 		return "INVALID_CHARACTER";
 		break;
-	case INVALID_NUMBER: 
+	case TokenType::INVALID_NUMBER: 
 		return "INVALID_NUMBER";
 		break;
-	case INVALID_IDENTIFIER: 
+	case TokenType::INVALID_IDENTIFIER: 
 		return "INVALID_IDENTIFIER";
 		break;
-	case INVALID_COMMENT:
+	case TokenType::INVALID_COMMENT:
 		return "INVALID_COMMENT";
 		break;
-	case INVALID_STRING:
+	case TokenType::INVALID_STRING:
 		return "INVALID_STRING";
 		break;
-	case UNDEFINED: 
+	case TokenType::UNDEFINED: 
 		return "UNDEFINED";
 		break;
-	case COMMENT: 
+	case TokenType::COMMENT: 
 		return "COMMENT";
 		break;
-	case END_OF_FILE: 
+	case TokenType::END_OF_FILE: 
 		return "END_OF_FILE";
 		break;
 	default:
@@ -186,7 +186,7 @@ string Token::tokenToString(TokenType t) {
 	}
 }
 
-Token::Token() : tokenType(UNDEFINED), lexeme("uninitialized"), lineNumber(-1)
+Token::Token() : tokenType(TokenType::UNDEFINED), lexeme("uninitialized"), lineNumber(-1)
 {
 }
 

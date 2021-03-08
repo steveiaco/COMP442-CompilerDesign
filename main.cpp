@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include "Lexer.h"
+#include "RecursiveDescentPredictiveParser.h"
 #include "Token.h"
 #include <vector>
 #include <functional>
@@ -19,19 +20,19 @@ void writeOutlexErrorFile(vector<Token> tokens, string path) {
 		string l = std::regex_replace(t.getLexeme(), std::regex("\n"), "\\n");
 		
 		switch (t.getTokenType()) {
-		case INVALID_CHARACTER:
+		case TokenType::INVALID_CHARACTER:
 			file << "Lexical error: Invalid character: \"" << l << "\": line " << t.getLineNumber() << "." << endl;
 			break;
-		case INVALID_IDENTIFIER:
+		case TokenType::INVALID_IDENTIFIER:
 			file << "Lexical error: Invalid identifier: \"" << l << "\": line " << t.getLineNumber() << "." << endl;
 			break;
-		case INVALID_NUMBER:
+		case TokenType::INVALID_NUMBER:
 			file << "Lexical error: Invalid number: \"" << l << "\": line " << t.getLineNumber() << "." << endl;
 			break;
-		case INVALID_COMMENT:
+		case TokenType::INVALID_COMMENT:
 			file << "Lexical error: End of file reached before end of comment: \"" << l << "\": line " << t.getLineNumber() << "." << endl;
 			break;
-		case INVALID_STRING:
+		case TokenType::INVALID_STRING:
 			file << "Lexical error: End of file reached before end of string: \"" << l << "\": line " << t.getLineNumber() << "." << endl;
 			break;
 		}
@@ -82,14 +83,17 @@ int main(int argc, char* argv[])
 	ifstream file(argv[1]);
 
 	Lexer lexer(file);
+	RecursiveDescentPredictiveParser parser(lexer);
 
-	vector<Token> tokens;
+	Token t = lexer.nextToken();
 
-	Token toAdd = lexer.nextToken();
-	while (toAdd.getTokenType() != END_OF_FILE) {
-		tokens.push_back(toAdd);
-		toAdd = lexer.nextToken();
+	while (t.getTokenType() != TokenType::END_OF_FILE) {
+		t = lexer.nextToken();
 	}
+
+	parser.parse();
+
+	vector<Token>& tokens = parser.getTokens();
 
 	writeOutlexErrorFile(tokens, outlexErrorsPath);
 	writeOutlexTokensFile(tokens, outlexTokensPath);

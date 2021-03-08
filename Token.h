@@ -5,16 +5,16 @@
 using std::string;
 using std::ostream;
 
-enum TokenType {
+enum class TokenType {
 	ID,
 	// Types
 	INTEGER,
 	FLOAT,
 	STRING,
 	// Keywords
-	INTEGER_ID,
-	FLOAT_ID,
-	STRING_ID,
+	INTEGER_ID, //keyword int
+	FLOAT_ID,	//keyword float
+	STRING_ID,	//keyword string
 	IF,
 	THEN,
 	ELSE,
@@ -69,7 +69,9 @@ enum TokenType {
 	INVALID_STRING,
 	UNDEFINED,
 	COMMENT,
-	END_OF_FILE	
+	END_OF_FILE,
+	// Used for parser
+	EPSILON
 };
 
 class Token {
