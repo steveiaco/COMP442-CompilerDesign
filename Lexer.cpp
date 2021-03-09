@@ -90,7 +90,7 @@ Token Lexer::tryGetFloat(stringstream& s)
 
 				// Represents an invalid state (digit.xxZero)
 				if (!isNonZero(lastChar) && zeroCount != 1) {
-					return Token(INVALID_NUMBER, s.str(), currentLine);
+					return Token(TokenType::INVALID_NUMBER, s.str(), currentLine);
 				}
 
 				// Exit represents S12 -> S4

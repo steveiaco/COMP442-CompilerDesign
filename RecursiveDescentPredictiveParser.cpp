@@ -119,9 +119,14 @@ void RecursiveDescentPredictiveParser::generateFollowSet()
 
 bool RecursiveDescentPredictiveParser::isElementOfFirst(vector<Alphabet> elements)
 {
+	// The number of non-terminals we have encountered
+	int numNonTerminals = 0;
+	// The number of epsilon transitions we use
+	int numEpsilonTransisions = 0;
 	for (Alphabet e : elements) {
 		
 		if (auto nonTerminal = std::get_if<NonTerminal>(&e)) {
+			numNonTerminals++;
 			// If the current production contains the current lookAhead token in its first set, then return true
 			if (firstSet[*nonTerminal].find(lookAhead.getTokenType()) != firstSet[*nonTerminal].end()) {
 				return true;
@@ -130,7 +135,8 @@ bool RecursiveDescentPredictiveParser::isElementOfFirst(vector<Alphabet> element
 			else if (firstSet[*nonTerminal].find(TokenType::EPSILON) == firstSet[*nonTerminal].end()) {
 				return false;
 			}
-		// If the current production does not contain the current lookAhead token in its first set, but it is nullable, then move onto the next NonTerminal production
+			// If the current production does not contain the current lookAhead token in its first set, but it is nullable, then move onto the next NonTerminal production (we use the epsilon transition)
+			numEpsilonTransisions++;
 		}
 		// If we encounter a terminal symbol, then simply compare it with the lookahead
 		else if (auto terminal = std::get_if<TokenType>(&e)) {
@@ -142,8 +148,15 @@ bool RecursiveDescentPredictiveParser::isElementOfFirst(vector<Alphabet> element
 			}
 		}
 	}
-	// If we didn't find the token in any of the NonTerminal productions
-	return false;
+
+	// If all we used the epsilon transition for all non-terminals, this means the production can be completely nulled out, return true
+	if (numNonTerminals == numEpsilonTransisions) {
+		return true;
+	}
+	// If we didn't find the token in any of the NonTerminal productions, then we return false (the terminal case is handled above)
+	else {
+		return false;
+	}
 }
 
 bool RecursiveDescentPredictiveParser::isElementOfFollow(NonTerminal element)
@@ -1134,17 +1147,9 @@ bool RecursiveDescentPredictiveParser::FuncStatTail()
 
 bool RecursiveDescentPredictiveParser::Factor()
 {
-	//<Factor> ::= <FuncOrVar> 
-	if (isElementOfFirst({ NonTerminal::FUNCORVAR })) {
-		if (FuncOrVar()) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
+	
 	//<Factor> ::= 'intnum' 
-	else if (isElementOfFirst({ TokenType::INTEGER })) {
+	if (isElementOfFirst({ TokenType::INTEGER })) {
 		if (match(TokenType::INTEGER)) {
 			return true;
 		}
@@ -1188,6 +1193,15 @@ bool RecursiveDescentPredictiveParser::Factor()
 			return false;
 		}
 	}
+	//<Factor> ::= 'qm' '[' <Expr> ':' <Expr> ':' <Expr> ']' 
+	else if (isElementOfFirst({ TokenType::QUESTION_MARK, TokenType::LEFT_SQUARE_BRACKET, NonTerminal::EXPR, TokenType::COLON,  NonTerminal::EXPR, TokenType::COLON, NonTerminal::EXPR, TokenType::RIGHT_SQUARE_BRACKET })) {
+		if (match(TokenType::QUESTION_MARK) && match(TokenType::LEFT_SQUARE_BRACKET) && Expr() && match(TokenType::COLON) && Expr() && match(TokenType::COLON) && Expr() && match(TokenType::RIGHT_SQUARE_BRACKET)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
 	//<Factor> ::= <Sign> <Factor> 
 	else if (isElementOfFirst({ NonTerminal::SIGN, NonTerminal::FACTOR })) {
 		if (Sign() && Factor()) {
@@ -1197,9 +1211,9 @@ bool RecursiveDescentPredictiveParser::Factor()
 			return false;
 		}
 	}
-	//<Factor> ::= 'qm' '[' <Expr> ':' <Expr> ':' <Expr> ']' 
-	else if (isElementOfFirst({ TokenType::QUESTION_MARK, TokenType::LEFT_SQUARE_BRACKET, NonTerminal::EXPR, TokenType::COLON,  NonTerminal::EXPR, TokenType::COLON, NonTerminal::EXPR, TokenType::RIGHT_SQUARE_BRACKET })) {
-		if (match(TokenType::QUESTION_MARK) && match(TokenType::LEFT_SQUARE_BRACKET) && Expr() && match(TokenType::COLON) && Expr() && match(TokenType::COLON) && Expr() && match(TokenType::RIGHT_SQUARE_BRACKET)) {
+	//<Factor> ::= <FuncOrVar> 
+	else if (isElementOfFirst({ NonTerminal::FUNCORVAR })) {
+		if (FuncOrVar()) {
 			return true;
 		}
 		else {
@@ -1377,18 +1391,18 @@ bool RecursiveDescentPredictiveParser::MultOp()
 
 bool RecursiveDescentPredictiveParser::FuncOrVarIDNest()
 {
-	//<FuncOrVarIdnest> ::= <IndiceRep> <FuncOrVarIdnestTail> 
-	if (isElementOfFirst({ NonTerminal::INDICEREP, NonTerminal::FUNCORVARIDNESTTAIL })) {
-		if (IndiceRep() && FuncOrVarIDNestTail()) {
+	//<FuncOrVarIdnest> ::= '(' <AParams> ')' <FuncOrVarIdnestTail> 
+	if (isElementOfFirst({ TokenType::LEFT_PARENTHESIS, NonTerminal::APARAMS, TokenType::RIGHT_PARENTHESIS, NonTerminal::FUNCORVARIDNESTTAIL })) {
+		if (match(TokenType::LEFT_PARENTHESIS) && AParams() && match(TokenType::RIGHT_PARENTHESIS) && FuncOrVarIDNestTail()) {
 			return true;
 		}
 		else {
 			return false;
 		}
 	}
-	//<FuncOrVarIdnest> ::= '(' <AParams> ')' <FuncOrVarIdnestTail> 
-	else if (isElementOfFirst({ TokenType::LEFT_PARENTHESIS, NonTerminal::APARAMS, TokenType::RIGHT_PARENTHESIS, NonTerminal::FUNCORVARIDNESTTAIL })) {
-		if (match(TokenType::LEFT_PARENTHESIS) && AParams() && match(TokenType::RIGHT_PARENTHESIS) && FuncOrVarIDNestTail()) {
+	//<FuncOrVarIdnest> ::= <IndiceRep> <FuncOrVarIdnestTail> 
+	else if (isElementOfFirst({ NonTerminal::INDICEREP, NonTerminal::FUNCORVARIDNESTTAIL })) {
+		if (IndiceRep() && FuncOrVarIDNestTail()) {
 			return true;
 		}
 		else {
