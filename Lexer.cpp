@@ -64,6 +64,8 @@ bool Lexer::isFraction(char c)
 	return false;
 }
 
+
+// Assumes a "xxx." has already been parsed and we are detecting everything after the decimal
 Token Lexer::tryGetFloat(stringstream& s)
 {
 	// State S11 -> S4
@@ -78,13 +80,16 @@ Token Lexer::tryGetFloat(stringstream& s)
 			// State S4 -> S12
 			if (lastChar == '0') {
 
+				int zeroCount = 0;
+
 				// State S12 -> S12
 				do {
 					getChar(s);
+					zeroCount++;
 				} while (lastChar == '0');
 
 				// Represents an invalid state (digit.xxZero)
-				if (!isNonZero(lastChar)) {
+				if (!isNonZero(lastChar) && zeroCount != 1) {
 					return Token(INVALID_NUMBER, s.str(), currentLine);
 				}
 
