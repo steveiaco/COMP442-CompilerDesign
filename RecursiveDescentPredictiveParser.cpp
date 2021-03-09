@@ -137,6 +137,9 @@ bool RecursiveDescentPredictiveParser::isElementOfFirst(vector<Alphabet> element
 			if (lookAhead.getTokenType() == *terminal) {
 				return true;
 			}
+			else {
+				return false;
+			}
 		}
 	}
 	// If we didn't find the token in any of the NonTerminal productions
@@ -145,7 +148,7 @@ bool RecursiveDescentPredictiveParser::isElementOfFirst(vector<Alphabet> element
 
 bool RecursiveDescentPredictiveParser::isElementOfFollow(NonTerminal element)
 {
-	return followSet[element].find(lookAhead.getTokenType()) != firstSet[element].end();
+	return followSet[element].find(lookAhead.getTokenType()) != followSet[element].end();
 }
 
 bool RecursiveDescentPredictiveParser::match(TokenType t)
@@ -163,8 +166,11 @@ bool RecursiveDescentPredictiveParser::match(TokenType t)
 
 Token RecursiveDescentPredictiveParser::nextToken()
 {
-	Token t = lexer.nextToken();
-	tokens.push_back(t);
+	Token t;
+	do {
+		t = lexer.nextToken();
+		tokens.push_back(t);
+	} while (t.getTokenType() == TokenType::COMMENT);
 	return t;
 }
 
@@ -197,6 +203,9 @@ bool RecursiveDescentPredictiveParser::Start()
 		if (Prog()) {
 			return true;
 		}
+		else {
+			return false;
+		}
 	}
 	else {
 		return false;
@@ -209,6 +218,9 @@ bool RecursiveDescentPredictiveParser::Prog()
 	if (isElementOfFirst({ NonTerminal::CLASSDECL, NonTerminal::FUNCDEF, TokenType::MAIN, NonTerminal::FUNCBODY })) {
 		if (ClassDecl() && FuncDef() && match(TokenType::MAIN) && FuncBody()) {
 			return true;
+		}
+		else {
+			return false;
 		}
 	}
 	else {
@@ -238,14 +250,18 @@ bool RecursiveDescentPredictiveParser::ClassDecl()
 
 bool RecursiveDescentPredictiveParser::FuncDef()
 {
-	// <FuncDecl> ::= 'func' 'id' '(' <FParams> ')' ':' <FuncDeclTail> ';' 
-	if (isElementOfFirst({ TokenType::FUNC, TokenType::ID, TokenType::LEFT_PARENTHESIS, NonTerminal::FPARAMS, TokenType::RIGHT_PARENTHESIS, TokenType::COLON, NonTerminal::FUNCDECLTAIL, TokenType::SEMICOLON })) {
-		if (match(TokenType::FUNC) && match(TokenType::ID) && match(TokenType::LEFT_PARENTHESIS) && FParams() && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::COLON) && FuncDeclTail() && match(TokenType::SEMICOLON)) {
+	//<FuncDef> ::= <Function> <FuncDef> 
+	if (isElementOfFirst({ NonTerminal::FUNCTION, NonTerminal::FUNCDEF })) {
+		if (Function() && FuncDef()) {
 			return true;
 		}
 		else {
 			return false;
 		}
+	}
+	//<FuncDef> :: = EPSILON
+	else if (isElementOfFollow(NonTerminal::FUNCDEF)) {
+		return true;
 	}
 	else {
 		return false;
@@ -258,6 +274,9 @@ bool RecursiveDescentPredictiveParser::FuncBody()
 	if (isElementOfFirst({ TokenType::LEFT_CURLY_BRACKET, NonTerminal::METHODBODYVAR, NonTerminal::STATEMENTLIST, TokenType::RIGHT_CURLY_BRACKET })) {
 		if (match(TokenType::LEFT_CURLY_BRACKET) && MethodBodyVar() && StatementList() && match(TokenType::RIGHT_CURLY_BRACKET)) {
 			return true;
+		}
+		else {
+			return false;
 		}
 	}
 	else {
@@ -325,18 +344,23 @@ bool RecursiveDescentPredictiveParser::FParams()
 
 bool RecursiveDescentPredictiveParser::FuncDeclTail()
 {
-	//<FParamsTail> :: = ',' < Type > 'id' < ArraySizeRept > <FParamsTail>
-	if (isElementOfFirst({TokenType::COMMA, NonTerminal::TYPE, TokenType::ID, NonTerminal::ARRAYSIZEREPT, NonTerminal::FPARAMSTAIL})) {
-		if (match(TokenType::COMMA) && Type() && match(TokenType::ID) && ArraySizeRept() && FParamsTail()) {
+	//<FuncDeclTail> ::= <Type> 
+	if (isElementOfFirst({ NonTerminal::TYPE })) {
+		if (Type()) {
 			return true;
 		}
 		else {
 			return false;
 		}
 	}
-	//<FParamsTail> :: = EPSILON
-	else if (isElementOfFollow(NonTerminal::FUNCDECLTAIL)) {
-		return true;
+	//<FuncDeclTail> ::= 'void' 
+	else if (isElementOfFirst({ TokenType::VOID })) {
+		if (match(TokenType::VOID)) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 	else {
 		return false;
@@ -439,11 +463,17 @@ bool RecursiveDescentPredictiveParser::MemberDecl()
 		if (FuncDecl()) {
 			return true;
 		}
+		else {
+			return false;
+		}
 	}
 	//<MemberDecl> :: = <VarDecl>
 	else if (isElementOfFirst({ NonTerminal::VARDECL })) {
 		if (VarDecl()) {
 			return true;
+		}
+		else {
+			return false;
 		}
 	}
 	else {
@@ -458,11 +488,17 @@ bool RecursiveDescentPredictiveParser::Type()
 		if (match(TokenType::INTEGER_ID)) {
 			return true;
 		}
+		else {
+			return false;
+		}
 	}
 	//<Type> :: = 'float'
 	else if (isElementOfFirst({ TokenType::FLOAT_ID })) {
 		if (match(TokenType::FLOAT_ID)) {
 			return true;
+		}
+		else {
+			return false;
 		}
 	}
 	//<Type> :: = 'string'
@@ -470,11 +506,17 @@ bool RecursiveDescentPredictiveParser::Type()
 		if (match(TokenType::STRING_ID)) {
 			return true;
 		}
+		else {
+			return false;
+		}
 	}
 	//<Type> :: = 'id'
 	else if (isElementOfFirst({ TokenType::ID })) {
 		if (match(TokenType::ID)) {
 			return true;
+		}
+		else {
+			return false;
 		}
 	}
 	else {
@@ -494,7 +536,7 @@ bool RecursiveDescentPredictiveParser::ArraySizeRept()
 		}
 	}
 	//<ArraySizeRept> ::= EPSILON
-	if (isElementOfFollow(NonTerminal::ARRAYSIZEREPT)) {
+	else if (isElementOfFollow(NonTerminal::ARRAYSIZEREPT)) {
 		return true;
 	}
 	else {
@@ -515,6 +557,914 @@ bool RecursiveDescentPredictiveParser::FParamsTail()
 	}
 	//<FParamsTail> :: = EPSILON
 	else if (isElementOfFollow(NonTerminal::FPARAMSTAIL)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::VarDeclRep()
+{
+	//<VarDeclRep> ::= <VarDecl> <VarDeclRep>
+	if (isElementOfFirst({ NonTerminal::VARDECL, NonTerminal::VARDECLREP })) {
+		if (VarDecl() && VarDeclRep()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<VarDeclRep> ::= EPSILON
+	else if (isElementOfFollow(NonTerminal::VARDECLREP)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::Statement()
+{
+	//<Statement> ::= < FuncOrAssignStat> ';'
+	if (isElementOfFirst({ NonTerminal::FUNCORASSIGNSTAT, TokenType::SEMICOLON })) {
+		if (FuncOrAssignStat() && match(TokenType::SEMICOLON)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<Statement> ::= 'if' '(' < Expr > ')' 'then' < StatBlock > 'else' < StatBlock > ';'
+	else if (isElementOfFirst({ TokenType::IF, TokenType::LEFT_PARENTHESIS, NonTerminal::EXPR, TokenType::RIGHT_PARENTHESIS, TokenType::THEN, NonTerminal::STATBLOCK, TokenType::ELSE, NonTerminal::STATBLOCK, TokenType::SEMICOLON })) {
+		if (match(TokenType::IF) && match(TokenType::LEFT_PARENTHESIS) && Expr() && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::THEN) && StatBlock() && match(TokenType::ELSE) && StatBlock() && match(TokenType::SEMICOLON)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<Statement> ::= 'while' '(' < Expr > ')' < StatBlock > ';'
+	else if (isElementOfFirst({ TokenType::WHILE, TokenType::LEFT_PARENTHESIS, NonTerminal::EXPR, TokenType::RIGHT_PARENTHESIS, NonTerminal::STATBLOCK, TokenType::SEMICOLON })) {
+		if (match(TokenType::WHILE) && match(TokenType::LEFT_PARENTHESIS) && Expr() && match(TokenType::RIGHT_PARENTHESIS) && StatBlock() && match(TokenType::SEMICOLON)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<Statement> ::= 'read' '(' < Variable > ')' ';'
+	else if (isElementOfFirst({ TokenType::READ, TokenType::LEFT_PARENTHESIS, NonTerminal::VARIABLE, TokenType::RIGHT_PARENTHESIS, TokenType::SEMICOLON })) {
+		if (match(TokenType::READ) && match(TokenType::LEFT_PARENTHESIS) && Variable() && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::SEMICOLON)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<Statement> ::= 'write' '(' < Expr > ')' ';'
+	else if (isElementOfFirst({ TokenType::WRITE, TokenType::LEFT_PARENTHESIS, NonTerminal::EXPR, TokenType::RIGHT_PARENTHESIS, TokenType::SEMICOLON })) {
+		if (match(TokenType::WRITE) && match(TokenType::LEFT_PARENTHESIS) && Expr() && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::SEMICOLON)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<Statement> ::= 'return' '(' < Expr > ')' ';'
+	else if (isElementOfFirst({ TokenType::RETURN, TokenType::LEFT_PARENTHESIS, NonTerminal::EXPR, TokenType::RIGHT_PARENTHESIS, TokenType::SEMICOLON })) {
+		if (match(TokenType::RETURN) && match(TokenType::LEFT_PARENTHESIS) && Expr() && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::SEMICOLON)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<Statement> ::= 'break' ';'
+	else if (isElementOfFirst({ TokenType::BREAK, TokenType::SEMICOLON })) {
+		if (match(TokenType::BREAK) && match(TokenType::SEMICOLON)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<Statement> ::= 'continue' ';'
+	else if (isElementOfFirst({ TokenType::CONTINUE, TokenType::SEMICOLON })) {
+		if (match(TokenType::CONTINUE) && match(TokenType::SEMICOLON)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::FuncDecl()
+{
+	//<FuncDecl> ::= 'func' 'id' '(' <FParams> ')' ':' <FuncDeclTail> ';'
+	if (isElementOfFirst({ TokenType::FUNC, TokenType::ID, TokenType::LEFT_PARENTHESIS, NonTerminal::FPARAMS, TokenType::RIGHT_PARENTHESIS, TokenType::COLON, NonTerminal::FUNCDECLTAIL, TokenType::SEMICOLON })) {
+		if (match(TokenType::FUNC) && match(TokenType::ID) && match(TokenType::LEFT_PARENTHESIS) && FParams() && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::COLON) && FuncDeclTail() && match(TokenType::SEMICOLON)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::VarDecl()
+{
+	//<VarDecl> ::= <Type> 'id' <ArraySizeRept> ';' 
+	if (isElementOfFirst({ NonTerminal::TYPE, TokenType::ID, NonTerminal::ARRAYSIZEREPT, TokenType::SEMICOLON })) {
+		if (Type() && match(TokenType::ID) && ArraySizeRept() && match(TokenType::SEMICOLON)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::IntNum()
+{
+	//<IntNum> :: = 'intnum'
+	if (isElementOfFirst({ TokenType::INTEGER })) {
+		if (match(TokenType::INTEGER)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//< IntNum > :: = EPSILON
+	else if (isElementOfFollow(NonTerminal::INTNUM)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::FuncOrAssignStat()
+{
+	//<FuncOrAssignStat> ::= 'id' <FuncOrAssignStatIdnest> 
+	if (isElementOfFirst({ TokenType::ID, NonTerminal::FUNCORASSIGNSTATIDNEST })) {
+		if (match(TokenType::ID) && FuncOrAssignStatIDNest()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::Expr()
+{
+	//<Expr> ::= <ArithExpr> <ExprTail> 
+	if (isElementOfFirst({ NonTerminal::ARITHEXPR, NonTerminal::EXPRTAIL })) {
+		if (ArithExpr() && ExprTail()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::StatBlock()
+{
+	//<StatBlock> ::= '{' <StatementList> '}' 
+	if (isElementOfFirst({ TokenType::LEFT_CURLY_BRACKET, NonTerminal::STATEMENTLIST, TokenType::RIGHT_CURLY_BRACKET })) {
+		if (match(TokenType::LEFT_CURLY_BRACKET) && StatementList() && match(TokenType::RIGHT_CURLY_BRACKET)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<StatBlock> :: = <Statement>
+	else if (isElementOfFirst({ NonTerminal::STATEMENT })) {
+		if (Statement()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<StatBlock> :: = EPSILON
+	else if (isElementOfFollow(NonTerminal::STATBLOCK)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::Variable()
+{
+	//<Variable> ::= 'id' <VariableIdnest> 
+	if (isElementOfFirst({ TokenType::ID, NonTerminal::VARIABLEIDNEST })) {
+		if (match(TokenType::ID) && VariableIDNest()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNest()
+{
+	//<FuncOrAssignStatIdnest> ::= <IndiceRep> <FuncOrAssignStatIdnestVarTail> 
+	if (isElementOfFirst({ NonTerminal::INDICEREP, NonTerminal::FUNCORASSIGNSTATIDNESTVARTAIL })) {
+		if (IndiceRep() && FuncOrAssignStatIDNestVarTail()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<FuncOrAssignStatIdnest> :: = '(' < AParams > ')' < FuncOrAssignStatIdnestFuncTail >
+	else if (isElementOfFirst({ TokenType::LEFT_PARENTHESIS, NonTerminal::APARAMS, TokenType::RIGHT_PARENTHESIS, NonTerminal::FUNCORASSIGNSTATIDNESTFUNCTAIL })) {
+		if (match(TokenType::LEFT_PARENTHESIS) && AParams() && match(TokenType::RIGHT_PARENTHESIS) && FuncOrAssignStatIDNestFuncTail()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::ArithExpr()
+{
+	//<ArithExpr> ::= <Term> <ArithExprTail> 
+	if (isElementOfFirst({ NonTerminal::TERM, NonTerminal::ARITHEXPRTAIL })) {
+		if (Term() && ArithExprTail()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::ExprTail()
+{
+	//<ExprTail> ::= <RelOp> <ArithExpr> 
+	if (isElementOfFirst({ NonTerminal::RELOP, NonTerminal::ARITHEXPR })) {
+		if (RelOp() && ArithExpr()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<ExprTail> :: = EPSILON
+	else if (isElementOfFollow(NonTerminal::EXPRTAIL)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::VariableIDNest()
+{
+	//<VariableIdnest> ::= <IndiceRep> <VariableIdnestTail> 
+	if (isElementOfFirst({ NonTerminal::INDICEREP, NonTerminal::VARIABLEIDNESTTAIL })) {
+		if (IndiceRep() && VariableIDNestTail()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::IndiceRep()
+{
+	//<IndiceRep> ::= '[' <Expr> ']' <IndiceRep> 
+	if (isElementOfFirst({ TokenType::LEFT_SQUARE_BRACKET, NonTerminal::EXPR, TokenType::RIGHT_SQUARE_BRACKET, NonTerminal::INDICEREP })) {
+		if (match(TokenType::LEFT_SQUARE_BRACKET) && Expr() && match(TokenType::RIGHT_SQUARE_BRACKET) && IndiceRep()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<IndiceRep> ::= EPSILON 
+	else if (isElementOfFollow(NonTerminal::INDICEREP)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNestVarTail()
+{
+	//<FuncOrAssignStatIdnestVarTail> ::= '.' 'id' <FuncOrAssignStatIdnest> 
+	if (isElementOfFirst({ TokenType::PERIOD, TokenType::ID, NonTerminal::FUNCORASSIGNSTATIDNEST })) {
+		if (match(TokenType::PERIOD) && match(TokenType::ID) && FuncOrAssignStatIDNest()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<FuncOrAssignStatIdnestVarTail> ::= <AssignStatTail> 
+	else if (isElementOfFirst({ NonTerminal::ASSIGNSTATTAIL })) {
+		if (AssignStatTail()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::AParams()
+{
+	//<AParams> ::= <Expr> <AParamsTail> 
+	if (isElementOfFirst({ NonTerminal::EXPR, NonTerminal::APARAMSTAIL })) {
+		if (Expr() && AParamsTail()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<AParams> ::= EPSILON 
+	else if (isElementOfFollow({ NonTerminal::APARAMS })) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNestFuncTail()
+{
+	//<FuncOrAssignStatIdnestFuncTail> ::= '.' 'id' <FuncStatTail> 
+	if (isElementOfFirst({ TokenType::PERIOD, TokenType::ID, NonTerminal::FUNCSTATTAIL })) {
+		if (match(TokenType::PERIOD) && match(TokenType::ID) && FuncStatTail()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<FuncOrAssignStatIdnestFuncTail> :: = EPSILON
+	else if (isElementOfFollow(NonTerminal::FUNCORASSIGNSTATIDNESTFUNCTAIL)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::Term()
+{
+	//<Term> ::= <Factor> <TermTail> 
+	if (isElementOfFirst({ NonTerminal::FACTOR, NonTerminal::TERMTAIL })) {
+		if (Factor() && TermTail()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::ArithExprTail()
+{
+	//<ArithExprTail> ::= <AddOp> <Term> <ArithExprTail> 
+	if (isElementOfFirst({NonTerminal::ADDOP, NonTerminal::TERM, NonTerminal::ARITHEXPRTAIL})) {
+		if (AddOp() && Term() && ArithExprTail()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<ArithExprTail> ::= EPSILON 
+	else if (isElementOfFollow(NonTerminal::ARITHEXPRTAIL)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::RelOp()
+{
+	//<RelOp> ::= 'eq' 
+	if (isElementOfFirst({ TokenType::EQUAL_TO })) {
+		if (match(TokenType::EQUAL_TO)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<RelOp> ::= 'neq' 
+	else if (isElementOfFirst({ TokenType::NOT_EQUAL_TO })) {
+		if (match(TokenType::NOT_EQUAL_TO)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<RelOp> ::= 'lt' 
+	else if (isElementOfFirst({ TokenType::LESS_THAN })) {
+		if (match(TokenType::LESS_THAN)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<RelOp> ::= 'gt' 
+	else if (isElementOfFirst({ TokenType::GREATER_THAN })) {
+		if (match(TokenType::GREATER_THAN)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<RelOp> ::= 'leq' 
+	else if (isElementOfFirst({ TokenType::LESS_THAN_EQUAL_TO })) {
+		if (match(TokenType::LESS_THAN_EQUAL_TO)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<RelOp> ::= 'geq' 
+	else if (isElementOfFirst({ TokenType::GREATER_THAN_EQUAL_TO })) {
+		if (match(TokenType::GREATER_THAN_EQUAL_TO)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::VariableIDNestTail()
+{
+	//<VariableIdnestTail> ::= '.' 'id' <VariableIdnest> 
+	if (isElementOfFirst({ TokenType::PERIOD, TokenType::ID, NonTerminal::VARIABLEIDNEST })) {
+		if (match(TokenType::PERIOD) && match(TokenType::ID) && VariableIDNest()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<VariableIdnestTail> ::= EPSILON 
+	else if (isElementOfFollow(NonTerminal::VARIABLEIDNESTTAIL)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::AssignStatTail()
+{
+	//<AssignStatTail> ::= <AssignOp> <Expr> 
+	if (isElementOfFirst({ NonTerminal::ASSIGNOP, NonTerminal::EXPR })) {
+		if (AssignOp() && Expr()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::AParamsTail()
+{
+	//<AParamsTail> ::= ',' <Expr> <AParamsTail> 
+	if (isElementOfFirst({ TokenType::COMMA, NonTerminal::EXPR, NonTerminal::APARAMSTAIL })) {
+		if (match(TokenType::COMMA) && Expr() && AParamsTail()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<AParamsTail> :: = EPSILON
+	else if (isElementOfFollow(NonTerminal::APARAMSTAIL)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::FuncStatTail()
+{
+	//<FuncStatTail> ::= <IndiceRep> '.' 'id' <FuncStatTail> 
+	if (isElementOfFirst({ NonTerminal::INDICEREP, TokenType::PERIOD, TokenType::ID, NonTerminal::FUNCSTATTAIL })) {
+		if (IndiceRep() && match(TokenType::PERIOD) && match(TokenType::ID) && FuncStatTail()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<FuncStatTail> ::= '(' <AParams> ')' <FuncStatTailIdnest> 
+	else if (isElementOfFirst({ TokenType::LEFT_PARENTHESIS, NonTerminal::APARAMS, TokenType::RIGHT_PARENTHESIS, NonTerminal::FUNCSTATTAILIDNEST })) {
+		if (match(TokenType::LEFT_PARENTHESIS) && AParams() && match(TokenType::RIGHT_PARENTHESIS) && FuncStatTailIDNest()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::Factor()
+{
+	//<Factor> ::= <FuncOrVar> 
+	if (isElementOfFirst({ NonTerminal::FUNCORVAR })) {
+		if (FuncOrVar()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<Factor> ::= 'intnum' 
+	else if (isElementOfFirst({ TokenType::INTEGER })) {
+		if (match(TokenType::INTEGER)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<Factor> ::= 'floatnum' 
+	else if (isElementOfFirst({ TokenType::FLOAT })) {
+		if (match(TokenType::FLOAT)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<Factor> ::= 'stringlit' 
+	else if (isElementOfFirst({ TokenType::STRING })) {
+		if (match(TokenType::STRING)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<Factor> ::= '(' <Expr> ')' 
+	else if (isElementOfFirst({ TokenType::LEFT_PARENTHESIS, NonTerminal::EXPR, TokenType::RIGHT_PARENTHESIS })) {
+		if (match(TokenType::LEFT_PARENTHESIS) && Expr() && match(TokenType::RIGHT_PARENTHESIS)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<Factor> ::= 'not' <Factor> 
+	else if (isElementOfFirst({ TokenType::NOT, NonTerminal::FACTOR })) {
+		if (match(TokenType::NOT) && Factor()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<Factor> ::= <Sign> <Factor> 
+	else if (isElementOfFirst({ NonTerminal::SIGN, NonTerminal::FACTOR })) {
+		if (Sign() && Factor()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<Factor> ::= 'qm' '[' <Expr> ':' <Expr> ':' <Expr> ']' 
+	else if (isElementOfFirst({ TokenType::QUESTION_MARK, TokenType::LEFT_SQUARE_BRACKET, NonTerminal::EXPR, TokenType::COLON,  NonTerminal::EXPR, TokenType::COLON, NonTerminal::EXPR, TokenType::RIGHT_SQUARE_BRACKET })) {
+		if (match(TokenType::QUESTION_MARK) && match(TokenType::LEFT_SQUARE_BRACKET) && Expr() && match(TokenType::COLON) && Expr() && match(TokenType::COLON) && Expr() && match(TokenType::RIGHT_SQUARE_BRACKET)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::TermTail()
+{
+	//<TermTail> ::= <MultOp> <Factor> <TermTail> 
+	if (isElementOfFirst({ NonTerminal::MULTOP, NonTerminal::FACTOR, NonTerminal::TERMTAIL })) {
+		if (MultOp() && Factor() && TermTail()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<TermTail> ::= EPSILON 
+	else if (isElementOfFollow(NonTerminal::TERMTAIL)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::AddOp()
+{
+	//<AddOp> ::= '+' 
+	if (isElementOfFirst({ TokenType::ADDITION })) {
+		if (match(TokenType::ADDITION)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<AddOp> ::= '-' 
+	else if (isElementOfFirst({ TokenType::SUBTRACTION })) {
+		if (match(TokenType::SUBTRACTION)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<AddOp> ::= 'or' 
+	else if (isElementOfFirst({ TokenType::OR })) {
+		if (match(TokenType::OR)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::AssignOp()
+{
+	//<AssignOp> ::= 'assign'
+	if (isElementOfFirst({ TokenType::ASSIGNMENT })) {
+		if (match(TokenType::ASSIGNMENT)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::FuncStatTailIDNest()
+{
+	//<FuncStatTailIdnest> ::= '.' 'id' <FuncStatTail> 
+	if (isElementOfFirst({ TokenType::PERIOD, TokenType::ID, NonTerminal::FUNCSTATTAIL })) {
+		if (match(TokenType::PERIOD) && match(TokenType::ID) && FuncStatTail()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<FuncStatTailIdnest> ::= EPSILON
+	else if (isElementOfFollow(NonTerminal::FUNCSTATTAILIDNEST)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+	return false;
+}
+
+bool RecursiveDescentPredictiveParser::FuncOrVar()
+{
+	//<FuncOrVar> ::= 'id' <FuncOrVarIdnest> 
+	if (isElementOfFirst({ TokenType::ID, NonTerminal::FUNCORVARIDNEST })) {
+		if (match(TokenType::ID) && FuncOrVarIDNest()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	return false;
+}
+
+bool RecursiveDescentPredictiveParser::Sign()
+{
+	//<Sign> ::= '+' 
+	if (isElementOfFirst({ TokenType::ADDITION })) {
+		if (match(TokenType::ADDITION)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<Sign> ::= '-' 
+	else if (isElementOfFirst({ TokenType::SUBTRACTION })) {
+		if (match(TokenType::SUBTRACTION)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::MultOp()
+{
+	//<MultOp> ::= '*' 
+	if (isElementOfFirst({ TokenType::MULTIPLICATION })) {
+		if (match(TokenType::MULTIPLICATION)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<MultOp> ::= '/' 
+	else if (isElementOfFirst({ TokenType::DIVISION})) {
+		if (match(TokenType::DIVISION)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<MultOp> ::= 'and'
+	else if (isElementOfFirst({ TokenType::AND })) {
+		if (match(TokenType::AND)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::FuncOrVarIDNest()
+{
+	//<FuncOrVarIdnest> ::= <IndiceRep> <FuncOrVarIdnestTail> 
+	if (isElementOfFirst({ NonTerminal::INDICEREP, NonTerminal::FUNCORVARIDNESTTAIL })) {
+		if (IndiceRep() && FuncOrVarIDNestTail()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<FuncOrVarIdnest> ::= '(' <AParams> ')' <FuncOrVarIdnestTail> 
+	else if (isElementOfFirst({ TokenType::LEFT_PARENTHESIS, NonTerminal::APARAMS, TokenType::RIGHT_PARENTHESIS, NonTerminal::FUNCORVARIDNESTTAIL })) {
+		if (match(TokenType::LEFT_PARENTHESIS) && AParams() && match(TokenType::RIGHT_PARENTHESIS) && FuncOrVarIDNestTail()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::FuncOrVarIDNestTail()
+{
+	//<FuncOrVarIdnestTail> ::= '.' 'id' <FuncOrVarIdnest> 
+	if (isElementOfFirst({ TokenType::PERIOD, TokenType::ID, NonTerminal::FUNCORVARIDNEST })) {
+		if (match(TokenType::PERIOD) && match(TokenType::ID) && FuncOrVarIDNest()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<FuncOrVarIdnestTail> ::= EPSILON 
+	else if (isElementOfFollow(NonTerminal::FUNCORVARIDNESTTAIL)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::Function()
+{
+	//<Function> ::= <FuncHead> <FuncBody> 
+	if (isElementOfFirst({ NonTerminal::FUNCHEAD, NonTerminal::FUNCBODY })) {
+		if (FuncHead() && FuncBody()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::FuncHead()
+{
+	//<FuncHead> ::= 'func' 'id' <ClassMethod> '(' <FParams> ')' ':' <FuncDeclTail> 
+	if (isElementOfFirst({ TokenType::FUNC, TokenType::ID, NonTerminal::CLASSMETHOD, TokenType::LEFT_PARENTHESIS, NonTerminal::FPARAMS, TokenType::RIGHT_PARENTHESIS, TokenType::COLON, NonTerminal::FUNCDECLTAIL })) {
+		if (match(TokenType::FUNC) && match(TokenType::ID) && ClassMethod() && match(TokenType::LEFT_PARENTHESIS) && FParams() && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::COLON) && FuncDeclTail()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::ClassMethod()
+{
+	//<ClassMethod> ::= 'sr' 'id' 
+	if (isElementOfFirst({ TokenType::DOUBLE_COLON, TokenType::ID })) {
+		if (match(TokenType::DOUBLE_COLON) && match(TokenType::ID)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<ClassMethod> ::= EPSILON 
+	else if (isElementOfFollow(NonTerminal::CLASSMETHOD)) {
 		return true;
 	}
 	else {

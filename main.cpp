@@ -85,12 +85,6 @@ int main(int argc, char* argv[])
 	Lexer lexer(file);
 	RecursiveDescentPredictiveParser parser(lexer);
 
-	Token t = lexer.nextToken();
-
-	while (t.getTokenType() != TokenType::END_OF_FILE) {
-		t = lexer.nextToken();
-	}
-
 	parser.parse();
 
 	vector<Token>& tokens = parser.getTokens();
