@@ -39,6 +39,8 @@ void writeOutlexErrorFile(vector<Token> tokens, string path) {
 			break;
 		}
 	}
+
+	file.close();
 }
 
 void writeOutlexTokensFile(vector<Token> tokens, string path) {
@@ -55,18 +57,34 @@ void writeOutlexTokensFile(vector<Token> tokens, string path) {
 		}
 		file << t;
 	}
+
+	file.close();
 }
 
 void writeDotFile(AST* tree, string path) {
 	ofstream file(path);
 
-	if (file.fail()) { return; }
+	if (file.fail() || !tree) { return; }
 	
 	string dot = tree->toDotString();
 
 	file << "digraph finite_state_machine{\n";
 	file << tree->toDotString();
 	file << "}\n";
+
+	file.close();
+}
+
+void writeOutStringVector(vector<string> strings, string path) {
+	ofstream file(path);
+
+	if (file.fail()) { return; }
+
+	for (string e : strings) {
+		file << e << std::endl;
+	}
+
+	file.close();
 }
 
 int main(int argc, char* argv[]) 
@@ -93,7 +111,9 @@ int main(int argc, char* argv[])
 
 	string outlexErrorsPath = p.parent_path().string() + "\\" + filename + ".outlexerrors";
 	string outlexTokensPath = p.parent_path().string() + "\\" + filename + ".outlextokens";
-	string outlexASTPath = p.parent_path().string() + "\\" + filename + ".outast";
+	string outASTPath = p.parent_path().string() + "\\" + filename + ".outast";
+	string outSyntaxErrorsPath = p.parent_path().string() + "\\" + filename + ".outsyntaxerrors";
+	string outSyntaxDerivationPath = p.parent_path().string() + "\\" + filename + ".outderivation";
 
 	ifstream file(argv[1]);
 
@@ -106,5 +126,7 @@ int main(int argc, char* argv[])
 
 	writeOutlexErrorFile(tokens, outlexErrorsPath);
 	writeOutlexTokensFile(tokens, outlexTokensPath);
-	writeDotFile(parser.getAST(), outlexASTPath);
+	writeDotFile(parser.getAST(), outASTPath);
+	writeOutStringVector(parser.getSyntaxErrors(), outSyntaxErrorsPath);
+	writeOutStringVector(parser.getDerivation(), outSyntaxDerivationPath);
 }

@@ -120,4 +120,6 @@ public:
 	bool parse();
 	vector<Token>& getTokens();
 	AST* getAST();
+	vector<string> getSyntaxErrors();
+	vector<string> getDerivation();
 };

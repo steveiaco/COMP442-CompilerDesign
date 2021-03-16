@@ -132,7 +132,7 @@ bool RecursiveDescentPredictiveParser::isElementOfFirst(vector<Alphabet> element
 	// The number of epsilon transitions we use
 	int numEpsilonTransisions = 0;
 	for (Alphabet e : elements) {
-		
+
 		if (auto nonTerminal = std::get_if<NonTerminal>(&e)) {
 			numNonTerminals++;
 			// If the current production contains the current lookAhead token in its first set, then return true
@@ -179,57 +179,62 @@ bool RecursiveDescentPredictiveParser::match(TokenType t)
 		lookAhead = nextToken();
 
 		switch (lastToken.getTokenType()) {
-	// Types
-	case TokenType::INTEGER_ID:
-	case TokenType::FLOAT_ID:
-	case TokenType::STRING_ID:
+			// Types
+		case TokenType::INTEGER_ID:
+		case TokenType::FLOAT_ID:
+		case TokenType::STRING_ID:
 
-	// Literals
-	case TokenType::ID:
-	case TokenType::FLOAT:
-	case TokenType::INTEGER:
-	case TokenType::STRING:
-	case TokenType::PUBLIC:
-	case TokenType::PRIVATE:
-	// Relational Operators
-	case TokenType::EQUAL_TO:
-	case TokenType::NOT_EQUAL_TO:
-	case TokenType::LESS_THAN:
-	case TokenType::GREATER_THAN:
-	case TokenType::LESS_THAN_EQUAL_TO:
-	case TokenType::GREATER_THAN_EQUAL_TO:
-	// Add Operators
-	case TokenType::ADDITION:
-	case TokenType::SUBTRACTION:
-	case TokenType::OR:
-	// Multiplication Operators
-	case TokenType::MULTIPLICATION:
-	case TokenType::DIVISION:
-	case TokenType::AND:
-	// Statement types
-	case TokenType::BREAK:
-	case TokenType::CONTINUE:
-	// Assignment
-	case TokenType::ASSIGNMENT:
+			// Literals
+		case TokenType::ID:
+		case TokenType::FLOAT:
+		case TokenType::INTEGER:
+		case TokenType::STRING:
+		case TokenType::PUBLIC:
+		case TokenType::PRIVATE:
+			// Relational Operators
+		case TokenType::EQUAL_TO:
+		case TokenType::NOT_EQUAL_TO:
+		case TokenType::LESS_THAN:
+		case TokenType::GREATER_THAN:
+		case TokenType::LESS_THAN_EQUAL_TO:
+		case TokenType::GREATER_THAN_EQUAL_TO:
+			// Add Operators
+		case TokenType::ADDITION:
+		case TokenType::SUBTRACTION:
+		case TokenType::OR:
+			// Multiplication Operators
+		case TokenType::MULTIPLICATION:
+		case TokenType::DIVISION:
+		case TokenType::AND:
+			// Statement types
+		case TokenType::BREAK:
+		case TokenType::CONTINUE:
+			// Assignment
+		case TokenType::ASSIGNMENT:
 
-	case TokenType::NOT:
-	case TokenType::VOID:
-		attributeStack.push(ASTFactory::makeNode(lastToken));
-		break;
-	}
+		case TokenType::NOT:
+		case TokenType::VOID:
+			attributeStack.push(ASTFactory::makeNode(lastToken));
+			break;
+		}
 
 		return true;
 	}
 	else {
 		syntaxErrors.push_back("syntax error on line " + std::to_string(lookAhead.getLineNumber()) + ": got " + lookAhead.getLexeme() + ", expected " + Token::tokenToString(t));
+		syntaxErrors.push_back("fatal error: sorry, i could not recover from the previous syntax error.");
 		return false;
 	}
 }
 
 bool RecursiveDescentPredictiveParser::skipErrors(NonTerminal t)
 {
+	set first = firstSet[t];
+	set follow = followSet[t];
+
 	bool epsilonIsInFirst = firstSet[t].find(TokenType::EPSILON) != firstSet[t].end();
-	if (isElementOfFirst({ t }) || (epsilonIsInFirst || isElementOfFollow({ t }))) {
+	if ((first.find(lookAhead.getTokenType()) != first.end()) || 
+		(epsilonIsInFirst && (follow.find(lookAhead.getTokenType()) != follow.end()))) {
 		return true;
 	}
 	else {
@@ -242,19 +247,18 @@ bool RecursiveDescentPredictiveParser::skipErrors(NonTerminal t)
 		}
 
 		syntaxErrors.push_back("syntax error on line " + std::to_string(lookAhead.getLineNumber()) + ": " + lookAhead.getLexeme() + " was unexpected. Expected: " + listOfTokens.str());
-		
+
 		// Error skipping
-		while (!isElementOfFirst({ t }) && !isElementOfFollow({ t })) {
+		while (firstAndFollow.find(lookAhead.getTokenType()) == firstAndFollow.end()) {
 			lookAhead = nextToken();
 
-			if (epsilonIsInFirst && isElementOfFollow({ t })) {
+			if (epsilonIsInFirst && (follow.find(lookAhead.getTokenType()) != follow.end())) {
+				syntaxErrors.push_back("fatal error: sorry, i could not recover from the previous syntax error.");
 				return false;
 			}
 		}
 		return true;
 	}
-	
-	return false;
 }
 
 Token RecursiveDescentPredictiveParser::nextToken()
@@ -272,6 +276,16 @@ AST* RecursiveDescentPredictiveParser::getAST()
 	return ast;
 }
 
+vector<string> RecursiveDescentPredictiveParser::getSyntaxErrors()
+{
+	return syntaxErrors;
+}
+
+vector<string> RecursiveDescentPredictiveParser::getDerivation()
+{
+	return derivation;
+}
+
 RecursiveDescentPredictiveParser::RecursiveDescentPredictiveParser(Lexer& lexer) : lexer(lexer)
 {
 	generateFirstSet();
@@ -285,7 +299,7 @@ bool RecursiveDescentPredictiveParser::parse()
 	lookAhead = nextToken();
 
 	bool success = Start(&startS) && match(TokenType::END_OF_FILE);
-	
+
 	ast = startS;
 
 	return success;
@@ -301,10 +315,11 @@ vector<Token>& RecursiveDescentPredictiveParser::getTokens()
 
 bool RecursiveDescentPredictiveParser::Start(AST** startS)
 {
+	if (!skipErrors(NonTerminal::START)) { return false; }
 	// <START> :: = <Prog>
 	if (isElementOfFirst({ NonTerminal::PROG })) {
 		addDerivation("<Start> -> <Prog>");
-		
+
 		AST* progS = nullptr;
 		if (Prog(&progS)) {
 			*startS = ASTFactory::makeFamily(CompositeConcept::START, { progS });
@@ -321,6 +336,7 @@ bool RecursiveDescentPredictiveParser::Start(AST** startS)
 
 bool RecursiveDescentPredictiveParser::Prog(AST** progS)
 {
+	if (!skipErrors(NonTerminal::PROG)) { return false; }
 	// <Prog> ::= <ClassDecl> <FuncDef> 'main' <FuncBody> 
 	if (isElementOfFirst({ NonTerminal::CLASSDECL, NonTerminal::FUNCDEF, TokenType::MAIN, NonTerminal::FUNCBODY })) {
 		addDerivation("<Prog> -> <ClassDecl> <FuncDef> 'main' <FuncBody>");
@@ -346,6 +362,7 @@ bool RecursiveDescentPredictiveParser::Prog(AST** progS)
 
 bool RecursiveDescentPredictiveParser::ClassDecl(AST** classDeclS)
 {
+	if (!skipErrors(NonTerminal::CLASSDECL)) { return false; }
 	// <ClassDecl> ::= 'class' 'id' <Inherit> '{' <ClassDeclBody> '}' ';' <ClassDecl> 
 	if (isElementOfFirst({ TokenType::CLASS, TokenType::ID, NonTerminal::INHERIT, TokenType::LEFT_CURLY_BRACKET, NonTerminal::CLASSDECLBODY, TokenType::RIGHT_CURLY_BRACKET, TokenType::SEMICOLON, NonTerminal::CLASSDECL })) {
 		addDerivation("<ClassDecl> -> 'class' 'id' <Inherit> '{' <ClassDeclBody> '}' ';' <ClassDecl>");
@@ -380,6 +397,7 @@ bool RecursiveDescentPredictiveParser::ClassDecl(AST** classDeclS)
 
 bool RecursiveDescentPredictiveParser::FuncDef(AST** funcDefS)
 {
+	if (!skipErrors(NonTerminal::FUNCDEF)) { return false; }
 	//<FuncDef> ::= <Function> <FuncDef> 
 	if (isElementOfFirst({ NonTerminal::FUNCTION, NonTerminal::FUNCDEF })) {
 		addDerivation("<FuncDef> ::= <Function> <FuncDef>");
@@ -409,6 +427,7 @@ bool RecursiveDescentPredictiveParser::FuncDef(AST** funcDefS)
 
 bool RecursiveDescentPredictiveParser::FuncBody(AST** funcBodyS)
 {
+	if (!skipErrors(NonTerminal::FUNCBODY)) { return false; }
 	// <FuncBody> ::= '{' <MethodBodyVar> <StatementList> '}' 
 	if (isElementOfFirst({ TokenType::LEFT_CURLY_BRACKET, NonTerminal::METHODBODYVAR, NonTerminal::STATEMENTLIST, TokenType::RIGHT_CURLY_BRACKET })) {
 		addDerivation("<FuncBody> ::= '{' <MethodBodyVar> <StatementList> '}'");
@@ -417,7 +436,7 @@ bool RecursiveDescentPredictiveParser::FuncBody(AST** funcBodyS)
 		AST* statementList = nullptr;
 		if (match(TokenType::LEFT_CURLY_BRACKET) && MethodBodyVar(&methodBodyVarS) && StatementList(&statementList) && match(TokenType::RIGHT_CURLY_BRACKET)) {
 			AST* statementListParent = ASTFactory::makeFamily(CompositeConcept::STATEMENTLIST, { statementList });
-			*funcBodyS = ASTFactory::makeFamily(CompositeConcept::FUNCBODY, {methodBodyVarS, statementListParent});
+			*funcBodyS = ASTFactory::makeFamily(CompositeConcept::FUNCBODY, { methodBodyVarS, statementListParent });
 			return true;
 		}
 		else {
@@ -431,8 +450,9 @@ bool RecursiveDescentPredictiveParser::FuncBody(AST** funcBodyS)
 
 bool RecursiveDescentPredictiveParser::Inherit(AST** inheritS)
 {
+	if (!skipErrors(NonTerminal::INHERIT)) { return false; }
 	// <Inherit> ::= 'inherits' 'id' < NestedId >
-	if (isElementOfFirst({TokenType::INHERITS, TokenType::ID, NonTerminal::NESTEDID})) {
+	if (isElementOfFirst({ TokenType::INHERITS, TokenType::ID, NonTerminal::NESTEDID })) {
 		addDerivation("<Inherit> ::= 'inherits' 'id' <NestedId>");
 		AST* nestedId = nullptr;
 		if (match(TokenType::INHERITS) && match(TokenType::ID) && NestedID(&nestedId)) {
@@ -456,6 +476,7 @@ bool RecursiveDescentPredictiveParser::Inherit(AST** inheritS)
 
 bool RecursiveDescentPredictiveParser::NestedID(AST** nestedIdS)
 {
+	if (!skipErrors(NonTerminal::NESTEDID)) { return false; }
 	//<NestedId> ::= ',' 'id' < NestedId >
 	if (isElementOfFirst({ TokenType::COMMA, TokenType::ID, NonTerminal::NESTEDID })) {
 		addDerivation("<NestedId> ::= ',' 'id' <NestedId>");
@@ -483,6 +504,7 @@ bool RecursiveDescentPredictiveParser::NestedID(AST** nestedIdS)
 
 bool RecursiveDescentPredictiveParser::ClassDeclBody(AST** classDeclBodyS)
 {
+	if (!skipErrors(NonTerminal::CLASSDECLBODY)) { return false; }
 	// <ClassDeclBody> ::= <Visibility> <MemberDecl> <ClassDeclBody> 
 	if (isElementOfFirst({ NonTerminal::VISIBILITY, NonTerminal::MEMBERDECL, NonTerminal::CLASSDECLBODY })) {
 		addDerivation("<ClassDeclBody> ::= <Visibility> <MemberDecl> <ClassDeclBody>");
@@ -512,6 +534,7 @@ bool RecursiveDescentPredictiveParser::ClassDeclBody(AST** classDeclBodyS)
 
 bool RecursiveDescentPredictiveParser::FParams(AST** fParams)
 {
+	if (!skipErrors(NonTerminal::FPARAMS)) { return false; }
 	//<FParams> ::= <Type> 'id' < ArraySizeRept > <FParamsTail>
 	if (isElementOfFirst({ NonTerminal::TYPE, TokenType::ID, NonTerminal::ARRAYSIZEREPT, NonTerminal::FPARAMSTAIL })) {
 		addDerivation("<FParams> ::= <Type> 'id' < ArraySizeRept > <FParamsTail>");
@@ -523,10 +546,10 @@ bool RecursiveDescentPredictiveParser::FParams(AST** fParams)
 			AST* fParamId = attributeStack.top(); attributeStack.pop();
 			AST* arraySizeReptList = nullptr;
 			if (arraySizeRept) {
-				 arraySizeReptList = ASTFactory::makeFamily(CompositeConcept::ARRAYSIZEREPTLIST, { arraySizeRept });
+				arraySizeReptList = ASTFactory::makeFamily(CompositeConcept::ARRAYSIZEREPTLIST, { arraySizeRept });
 			}
 
-			AST* fParamCurrent = ASTFactory::makeFamily(CompositeConcept::FPARAMS, { type, fParamId, arraySizeReptList});
+			AST* fParamCurrent = ASTFactory::makeFamily(CompositeConcept::FPARAMS, { type, fParamId, arraySizeReptList });
 			fParamCurrent->makeSiblings(fParamsTail);
 
 			*fParams = ASTFactory::makeFamily(CompositeConcept::FPARAMSLIST, { fParamCurrent });
@@ -548,6 +571,7 @@ bool RecursiveDescentPredictiveParser::FParams(AST** fParams)
 
 bool RecursiveDescentPredictiveParser::FuncDeclTail(AST** funcDeclTail)
 {
+	if (!skipErrors(NonTerminal::FUNCDECLTAIL)) { return false; }
 	//<FuncDeclTail> ::= <Type> 
 	if (isElementOfFirst({ NonTerminal::TYPE })) {
 		addDerivation("<FuncDeclTail> ::= <Type>");
@@ -576,8 +600,9 @@ bool RecursiveDescentPredictiveParser::FuncDeclTail(AST** funcDeclTail)
 
 bool RecursiveDescentPredictiveParser::MethodBodyVar(AST** methodBodyVar)
 {
+	if (!skipErrors(NonTerminal::METHODBODYVAR)) { return false; }
 	//<MethodBodyVar> ::= 'var' '{' <VarDeclRep> '}'
-	if (isElementOfFirst({TokenType::VAR, TokenType::LEFT_CURLY_BRACKET, NonTerminal::VARDECLREP, TokenType::RIGHT_CURLY_BRACKET})) {
+	if (isElementOfFirst({ TokenType::VAR, TokenType::LEFT_CURLY_BRACKET, NonTerminal::VARDECLREP, TokenType::RIGHT_CURLY_BRACKET })) {
 		addDerivation("<MethodBodyVar> ::= 'var' '{' <VarDeclRep> '}'");
 
 		AST* varDeclRep = nullptr;
@@ -601,6 +626,7 @@ bool RecursiveDescentPredictiveParser::MethodBodyVar(AST** methodBodyVar)
 
 bool RecursiveDescentPredictiveParser::StatementList(AST** statementListS)
 {
+	if (!skipErrors(NonTerminal::STATEMENTLIST)) { return false; }
 	//<StatementList> ::= <Statement> <StatementList>
 	if (isElementOfFirst({ NonTerminal::STATEMENT, NonTerminal::STATEMENTLIST })) {
 		addDerivation("<StatementList> ::= <Statement> <StatementList>");
@@ -628,6 +654,7 @@ bool RecursiveDescentPredictiveParser::StatementList(AST** statementListS)
 
 bool RecursiveDescentPredictiveParser::Visibility(AST** visibilityS)
 {
+	if (!skipErrors(NonTerminal::VISIBILITY)) { return false; }
 	//<Visibility> :: = 'public'
 	if (isElementOfFirst({ TokenType::PUBLIC })) {
 		addDerivation("<Visibility> :: = 'public'");
@@ -662,8 +689,9 @@ bool RecursiveDescentPredictiveParser::Visibility(AST** visibilityS)
 
 bool RecursiveDescentPredictiveParser::MemberDecl(AST** memberDeclS)
 {
+	if (!skipErrors(NonTerminal::MEMBERDECL)) { return false; }
 	//<MemberDecl> ::= <FuncDecl>
-	if (isElementOfFirst({NonTerminal::FUNCDECL})) {
+	if (isElementOfFirst({ NonTerminal::FUNCDECL })) {
 		addDerivation("<MemberDecl> ::= <FuncDecl>");
 		AST* funcDecl = nullptr;
 		if (FuncDecl(&funcDecl)) {
@@ -693,6 +721,7 @@ bool RecursiveDescentPredictiveParser::MemberDecl(AST** memberDeclS)
 
 bool RecursiveDescentPredictiveParser::Type(AST** type)
 {
+	if (!skipErrors(NonTerminal::TYPE)) { return false; }
 	//<Type> :: = 'integer'
 	if (isElementOfFirst({ TokenType::INTEGER_ID })) {
 		addDerivation("<Type> :: = 'integer'");
@@ -744,6 +773,7 @@ bool RecursiveDescentPredictiveParser::Type(AST** type)
 
 bool RecursiveDescentPredictiveParser::ArraySizeRept(AST** arraySizeRept)
 {
+	if (!skipErrors(NonTerminal::ARRAYSIZEREPT)) { return false; }
 	//<ArraySizeRept> :: = '[' < IntNum > ']' < ArraySizeRept >
 	if (isElementOfFirst({ TokenType::LEFT_SQUARE_BRACKET, NonTerminal::INTNUM, TokenType::RIGHT_SQUARE_BRACKET, NonTerminal::ARRAYSIZEREPT })) {
 		addDerivation("<ArraySizeRept> ::= '[' <IntNum> ']' <ArraySizeRept>");
@@ -751,7 +781,7 @@ bool RecursiveDescentPredictiveParser::ArraySizeRept(AST** arraySizeRept)
 		AST* intNum = nullptr;
 		AST* arraySizeReptSibling = nullptr;;
 		if (match(TokenType::LEFT_SQUARE_BRACKET) && IntNum(&intNum) && match(TokenType::RIGHT_SQUARE_BRACKET) && ArraySizeRept(&arraySizeReptSibling)) {
-			AST* arrayDim = ASTFactory::makeFamily(CompositeConcept::ARRAYDIMENSION, {intNum});
+			AST* arrayDim = ASTFactory::makeFamily(CompositeConcept::ARRAYDIMENSION, { intNum });
 			arrayDim->makeSiblings(arraySizeReptSibling);
 			*arraySizeRept = arrayDim;
 			return true;
@@ -772,6 +802,7 @@ bool RecursiveDescentPredictiveParser::ArraySizeRept(AST** arraySizeRept)
 
 bool RecursiveDescentPredictiveParser::FParamsTail(AST** fParamsTail)
 {
+	if (!skipErrors(NonTerminal::FPARAMSTAIL)) { return false; }
 	//<FParamsTail> :: = ',' < Type > 'id' < ArraySizeRept > <FParamsTail>
 	if (isElementOfFirst({ TokenType::COMMA, NonTerminal::TYPE, TokenType::ID, NonTerminal::ARRAYSIZEREPT, NonTerminal::FPARAMSTAIL })) {
 		addDerivation("<FParamsTail> :: = ',' < Type > 'id' < ArraySizeRept > <FParamsTail>");
@@ -805,9 +836,7 @@ bool RecursiveDescentPredictiveParser::FParamsTail(AST** fParamsTail)
 
 bool RecursiveDescentPredictiveParser::VarDeclRep(AST** varDeclRep)
 {
-	if (!skipErrors(NonTerminal::VARDECLREP)) {
-		return false;
-	}
+	if (!skipErrors(NonTerminal::VARDECLREP)) { return false; }
 
 	//<VarDeclRep> ::= <VarDecl> <VarDeclRep>
 	if (isElementOfFirst({ NonTerminal::VARDECL, NonTerminal::VARDECLREP })) {
@@ -833,6 +862,7 @@ bool RecursiveDescentPredictiveParser::VarDeclRep(AST** varDeclRep)
 
 bool RecursiveDescentPredictiveParser::Statement(AST** statementS)
 {
+	if (!skipErrors(NonTerminal::STATEMENT)) { return false; }
 	//<Statement> ::= <FuncOrAssignStat> ';'
 	if (isElementOfFirst({ NonTerminal::FUNCORASSIGNSTAT, TokenType::SEMICOLON })) {
 		addDerivation("<Statement> ::= <FuncOrAssignStat> ';'");
@@ -878,7 +908,7 @@ bool RecursiveDescentPredictiveParser::Statement(AST** statementS)
 	//<Statement> ::= 'read' '(' < Variable > ')' ';'
 	else if (isElementOfFirst({ TokenType::READ, TokenType::LEFT_PARENTHESIS, NonTerminal::VARIABLE, TokenType::RIGHT_PARENTHESIS, TokenType::SEMICOLON })) {
 		addDerivation("<Statement> ::= 'read' '(' < Variable > ')' ';'");
-		
+
 		AST* var = nullptr;
 		if (match(TokenType::READ) && match(TokenType::LEFT_PARENTHESIS) && Variable(&var) && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::SEMICOLON)) {
 			*statementS = ASTFactory::makeFamily(CompositeConcept::READ, { var });
@@ -944,6 +974,7 @@ bool RecursiveDescentPredictiveParser::Statement(AST** statementS)
 
 bool RecursiveDescentPredictiveParser::FuncDecl(AST** funcDecl)
 {
+	if (!skipErrors(NonTerminal::FUNCDECL)) { return false; }
 	//<FuncDecl> ::= 'func' 'id' '(' <FParams> ')' ':' <FuncDeclTail> ';'
 	if (isElementOfFirst({ TokenType::FUNC, TokenType::ID, TokenType::LEFT_PARENTHESIS, NonTerminal::FPARAMS, TokenType::RIGHT_PARENTHESIS, TokenType::COLON, NonTerminal::FUNCDECLTAIL, TokenType::SEMICOLON })) {
 		addDerivation("<FuncDecl> ::= 'func' 'id' '(' <FParams> ')' ':' <FuncDeclTail> ';'");
@@ -966,6 +997,7 @@ bool RecursiveDescentPredictiveParser::FuncDecl(AST** funcDecl)
 
 bool RecursiveDescentPredictiveParser::VarDecl(AST** varDecl)
 {
+	if (!skipErrors(NonTerminal::VARDECL)) { return false; }
 	//<VarDecl> ::= <Type> 'id' <ArraySizeRept> ';' 
 	if (isElementOfFirst({ NonTerminal::TYPE, TokenType::ID, NonTerminal::ARRAYSIZEREPT, TokenType::SEMICOLON })) {
 		addDerivation("<VarDecl> ::= <Type> 'id' <ArraySizeRept> ';'");
@@ -992,6 +1024,7 @@ bool RecursiveDescentPredictiveParser::VarDecl(AST** varDecl)
 
 bool RecursiveDescentPredictiveParser::IntNum(AST** intNum)
 {
+	if (!skipErrors(NonTerminal::INTNUM)) { return false; }
 	//<IntNum> :: = 'intnum'
 	if (isElementOfFirst({ TokenType::INTEGER })) {
 		addDerivation("<IntNum> :: = 'intnum'");
@@ -1015,6 +1048,7 @@ bool RecursiveDescentPredictiveParser::IntNum(AST** intNum)
 
 bool RecursiveDescentPredictiveParser::FuncOrAssignStat(AST** funcOrAssignStat)
 {
+	if (!skipErrors(NonTerminal::FUNCORASSIGNSTAT)) { return false; }
 	//<FuncOrAssignStat> ::= 'id' <FuncOrAssignStatIdnest> 
 	if (isElementOfFirst({ TokenType::ID, NonTerminal::FUNCORASSIGNSTATIDNEST })) {
 		addDerivation("<FuncOrAssignStat> ::= 'id' <FuncOrAssignStatIdnest>");
@@ -1034,6 +1068,7 @@ bool RecursiveDescentPredictiveParser::FuncOrAssignStat(AST** funcOrAssignStat)
 
 bool RecursiveDescentPredictiveParser::Expr(AST** exprS)
 {
+	if (!skipErrors(NonTerminal::EXPR)) { return false; }
 	//<Expr> ::= <ArithExpr> <ExprTail> 
 	if (isElementOfFirst({ NonTerminal::ARITHEXPR, NonTerminal::EXPRTAIL })) {
 		addDerivation("<Expr> ::= <ArithExpr> <ExprTail>");
@@ -1053,6 +1088,7 @@ bool RecursiveDescentPredictiveParser::Expr(AST** exprS)
 
 bool RecursiveDescentPredictiveParser::StatBlock(AST** statBlock)
 {
+	if (!skipErrors(NonTerminal::STATBLOCK)) { return false; }
 	//<StatBlock> ::= '{' <StatementList> '}' 
 	if (isElementOfFirst({ TokenType::LEFT_CURLY_BRACKET, NonTerminal::STATEMENTLIST, TokenType::RIGHT_CURLY_BRACKET })) {
 		addDerivation("<StatBlock> ::= '{' <StatementList> '}'");
@@ -1089,6 +1125,7 @@ bool RecursiveDescentPredictiveParser::StatBlock(AST** statBlock)
 
 bool RecursiveDescentPredictiveParser::Variable(AST** variable)
 {
+	if (!skipErrors(NonTerminal::VARIABLE)) { return false; }
 	//<Variable> ::= 'id' <VariableIdnest> 
 	if (isElementOfFirst({ TokenType::ID, NonTerminal::VARIABLEIDNEST })) {
 		addDerivation("<Variable> ::= 'id' <VariableIdnest>");
@@ -1149,6 +1186,7 @@ bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNest(AST** funcOrAssign
 
 bool RecursiveDescentPredictiveParser::ArithExpr(AST** arithExpr)
 {
+	if (!skipErrors(NonTerminal::ARITHEXPR)) { return false; }
 	//<ArithExpr> ::= <Term> <ArithExprTail> 
 	if (isElementOfFirst({ NonTerminal::TERM, NonTerminal::ARITHEXPRTAIL })) {
 		addDerivation("<ArithExpr> ::= <Term> <ArithExprTail>");
@@ -1197,6 +1235,7 @@ bool RecursiveDescentPredictiveParser::ExprTail(AST** exprTail, AST* lhsArithExp
 
 bool RecursiveDescentPredictiveParser::VariableIDNest(AST** variableIdNest)
 {
+	if (!skipErrors(NonTerminal::VARIABLEIDNEST)) { return false; }
 	//<VariableIdnest> ::= <IndiceRep> <VariableIdnestTail> 
 	if (isElementOfFirst({ NonTerminal::INDICEREP, NonTerminal::VARIABLEIDNESTTAIL })) {
 		addDerivation("<VariableIdnest> ::= <IndiceRep> <VariableIdnestTail>");
@@ -1220,6 +1259,7 @@ bool RecursiveDescentPredictiveParser::VariableIDNest(AST** variableIdNest)
 
 bool RecursiveDescentPredictiveParser::IndiceRep(AST** indiceRep)
 {
+	if (!skipErrors(NonTerminal::INDICEREP)) { return false; }
 	//<IndiceRep> ::= '[' <Expr> ']' <IndiceRep> 
 	if (isElementOfFirst({ TokenType::LEFT_SQUARE_BRACKET, NonTerminal::EXPR, TokenType::RIGHT_SQUARE_BRACKET, NonTerminal::INDICEREP })) {
 		addDerivation("<IndiceRep> ::= '[' <Expr> ']' <IndiceRep>");
@@ -1282,6 +1322,7 @@ bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNestVarTail(AST** funcO
 
 bool RecursiveDescentPredictiveParser::AParams(AST** aParams)
 {
+	if (!skipErrors(NonTerminal::APARAMS)) { return false; }
 	//<AParams> ::= <Expr> <AParamsTail> 
 	if (isElementOfFirst({ NonTerminal::EXPR, NonTerminal::APARAMSTAIL })) {
 		addDerivation("<AParams> ::= <Expr> <AParamsTail>");
@@ -1333,6 +1374,7 @@ bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNestFuncTail(AST** func
 
 bool RecursiveDescentPredictiveParser::Term(AST** term)
 {
+	if (!skipErrors(NonTerminal::TERM)) { return false; }
 	//<Term> ::= <Factor> <TermTail> 
 	if (isElementOfFirst({ NonTerminal::FACTOR, NonTerminal::TERMTAIL })) {
 		addDerivation("<Term> ::= <Factor> <TermTail>");
@@ -1355,7 +1397,7 @@ bool RecursiveDescentPredictiveParser::Term(AST** term)
 bool RecursiveDescentPredictiveParser::ArithExprTail(AST** arithExprTail, AST* lhsTerm)
 {
 	//<ArithExprTail> ::= <AddOp> <Term> <ArithExprTail> 
-	if (isElementOfFirst({NonTerminal::ADDOP, NonTerminal::TERM, NonTerminal::ARITHEXPRTAIL})) {
+	if (isElementOfFirst({ NonTerminal::ADDOP, NonTerminal::TERM, NonTerminal::ARITHEXPRTAIL })) {
 		addDerivation("<ArithExprTail> ::= <AddOp> <Term> <ArithExprTail>");
 
 		AST* addOp = nullptr;
@@ -1383,6 +1425,7 @@ bool RecursiveDescentPredictiveParser::ArithExprTail(AST** arithExprTail, AST* l
 
 bool RecursiveDescentPredictiveParser::RelOp(AST** relOp)
 {
+	if (!skipErrors(NonTerminal::RELOP)) { return false; }
 	//<RelOp> ::= 'eq' 
 	if (isElementOfFirst({ TokenType::EQUAL_TO })) {
 		addDerivation("<RelOp> ::= 'eq'");
@@ -1460,6 +1503,7 @@ bool RecursiveDescentPredictiveParser::RelOp(AST** relOp)
 
 bool RecursiveDescentPredictiveParser::VariableIDNestTail(AST** variableIdNestTail)
 {
+	if (!skipErrors(NonTerminal::VARIABLEIDNESTTAIL)) { return false; }
 	//<VariableIdnestTail> ::= '.' 'id' <VariableIdnest> 
 	if (isElementOfFirst({ TokenType::PERIOD, TokenType::ID, NonTerminal::VARIABLEIDNEST })) {
 		addDerivation("<VariableIdnestTail> ::= '.' 'id' <VariableIdnest>");
@@ -1508,6 +1552,7 @@ bool RecursiveDescentPredictiveParser::AssignStatTail(AST** assignStatTail, AST*
 
 bool RecursiveDescentPredictiveParser::AParamsTail(AST** aParamsTail)
 {
+	if (!skipErrors(NonTerminal::APARAMSTAIL)) { return false; }
 	//<AParamsTail> ::= ',' <Expr> <AParamsTail> 
 	if (isElementOfFirst({ TokenType::COMMA, NonTerminal::EXPR, NonTerminal::APARAMSTAIL })) {
 		addDerivation("<AParamsTail> ::= ',' <Expr> <AParamsTail>");
@@ -1535,6 +1580,7 @@ bool RecursiveDescentPredictiveParser::AParamsTail(AST** aParamsTail)
 
 bool RecursiveDescentPredictiveParser::FuncStatTail(AST** funcStatTail)
 {
+	if (!skipErrors(NonTerminal::FUNCSTATTAIL)) { return false; }
 	//<FuncStatTail> ::= <IndiceRep> '.' 'id' <FuncStatTail> 
 	if (isElementOfFirst({ NonTerminal::INDICEREP, TokenType::PERIOD, TokenType::ID, NonTerminal::FUNCSTATTAIL })) {
 		addDerivation("<FuncStatTail> ::= <IndiceRep> '.' 'id' <FuncStatTail>");
@@ -1574,7 +1620,7 @@ bool RecursiveDescentPredictiveParser::FuncStatTail(AST** funcStatTail)
 
 bool RecursiveDescentPredictiveParser::Factor(AST** factor, AST* lhsFactor)
 {
-	
+
 	//<Factor> ::= 'intnum' 
 	if (isElementOfFirst({ TokenType::INTEGER })) {
 		addDerivation("<Factor> ::= 'intnum'");
@@ -1640,7 +1686,7 @@ bool RecursiveDescentPredictiveParser::Factor(AST** factor, AST* lhsFactor)
 		AST* branch1Expr = nullptr;
 		AST* branch2Expr = nullptr;
 		if (match(TokenType::QUESTION_MARK) && match(TokenType::LEFT_SQUARE_BRACKET) && Expr(&truthExpr) && match(TokenType::COLON) && Expr(&branch1Expr) && match(TokenType::COLON) && Expr(&branch2Expr) && match(TokenType::RIGHT_SQUARE_BRACKET)) {
-			AST* ternary = ASTFactory::makeFamily(CompositeConcept::TERNARY, {truthExpr, branch1Expr, branch2Expr});
+			AST* ternary = ASTFactory::makeFamily(CompositeConcept::TERNARY, { truthExpr, branch1Expr, branch2Expr });
 			*factor = ternary;
 			return true;
 		}
@@ -1684,7 +1730,7 @@ bool RecursiveDescentPredictiveParser::TermTail(AST** termTail, AST* lhsFactor)
 	//<TermTail> ::= <MultOp> <Factor> <TermTail> 
 	if (isElementOfFirst({ NonTerminal::MULTOP, NonTerminal::FACTOR, NonTerminal::TERMTAIL })) {
 		addDerivation("<TermTail> ::= <MultOp> <Factor> <TermTail>");
-		
+
 		AST* multOp = nullptr;
 		AST* rhsFactor = nullptr;
 		AST* termTailChild = nullptr;
@@ -1711,6 +1757,7 @@ bool RecursiveDescentPredictiveParser::TermTail(AST** termTail, AST* lhsFactor)
 
 bool RecursiveDescentPredictiveParser::AddOp(AST** addOp)
 {
+	if (!skipErrors(NonTerminal::ADDOP)) { return false; }
 	//<AddOp> ::= '+' 
 	if (isElementOfFirst({ TokenType::ADDITION })) {
 		addDerivation("<AddOp> ::= '+'");
@@ -1751,6 +1798,7 @@ bool RecursiveDescentPredictiveParser::AddOp(AST** addOp)
 
 bool RecursiveDescentPredictiveParser::AssignOp(AST** assignOp)
 {
+	if (!skipErrors(NonTerminal::ASSIGNOP)) { return false; }
 	//<AssignOp> ::= 'assign'
 	if (isElementOfFirst({ TokenType::ASSIGNMENT })) {
 		addDerivation("<AssignOp> ::= 'assign'");
@@ -1769,6 +1817,7 @@ bool RecursiveDescentPredictiveParser::AssignOp(AST** assignOp)
 
 bool RecursiveDescentPredictiveParser::FuncStatTailIDNest(AST** funcStatTailIdNest)
 {
+	if (!skipErrors(NonTerminal::FUNCSTATTAILIDNEST)) { return false; }
 	//<FuncStatTailIdnest> ::= '.' 'id' <FuncStatTail> 
 	if (isElementOfFirst({ TokenType::PERIOD, TokenType::ID, NonTerminal::FUNCSTATTAIL })) {
 		addDerivation("<FuncStatTailIdnest> ::= '.' 'id' <FuncStatTail>");
@@ -1796,6 +1845,7 @@ bool RecursiveDescentPredictiveParser::FuncStatTailIDNest(AST** funcStatTailIdNe
 
 bool RecursiveDescentPredictiveParser::FuncOrVar(AST** funcOrVar)
 {
+	if (!skipErrors(NonTerminal::FUNCORVAR)) { return false; }
 	//<FuncOrVar> ::= 'id' <FuncOrVarIdnest> 
 	if (isElementOfFirst({ TokenType::ID, NonTerminal::FUNCORVARIDNEST })) {
 		addDerivation("<FuncOrVar> ::= 'id' <FuncOrVarIdnest>");
@@ -1814,6 +1864,7 @@ bool RecursiveDescentPredictiveParser::FuncOrVar(AST** funcOrVar)
 
 bool RecursiveDescentPredictiveParser::Sign(AST** sign)
 {
+	if (!skipErrors(NonTerminal::SIGN)) { return false; }
 	//<Sign> ::= '+' 
 	if (isElementOfFirst({ TokenType::ADDITION })) {
 		addDerivation("<Sign> :: = '+'");
@@ -1843,6 +1894,7 @@ bool RecursiveDescentPredictiveParser::Sign(AST** sign)
 
 bool RecursiveDescentPredictiveParser::MultOp(AST** multOp)
 {
+	if (!skipErrors(NonTerminal::MULTOP)) { return false; }
 	//<MultOp> ::= '*' 
 	if (isElementOfFirst({ TokenType::MULTIPLICATION })) {
 		addDerivation("<MultOp> ::= '*'");
@@ -1855,7 +1907,7 @@ bool RecursiveDescentPredictiveParser::MultOp(AST** multOp)
 		}
 	}
 	//<MultOp> ::= '/' 
-	else if (isElementOfFirst({ TokenType::DIVISION})) {
+	else if (isElementOfFirst({ TokenType::DIVISION })) {
 		addDerivation("<MultOp> ::= '/'");
 		if (match(TokenType::DIVISION)) {
 			*multOp = attributeStack.top(); attributeStack.pop();
@@ -1919,6 +1971,7 @@ bool RecursiveDescentPredictiveParser::FuncOrVarIDNest(AST** funcOrVarIdNest, AS
 
 bool RecursiveDescentPredictiveParser::FuncOrVarIDNestTail(AST** funcOrVarIdNestTail)
 {
+	if (!skipErrors(NonTerminal::FUNCORVARIDNESTTAIL)) { return false; }
 	//<FuncOrVarIdnestTail> ::= '.' 'id' <FuncOrVarIdnest> 
 	if (isElementOfFirst({ TokenType::PERIOD, TokenType::ID, NonTerminal::FUNCORVARIDNEST })) {
 		addDerivation("<FuncOrVarIdnestTail> ::= '.' 'id' <FuncOrVarIdnest>");
@@ -1942,6 +1995,7 @@ bool RecursiveDescentPredictiveParser::FuncOrVarIDNestTail(AST** funcOrVarIdNest
 
 bool RecursiveDescentPredictiveParser::Function(AST** functionS)
 {
+	if (!skipErrors(NonTerminal::FUNCTION)) { return false; }
 	//<Function> ::= <FuncHead> <FuncBody> 
 	if (isElementOfFirst({ NonTerminal::FUNCHEAD, NonTerminal::FUNCBODY })) {
 		addDerivation("<FuncHead> ::= 'func' 'id' <ClassMethod> '(' <FParams> ')' ':' <FuncDeclTail> ");
@@ -1964,6 +2018,7 @@ bool RecursiveDescentPredictiveParser::Function(AST** functionS)
 
 bool RecursiveDescentPredictiveParser::FuncHead(AST** funcHeadS)
 {
+	if (!skipErrors(NonTerminal::FUNCHEAD)) { return false; }
 	//<FuncHead> ::= 'func' 'id' <ClassMethod> '(' <FParams> ')' ':' <FuncDeclTail> 
 	if (isElementOfFirst({ TokenType::FUNC, TokenType::ID, NonTerminal::CLASSMETHOD, TokenType::LEFT_PARENTHESIS, NonTerminal::FPARAMS, TokenType::RIGHT_PARENTHESIS, TokenType::COLON, NonTerminal::FUNCDECLTAIL })) {
 		addDerivation("<FuncHead> ::= 'func' 'id' <ClassMethod> '(' <FParams> ')' ':' <FuncDeclTail> ");
@@ -1987,12 +2042,13 @@ bool RecursiveDescentPredictiveParser::FuncHead(AST** funcHeadS)
 
 bool RecursiveDescentPredictiveParser::ClassMethod(AST** classMethodS)
 {
+	if (!skipErrors(NonTerminal::CLASSMETHOD)) { return false; }
 	//<ClassMethod> ::= 'sr' 'id' 
 	if (isElementOfFirst({ TokenType::DOUBLE_COLON, TokenType::ID })) {
 		addDerivation("<ClassMethod> ::= 'sr' 'id'");
 
 		if (match(TokenType::DOUBLE_COLON) && match(TokenType::ID)) {
-			*classMethodS = ASTFactory::makeFamily(CompositeConcept::CLASSMETHOD, {attributeStack.top()}); 
+			*classMethodS = ASTFactory::makeFamily(CompositeConcept::CLASSMETHOD, { attributeStack.top() });
 			attributeStack.pop();
 			return true;
 		}

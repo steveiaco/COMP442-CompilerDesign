@@ -180,8 +180,11 @@ string Token::tokenToString(TokenType t) {
 	case TokenType::END_OF_FILE: 
 		return "END_OF_FILE";
 		break;
+	case TokenType::EPSILON:
+		return "EPSILON";
+		break;
 	default:
-		return "ERROR";
+		return "-TOKEN STRING MISSING-";
 		break;
 	}
 }
