@@ -1,4 +1,12 @@
 ﻿#include "RecursiveDescentPredictiveParser.h"
+#include "ASTFactory.h"
+#include <sstream>
+#include <algorithm>
+
+void RecursiveDescentPredictiveParser::addDerivation(string s)
+{
+	derivation.push_back(s);
+}
 
 void RecursiveDescentPredictiveParser::generateFirstSet()
 {
@@ -167,15 +175,87 @@ bool RecursiveDescentPredictiveParser::isElementOfFollow(NonTerminal element)
 bool RecursiveDescentPredictiveParser::match(TokenType t)
 {
 	if (lookAhead.getTokenType() == t) {
+		lastToken = lookAhead;
 		lookAhead = nextToken();
+
+		switch (lastToken.getTokenType()) {
+	// Types
+	case TokenType::INTEGER_ID:
+	case TokenType::FLOAT_ID:
+	case TokenType::STRING_ID:
+
+	// Literals
+	case TokenType::ID:
+	case TokenType::FLOAT:
+	case TokenType::INTEGER:
+	case TokenType::STRING:
+	case TokenType::PUBLIC:
+	case TokenType::PRIVATE:
+	// Relational Operators
+	case TokenType::EQUAL_TO:
+	case TokenType::NOT_EQUAL_TO:
+	case TokenType::LESS_THAN:
+	case TokenType::GREATER_THAN:
+	case TokenType::LESS_THAN_EQUAL_TO:
+	case TokenType::GREATER_THAN_EQUAL_TO:
+	// Add Operators
+	case TokenType::ADDITION:
+	case TokenType::SUBTRACTION:
+	case TokenType::OR:
+	// Multiplication Operators
+	case TokenType::MULTIPLICATION:
+	case TokenType::DIVISION:
+	case TokenType::AND:
+	// Statement types
+	case TokenType::BREAK:
+	case TokenType::CONTINUE:
+	// Assignment
+	case TokenType::ASSIGNMENT:
+
+	case TokenType::NOT:
+	case TokenType::VOID:
+		attributeStack.push(ASTFactory::makeNode(lastToken));
+		break;
+	}
+
 		return true;
 	}
 	else {
-		lookAhead = nextToken();
+		syntaxErrors.push_back("syntax error on line " + std::to_string(lookAhead.getLineNumber()) + ": got " + lookAhead.getLexeme() + ", expected " + Token::tokenToString(t));
 		return false;
 	}
 }
 
+bool RecursiveDescentPredictiveParser::skipErrors(NonTerminal t)
+{
+	bool epsilonIsInFirst = firstSet[t].find(TokenType::EPSILON) != firstSet[t].end();
+	if (isElementOfFirst({ t }) || (epsilonIsInFirst || isElementOfFollow({ t }))) {
+		return true;
+	}
+	else {
+		set firstAndFollow = firstSet[t];
+		firstAndFollow.insert(followSet[t].begin(), followSet[t].end());
+
+		std::stringstream listOfTokens;
+		for (TokenType token : firstAndFollow) {
+			listOfTokens << Token::tokenToString(token) + ", ";
+		}
+
+		syntaxErrors.push_back("syntax error on line " + std::to_string(lookAhead.getLineNumber()) + ": " + lookAhead.getLexeme() + " was unexpected. Expected: " + listOfTokens.str());
+		
+		// Error skipping
+		while (!isElementOfFirst({ t }) && !isElementOfFollow({ t })) {
+			lookAhead = nextToken();
+
+			if (epsilonIsInFirst && isElementOfFollow({ t })) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	return false;
+}
 
 Token RecursiveDescentPredictiveParser::nextToken()
 {
@@ -187,6 +267,10 @@ Token RecursiveDescentPredictiveParser::nextToken()
 	return t;
 }
 
+AST* RecursiveDescentPredictiveParser::getAST()
+{
+	return ast;
+}
 
 RecursiveDescentPredictiveParser::RecursiveDescentPredictiveParser(Lexer& lexer) : lexer(lexer)
 {
@@ -196,9 +280,15 @@ RecursiveDescentPredictiveParser::RecursiveDescentPredictiveParser(Lexer& lexer)
 
 bool RecursiveDescentPredictiveParser::parse()
 {
+	AST* startS = nullptr;
+
 	lookAhead = nextToken();
 
-	return Start() && match(TokenType::END_OF_FILE);
+	bool success = Start(&startS) && match(TokenType::END_OF_FILE);
+	
+	ast = startS;
+
+	return success;
 }
 
 vector<Token>& RecursiveDescentPredictiveParser::getTokens()
@@ -209,11 +299,15 @@ vector<Token>& RecursiveDescentPredictiveParser::getTokens()
 
 // Grammar functions
 
-bool RecursiveDescentPredictiveParser::Start()
+bool RecursiveDescentPredictiveParser::Start(AST** startS)
 {
 	// <START> :: = <Prog>
 	if (isElementOfFirst({ NonTerminal::PROG })) {
-		if (Prog()) {
+		addDerivation("<Start> -> <Prog>");
+		
+		AST* progS = nullptr;
+		if (Prog(&progS)) {
+			*startS = ASTFactory::makeFamily(CompositeConcept::START, { progS });
 			return true;
 		}
 		else {
@@ -225,11 +319,20 @@ bool RecursiveDescentPredictiveParser::Start()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::Prog()
+bool RecursiveDescentPredictiveParser::Prog(AST** progS)
 {
 	// <Prog> ::= <ClassDecl> <FuncDef> 'main' <FuncBody> 
 	if (isElementOfFirst({ NonTerminal::CLASSDECL, NonTerminal::FUNCDEF, TokenType::MAIN, NonTerminal::FUNCBODY })) {
-		if (ClassDecl() && FuncDef() && match(TokenType::MAIN) && FuncBody()) {
+		addDerivation("<Prog> -> <ClassDecl> <FuncDef> 'main' <FuncBody>");
+
+		AST* classDeclS = nullptr;
+		AST* funcDefS = nullptr;
+		AST* funcBodyS = nullptr;
+		if (ClassDecl(&classDeclS) && FuncDef(&funcDefS) && match(TokenType::MAIN) && FuncBody(&funcBodyS)) {
+			AST* classList = ASTFactory::makeFamily(CompositeConcept::CLASSLIST, { classDeclS });
+			AST* funcList = ASTFactory::makeFamily(CompositeConcept::FUNCLIST, { funcDefS });
+
+			*progS = ASTFactory::makeFamily(CompositeConcept::PROG, { classList, funcList, funcBodyS });
 			return true;
 		}
 		else {
@@ -241,11 +344,24 @@ bool RecursiveDescentPredictiveParser::Prog()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::ClassDecl()
+bool RecursiveDescentPredictiveParser::ClassDecl(AST** classDeclS)
 {
 	// <ClassDecl> ::= 'class' 'id' <Inherit> '{' <ClassDeclBody> '}' ';' <ClassDecl> 
 	if (isElementOfFirst({ TokenType::CLASS, TokenType::ID, NonTerminal::INHERIT, TokenType::LEFT_CURLY_BRACKET, NonTerminal::CLASSDECLBODY, TokenType::RIGHT_CURLY_BRACKET, TokenType::SEMICOLON, NonTerminal::CLASSDECL })) {
-		if (match(TokenType::CLASS) && match(TokenType::ID) && Inherit() && match(TokenType::LEFT_CURLY_BRACKET) && ClassDeclBody() && match(TokenType::RIGHT_CURLY_BRACKET) && match(TokenType::SEMICOLON) && ClassDecl()) {
+		addDerivation("<ClassDecl> -> 'class' 'id' <Inherit> '{' <ClassDeclBody> '}' ';' <ClassDecl>");
+
+		AST* inheritS = nullptr;
+		AST* classDeclBodyS = nullptr;
+		AST* classDeclSiblingS = nullptr;
+		if (match(TokenType::CLASS) && match(TokenType::ID) && Inherit(&inheritS) && match(TokenType::LEFT_CURLY_BRACKET) && ClassDeclBody(&classDeclBodyS) && match(TokenType::RIGHT_CURLY_BRACKET) && match(TokenType::SEMICOLON) && ClassDecl(&classDeclSiblingS)) {
+
+			AST* classId = attributeStack.top(); attributeStack.pop();
+			AST* inheritList = ASTFactory::makeFamily(CompositeConcept::INHERITLIST, { inheritS });
+			AST* classDeclBodyList = ASTFactory::makeFamily(CompositeConcept::CLASSDECLBODYLIST, { classDeclBodyS });
+			*classDeclS = ASTFactory::makeFamily(CompositeConcept::CLASSDECL, { classId, inheritList, classDeclBodyList });
+			if (classDeclSiblingS) {
+				(*classDeclS)->makeSiblings(classDeclSiblingS);
+			}
 			return true;
 		}
 		else {
@@ -254,6 +370,7 @@ bool RecursiveDescentPredictiveParser::ClassDecl()
 	}
 	// <ClassDecl> ::= EPSILON
 	else if (isElementOfFollow(NonTerminal::CLASSDECL)) {
+		addDerivation("<ClassDecl> -> EPSILON");
 		return true;
 	}
 	else {
@@ -261,11 +378,19 @@ bool RecursiveDescentPredictiveParser::ClassDecl()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::FuncDef()
+bool RecursiveDescentPredictiveParser::FuncDef(AST** funcDefS)
 {
 	//<FuncDef> ::= <Function> <FuncDef> 
 	if (isElementOfFirst({ NonTerminal::FUNCTION, NonTerminal::FUNCDEF })) {
-		if (Function() && FuncDef()) {
+		addDerivation("<FuncDef> ::= <Function> <FuncDef>");
+
+		AST* functionS = nullptr;
+		AST* funcDefSiblingS = nullptr;
+		if (Function(&functionS) && FuncDef(&funcDefSiblingS)) {
+			*funcDefS = ASTFactory::makeFamily(CompositeConcept::FUNCDEF, { functionS });
+			if (funcDefSiblingS) {
+				(*funcDefS)->makeSiblings(funcDefSiblingS);
+			}
 			return true;
 		}
 		else {
@@ -274,6 +399,7 @@ bool RecursiveDescentPredictiveParser::FuncDef()
 	}
 	//<FuncDef> :: = EPSILON
 	else if (isElementOfFollow(NonTerminal::FUNCDEF)) {
+		addDerivation("<FuncDef> ::= EPSILON");
 		return true;
 	}
 	else {
@@ -281,11 +407,17 @@ bool RecursiveDescentPredictiveParser::FuncDef()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::FuncBody()
+bool RecursiveDescentPredictiveParser::FuncBody(AST** funcBodyS)
 {
 	// <FuncBody> ::= '{' <MethodBodyVar> <StatementList> '}' 
 	if (isElementOfFirst({ TokenType::LEFT_CURLY_BRACKET, NonTerminal::METHODBODYVAR, NonTerminal::STATEMENTLIST, TokenType::RIGHT_CURLY_BRACKET })) {
-		if (match(TokenType::LEFT_CURLY_BRACKET) && MethodBodyVar() && StatementList() && match(TokenType::RIGHT_CURLY_BRACKET)) {
+		addDerivation("<FuncBody> ::= '{' <MethodBodyVar> <StatementList> '}'");
+
+		AST* methodBodyVarS = nullptr;
+		AST* statementList = nullptr;
+		if (match(TokenType::LEFT_CURLY_BRACKET) && MethodBodyVar(&methodBodyVarS) && StatementList(&statementList) && match(TokenType::RIGHT_CURLY_BRACKET)) {
+			AST* statementListParent = ASTFactory::makeFamily(CompositeConcept::STATEMENTLIST, { statementList });
+			*funcBodyS = ASTFactory::makeFamily(CompositeConcept::FUNCBODY, {methodBodyVarS, statementListParent});
 			return true;
 		}
 		else {
@@ -297,11 +429,17 @@ bool RecursiveDescentPredictiveParser::FuncBody()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::Inherit()
+bool RecursiveDescentPredictiveParser::Inherit(AST** inheritS)
 {
-	// <Inherit> :: = 'inherits' 'id' < NestedId >
+	// <Inherit> ::= 'inherits' 'id' < NestedId >
 	if (isElementOfFirst({TokenType::INHERITS, TokenType::ID, NonTerminal::NESTEDID})) {
-		if (match(TokenType::INHERITS) && match(TokenType::ID) && NestedID()) {
+		addDerivation("<Inherit> ::= 'inherits' 'id' <NestedId>");
+		AST* nestedId = nullptr;
+		if (match(TokenType::INHERITS) && match(TokenType::ID) && NestedID(&nestedId)) {
+			*inheritS = attributeStack.top(); attributeStack.pop();
+			if (nestedId) {
+				(*inheritS)->makeSiblings(nestedId);
+			}
 			return true;
 		}
 		else {
@@ -310,16 +448,53 @@ bool RecursiveDescentPredictiveParser::Inherit()
 	}
 	// <Inherit> ::= EPSILON
 	else if (isElementOfFollow(NonTerminal::INHERIT)) {
+		addDerivation("<Inherit> ::= EPSILON");
 		return true;
 	}
 	return false;
 }
 
-bool RecursiveDescentPredictiveParser::ClassDeclBody()
+bool RecursiveDescentPredictiveParser::NestedID(AST** nestedIdS)
+{
+	//<NestedId> ::= ',' 'id' < NestedId >
+	if (isElementOfFirst({ TokenType::COMMA, TokenType::ID, NonTerminal::NESTEDID })) {
+		addDerivation("<NestedId> ::= ',' 'id' <NestedId>");
+		AST* nestedIdSibling;
+		if (match(TokenType::COMMA) && match(TokenType::ID) && NestedID(&nestedIdSibling)) {
+			*nestedIdS = attributeStack.top(); attributeStack.pop();
+			if (nestedIdSibling) {
+				(*nestedIdS)->makeSiblings(nestedIdSibling);
+			}
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//<NestedId> ::= EPSILON
+	else if (isElementOfFollow(NonTerminal::NESTEDID)) {
+		addDerivation("<NestedId> ::= EPSILON");
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool RecursiveDescentPredictiveParser::ClassDeclBody(AST** classDeclBodyS)
 {
 	// <ClassDeclBody> ::= <Visibility> <MemberDecl> <ClassDeclBody> 
 	if (isElementOfFirst({ NonTerminal::VISIBILITY, NonTerminal::MEMBERDECL, NonTerminal::CLASSDECLBODY })) {
-		if (Visibility() && MemberDecl() && ClassDeclBody()) {
+		addDerivation("<ClassDeclBody> ::= <Visibility> <MemberDecl> <ClassDeclBody>");
+		AST* visibilityS = nullptr;
+		AST* memberDeclS = nullptr;
+		AST* classDeclBodySiblingS = nullptr;
+
+		if (Visibility(&visibilityS) && MemberDecl(&memberDeclS) && ClassDeclBody(&classDeclBodySiblingS)) {
+			*classDeclBodyS = ASTFactory::makeFamily(CompositeConcept::CLASSDECLBODY, { visibilityS, memberDeclS });
+			if (classDeclBodySiblingS) {
+				(*classDeclBodyS)->makeSiblings(classDeclBodySiblingS);
+			}
 			return true;
 		}
 		else {
@@ -335,19 +510,35 @@ bool RecursiveDescentPredictiveParser::ClassDeclBody()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::FParams()
+bool RecursiveDescentPredictiveParser::FParams(AST** fParams)
 {
 	//<FParams> ::= <Type> 'id' < ArraySizeRept > <FParamsTail>
 	if (isElementOfFirst({ NonTerminal::TYPE, TokenType::ID, NonTerminal::ARRAYSIZEREPT, NonTerminal::FPARAMSTAIL })) {
-		if (Type() && match(TokenType::ID) && ArraySizeRept() && FParamsTail()) {
+		addDerivation("<FParams> ::= <Type> 'id' < ArraySizeRept > <FParamsTail>");
+
+		AST* type = nullptr;
+		AST* arraySizeRept = nullptr;
+		AST* fParamsTail = nullptr;
+		if (Type(&type) && match(TokenType::ID) && ArraySizeRept(&arraySizeRept) && FParamsTail(&fParamsTail)) {
+			AST* fParamId = attributeStack.top(); attributeStack.pop();
+			AST* arraySizeReptList = nullptr;
+			if (arraySizeRept) {
+				 arraySizeReptList = ASTFactory::makeFamily(CompositeConcept::ARRAYSIZEREPTLIST, { arraySizeRept });
+			}
+
+			AST* fParamCurrent = ASTFactory::makeFamily(CompositeConcept::FPARAMS, { type, fParamId, arraySizeReptList});
+			fParamCurrent->makeSiblings(fParamsTail);
+
+			*fParams = ASTFactory::makeFamily(CompositeConcept::FPARAMSLIST, { fParamCurrent });
 			return true;
 		}
 		else {
 			return false;
 		}
 	}
-	//<FParams> :: = EPSILON
+	//<FParams> ::= EPSILON
 	else if (isElementOfFollow(NonTerminal::FPARAMS)) {
+		addDerivation("<FParams> ::= EPSILON");
 		return true;
 	}
 	else {
@@ -355,11 +546,12 @@ bool RecursiveDescentPredictiveParser::FParams()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::FuncDeclTail()
+bool RecursiveDescentPredictiveParser::FuncDeclTail(AST** funcDeclTail)
 {
 	//<FuncDeclTail> ::= <Type> 
 	if (isElementOfFirst({ NonTerminal::TYPE })) {
-		if (Type()) {
+		addDerivation("<FuncDeclTail> ::= <Type>");
+		if (Type(funcDeclTail)) {
 			return true;
 		}
 		else {
@@ -368,7 +560,9 @@ bool RecursiveDescentPredictiveParser::FuncDeclTail()
 	}
 	//<FuncDeclTail> ::= 'void' 
 	else if (isElementOfFirst({ TokenType::VOID })) {
+		addDerivation("<FuncDeclTail> ::= 'void'");
 		if (match(TokenType::VOID)) {
+			*funcDeclTail = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -380,19 +574,24 @@ bool RecursiveDescentPredictiveParser::FuncDeclTail()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::MethodBodyVar()
+bool RecursiveDescentPredictiveParser::MethodBodyVar(AST** methodBodyVar)
 {
-	//<MethodBodyVar> :: = 'var' '{' <VarDeclRep> '}'
+	//<MethodBodyVar> ::= 'var' '{' <VarDeclRep> '}'
 	if (isElementOfFirst({TokenType::VAR, TokenType::LEFT_CURLY_BRACKET, NonTerminal::VARDECLREP, TokenType::RIGHT_CURLY_BRACKET})) {
-		if (match(TokenType::VAR) && match(TokenType::LEFT_CURLY_BRACKET) && VarDeclRep() && match(TokenType::RIGHT_CURLY_BRACKET)) {
+		addDerivation("<MethodBodyVar> ::= 'var' '{' <VarDeclRep> '}'");
+
+		AST* varDeclRep = nullptr;
+		if (match(TokenType::VAR) && match(TokenType::LEFT_CURLY_BRACKET) && VarDeclRep(&varDeclRep) && match(TokenType::RIGHT_CURLY_BRACKET)) {
+			*methodBodyVar = ASTFactory::makeFamily(CompositeConcept::VARDECLLIST, { varDeclRep });
 			return true;
 		}
 		else {
 			return false;
 		}
 	}
-	//<MethodBodyVar> :: = EPSILON
+	//<MethodBodyVar> ::= EPSILON
 	else if (isElementOfFollow(NonTerminal::METHODBODYVAR)) {
+		addDerivation("<MethodBodyVar> ::= EPSILON");
 		return true;
 	}
 	else {
@@ -400,11 +599,17 @@ bool RecursiveDescentPredictiveParser::MethodBodyVar()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::StatementList()
+bool RecursiveDescentPredictiveParser::StatementList(AST** statementListS)
 {
 	//<StatementList> ::= <Statement> <StatementList>
 	if (isElementOfFirst({ NonTerminal::STATEMENT, NonTerminal::STATEMENTLIST })) {
-		if (Statement() && StatementList()) {
+		addDerivation("<StatementList> ::= <Statement> <StatementList>");
+
+		AST* statement = nullptr;
+		AST* statementListSibling = nullptr;
+		if (Statement(&statement) && StatementList(&statementListSibling)) {
+			statement->makeSiblings(statementListSibling);
+			*statementListS = statement;
 			return true;
 		}
 		else {
@@ -413,6 +618,7 @@ bool RecursiveDescentPredictiveParser::StatementList()
 	}
 	//<StatementList> ::= EPSILON
 	else if (isElementOfFollow(NonTerminal::STATEMENTLIST)) {
+		addDerivation("<StatementList> ::= EPSILON");
 		return true;
 	}
 	else {
@@ -420,31 +626,13 @@ bool RecursiveDescentPredictiveParser::StatementList()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::NestedID()
-{
-	//<NestedId> :: = ',' 'id' < NestedId >
-	if (isElementOfFirst({ TokenType::COMMA, TokenType::ID, NonTerminal::NESTEDID })) {
-		if (match(TokenType::COMMA) && match(TokenType::ID) && NestedID()) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-	//<NestedId> :: = EPSILON
-	else if (isElementOfFollow(NonTerminal::NESTEDID)) {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
-bool RecursiveDescentPredictiveParser::Visibility()
+bool RecursiveDescentPredictiveParser::Visibility(AST** visibilityS)
 {
 	//<Visibility> :: = 'public'
 	if (isElementOfFirst({ TokenType::PUBLIC })) {
+		addDerivation("<Visibility> :: = 'public'");
 		if (match(TokenType::PUBLIC)) {
+			*visibilityS = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -453,7 +641,9 @@ bool RecursiveDescentPredictiveParser::Visibility()
 	}
 	//<Visibility> :: = 'private'
 	else if (isElementOfFirst({ TokenType::PRIVATE })) {
+		addDerivation("<Visibility> :: = 'private'");
 		if (match(TokenType::PRIVATE)) {
+			*visibilityS = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -462,6 +652,7 @@ bool RecursiveDescentPredictiveParser::Visibility()
 	}
 	//<Visibility> :: = EPSILON
 	else if (isElementOfFollow(NonTerminal::VISIBILITY)) {
+		addDerivation("<Visibility> :: = EPSILON");
 		return true;
 	}
 	else {
@@ -469,11 +660,14 @@ bool RecursiveDescentPredictiveParser::Visibility()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::MemberDecl()
+bool RecursiveDescentPredictiveParser::MemberDecl(AST** memberDeclS)
 {
-	//<MemberDecl> :: = <FuncDecl>
+	//<MemberDecl> ::= <FuncDecl>
 	if (isElementOfFirst({NonTerminal::FUNCDECL})) {
-		if (FuncDecl()) {
+		addDerivation("<MemberDecl> ::= <FuncDecl>");
+		AST* funcDecl = nullptr;
+		if (FuncDecl(&funcDecl)) {
+			*memberDeclS = funcDecl;
 			return true;
 		}
 		else {
@@ -482,7 +676,10 @@ bool RecursiveDescentPredictiveParser::MemberDecl()
 	}
 	//<MemberDecl> :: = <VarDecl>
 	else if (isElementOfFirst({ NonTerminal::VARDECL })) {
-		if (VarDecl()) {
+		addDerivation("<MemberDecl> ::= <VarDecl>");
+		AST* varDecl = nullptr;
+		if (VarDecl(&varDecl)) {
+			*memberDeclS = varDecl;
 			return true;
 		}
 		else {
@@ -494,11 +691,13 @@ bool RecursiveDescentPredictiveParser::MemberDecl()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::Type()
+bool RecursiveDescentPredictiveParser::Type(AST** type)
 {
 	//<Type> :: = 'integer'
 	if (isElementOfFirst({ TokenType::INTEGER_ID })) {
+		addDerivation("<Type> :: = 'integer'");
 		if (match(TokenType::INTEGER_ID)) {
+			*type = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -507,7 +706,9 @@ bool RecursiveDescentPredictiveParser::Type()
 	}
 	//<Type> :: = 'float'
 	else if (isElementOfFirst({ TokenType::FLOAT_ID })) {
+		addDerivation("<Type> :: = 'float'");
 		if (match(TokenType::FLOAT_ID)) {
+			*type = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -516,7 +717,9 @@ bool RecursiveDescentPredictiveParser::Type()
 	}
 	//<Type> :: = 'string'
 	else if (isElementOfFirst({ TokenType::STRING_ID })) {
+		addDerivation("<Type> :: = 'string'");
 		if (match(TokenType::STRING_ID)) {
+			*type = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -525,7 +728,9 @@ bool RecursiveDescentPredictiveParser::Type()
 	}
 	//<Type> :: = 'id'
 	else if (isElementOfFirst({ TokenType::ID })) {
+		addDerivation("<Type> :: = 'id'");
 		if (match(TokenType::ID)) {
+			*type = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -537,11 +742,18 @@ bool RecursiveDescentPredictiveParser::Type()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::ArraySizeRept()
+bool RecursiveDescentPredictiveParser::ArraySizeRept(AST** arraySizeRept)
 {
 	//<ArraySizeRept> :: = '[' < IntNum > ']' < ArraySizeRept >
 	if (isElementOfFirst({ TokenType::LEFT_SQUARE_BRACKET, NonTerminal::INTNUM, TokenType::RIGHT_SQUARE_BRACKET, NonTerminal::ARRAYSIZEREPT })) {
-		if (match(TokenType::LEFT_SQUARE_BRACKET) && IntNum() && match(TokenType::RIGHT_SQUARE_BRACKET) && ArraySizeRept()) {
+		addDerivation("<ArraySizeRept> ::= '[' <IntNum> ']' <ArraySizeRept>");
+
+		AST* intNum = nullptr;
+		AST* arraySizeReptSibling = nullptr;;
+		if (match(TokenType::LEFT_SQUARE_BRACKET) && IntNum(&intNum) && match(TokenType::RIGHT_SQUARE_BRACKET) && ArraySizeRept(&arraySizeReptSibling)) {
+			AST* arrayDim = ASTFactory::makeFamily(CompositeConcept::ARRAYDIMENSION, {intNum});
+			arrayDim->makeSiblings(arraySizeReptSibling);
+			*arraySizeRept = arrayDim;
 			return true;
 		}
 		else {
@@ -550,6 +762,7 @@ bool RecursiveDescentPredictiveParser::ArraySizeRept()
 	}
 	//<ArraySizeRept> ::= EPSILON
 	else if (isElementOfFollow(NonTerminal::ARRAYSIZEREPT)) {
+		addDerivation("<ArraySizeRept> ::= EPSILON");
 		return true;
 	}
 	else {
@@ -557,11 +770,23 @@ bool RecursiveDescentPredictiveParser::ArraySizeRept()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::FParamsTail()
+bool RecursiveDescentPredictiveParser::FParamsTail(AST** fParamsTail)
 {
 	//<FParamsTail> :: = ',' < Type > 'id' < ArraySizeRept > <FParamsTail>
 	if (isElementOfFirst({ TokenType::COMMA, NonTerminal::TYPE, TokenType::ID, NonTerminal::ARRAYSIZEREPT, NonTerminal::FPARAMSTAIL })) {
-		if (match(TokenType::COMMA) && Type() && match(TokenType::ID) && ArraySizeRept() && FParamsTail()) {
+		addDerivation("<FParamsTail> :: = ',' < Type > 'id' < ArraySizeRept > <FParamsTail>");
+
+		AST* type = nullptr;
+		AST* arraySizeRept = nullptr;
+		AST* fParamsTailSibling = nullptr;
+		if (match(TokenType::COMMA) && Type(&type) && match(TokenType::ID) && ArraySizeRept(&arraySizeRept) && FParamsTail(&fParamsTailSibling)) {
+			AST* fParamsId = attributeStack.top(); attributeStack.pop();
+			AST* arraySizeReptList = nullptr;
+			if (arraySizeReptList) {
+				ASTFactory::makeFamily(CompositeConcept::ARRAYSIZEREPTLIST, { arraySizeRept });
+			}
+			*fParamsTail = ASTFactory::makeFamily(CompositeConcept::FPARAMS, { type, fParamsId, arraySizeReptList });
+			(*fParamsTail)->makeSiblings(fParamsTailSibling);
 			return true;
 		}
 		else {
@@ -570,6 +795,7 @@ bool RecursiveDescentPredictiveParser::FParamsTail()
 	}
 	//<FParamsTail> :: = EPSILON
 	else if (isElementOfFollow(NonTerminal::FPARAMSTAIL)) {
+		addDerivation("<FParamsTail> :: = EPSILON");
 		return true;
 	}
 	else {
@@ -577,11 +803,18 @@ bool RecursiveDescentPredictiveParser::FParamsTail()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::VarDeclRep()
+bool RecursiveDescentPredictiveParser::VarDeclRep(AST** varDeclRep)
 {
+	if (!skipErrors(NonTerminal::VARDECLREP)) {
+		return false;
+	}
+
 	//<VarDeclRep> ::= <VarDecl> <VarDeclRep>
 	if (isElementOfFirst({ NonTerminal::VARDECL, NonTerminal::VARDECLREP })) {
-		if (VarDecl() && VarDeclRep()) {
+		addDerivation("<VarDeclRep> ::= <VarDecl> <VarDeclRep>");
+		AST* varDeclSibling = nullptr;
+		if (VarDecl(varDeclRep) && VarDeclRep(&varDeclSibling)) {
+			(*varDeclRep)->makeSiblings(varDeclSibling);
 			return true;
 		}
 		else {
@@ -590,6 +823,7 @@ bool RecursiveDescentPredictiveParser::VarDeclRep()
 	}
 	//<VarDeclRep> ::= EPSILON
 	else if (isElementOfFollow(NonTerminal::VARDECLREP)) {
+		addDerivation("<VarDeclRep> ::= EPSILON");
 		return true;
 	}
 	else {
@@ -597,11 +831,15 @@ bool RecursiveDescentPredictiveParser::VarDeclRep()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::Statement()
+bool RecursiveDescentPredictiveParser::Statement(AST** statementS)
 {
-	//<Statement> ::= < FuncOrAssignStat> ';'
+	//<Statement> ::= <FuncOrAssignStat> ';'
 	if (isElementOfFirst({ NonTerminal::FUNCORASSIGNSTAT, TokenType::SEMICOLON })) {
-		if (FuncOrAssignStat() && match(TokenType::SEMICOLON)) {
+		addDerivation("<Statement> ::= <FuncOrAssignStat> ';'");
+
+		AST* funcOrAssignStatS = nullptr;
+		if (FuncOrAssignStat(&funcOrAssignStatS) && match(TokenType::SEMICOLON)) {
+			*statementS = funcOrAssignStatS;
 			return true;
 		}
 		else {
@@ -610,7 +848,13 @@ bool RecursiveDescentPredictiveParser::Statement()
 	}
 	//<Statement> ::= 'if' '(' < Expr > ')' 'then' < StatBlock > 'else' < StatBlock > ';'
 	else if (isElementOfFirst({ TokenType::IF, TokenType::LEFT_PARENTHESIS, NonTerminal::EXPR, TokenType::RIGHT_PARENTHESIS, TokenType::THEN, NonTerminal::STATBLOCK, TokenType::ELSE, NonTerminal::STATBLOCK, TokenType::SEMICOLON })) {
-		if (match(TokenType::IF) && match(TokenType::LEFT_PARENTHESIS) && Expr() && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::THEN) && StatBlock() && match(TokenType::ELSE) && StatBlock() && match(TokenType::SEMICOLON)) {
+		addDerivation("<Statement> ::= 'if' '(' < Expr > ')' 'then' < StatBlock > 'else' < StatBlock > ';'");
+
+		AST* ifExpr = nullptr;
+		AST* thenBlock = nullptr;
+		AST* elseBlock = nullptr;
+		if (match(TokenType::IF) && match(TokenType::LEFT_PARENTHESIS) && Expr(&ifExpr) && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::THEN) && StatBlock(&thenBlock) && match(TokenType::ELSE) && StatBlock(&elseBlock) && match(TokenType::SEMICOLON)) {
+			*statementS = ASTFactory::makeFamily(CompositeConcept::IF, { ifExpr, thenBlock, elseBlock });
 			return true;
 		}
 		else {
@@ -619,7 +863,12 @@ bool RecursiveDescentPredictiveParser::Statement()
 	}
 	//<Statement> ::= 'while' '(' < Expr > ')' < StatBlock > ';'
 	else if (isElementOfFirst({ TokenType::WHILE, TokenType::LEFT_PARENTHESIS, NonTerminal::EXPR, TokenType::RIGHT_PARENTHESIS, NonTerminal::STATBLOCK, TokenType::SEMICOLON })) {
-		if (match(TokenType::WHILE) && match(TokenType::LEFT_PARENTHESIS) && Expr() && match(TokenType::RIGHT_PARENTHESIS) && StatBlock() && match(TokenType::SEMICOLON)) {
+		addDerivation("<Statement> ::= 'while' '(' < Expr > ')' < StatBlock > ';'");
+
+		AST* whileExpr = nullptr;
+		AST* whileBlock = nullptr;
+		if (match(TokenType::WHILE) && match(TokenType::LEFT_PARENTHESIS) && Expr(&whileExpr) && match(TokenType::RIGHT_PARENTHESIS) && StatBlock(&whileBlock) && match(TokenType::SEMICOLON)) {
+			*statementS = ASTFactory::makeFamily(CompositeConcept::WHILE, { whileExpr, whileBlock });
 			return true;
 		}
 		else {
@@ -628,7 +877,11 @@ bool RecursiveDescentPredictiveParser::Statement()
 	}
 	//<Statement> ::= 'read' '(' < Variable > ')' ';'
 	else if (isElementOfFirst({ TokenType::READ, TokenType::LEFT_PARENTHESIS, NonTerminal::VARIABLE, TokenType::RIGHT_PARENTHESIS, TokenType::SEMICOLON })) {
-		if (match(TokenType::READ) && match(TokenType::LEFT_PARENTHESIS) && Variable() && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::SEMICOLON)) {
+		addDerivation("<Statement> ::= 'read' '(' < Variable > ')' ';'");
+		
+		AST* var = nullptr;
+		if (match(TokenType::READ) && match(TokenType::LEFT_PARENTHESIS) && Variable(&var) && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::SEMICOLON)) {
+			*statementS = ASTFactory::makeFamily(CompositeConcept::READ, { var });
 			return true;
 		}
 		else {
@@ -637,7 +890,11 @@ bool RecursiveDescentPredictiveParser::Statement()
 	}
 	//<Statement> ::= 'write' '(' < Expr > ')' ';'
 	else if (isElementOfFirst({ TokenType::WRITE, TokenType::LEFT_PARENTHESIS, NonTerminal::EXPR, TokenType::RIGHT_PARENTHESIS, TokenType::SEMICOLON })) {
-		if (match(TokenType::WRITE) && match(TokenType::LEFT_PARENTHESIS) && Expr() && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::SEMICOLON)) {
+		addDerivation("<Statement> ::= 'write' '(' < Expr > ')' ';'");
+
+		AST* writeExpr = nullptr;
+		if (match(TokenType::WRITE) && match(TokenType::LEFT_PARENTHESIS) && Expr(&writeExpr) && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::SEMICOLON)) {
+			*statementS = ASTFactory::makeFamily(CompositeConcept::WRITE, { writeExpr });
 			return true;
 		}
 		else {
@@ -646,7 +903,11 @@ bool RecursiveDescentPredictiveParser::Statement()
 	}
 	//<Statement> ::= 'return' '(' < Expr > ')' ';'
 	else if (isElementOfFirst({ TokenType::RETURN, TokenType::LEFT_PARENTHESIS, NonTerminal::EXPR, TokenType::RIGHT_PARENTHESIS, TokenType::SEMICOLON })) {
-		if (match(TokenType::RETURN) && match(TokenType::LEFT_PARENTHESIS) && Expr() && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::SEMICOLON)) {
+		addDerivation("<Statement> ::= 'return' '(' < Expr > ')' ';'");
+
+		AST* returnExpr = nullptr;
+		if (match(TokenType::RETURN) && match(TokenType::LEFT_PARENTHESIS) && Expr(&returnExpr) && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::SEMICOLON)) {
+			*statementS = ASTFactory::makeFamily(CompositeConcept::RETURN, { returnExpr });
 			return true;
 		}
 		else {
@@ -655,7 +916,10 @@ bool RecursiveDescentPredictiveParser::Statement()
 	}
 	//<Statement> ::= 'break' ';'
 	else if (isElementOfFirst({ TokenType::BREAK, TokenType::SEMICOLON })) {
+		addDerivation("<Statement> ::= 'break' ';'");
+
 		if (match(TokenType::BREAK) && match(TokenType::SEMICOLON)) {
+			*statementS = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -664,7 +928,9 @@ bool RecursiveDescentPredictiveParser::Statement()
 	}
 	//<Statement> ::= 'continue' ';'
 	else if (isElementOfFirst({ TokenType::CONTINUE, TokenType::SEMICOLON })) {
+		addDerivation("<Statement> ::= 'continue' ';'");
 		if (match(TokenType::CONTINUE) && match(TokenType::SEMICOLON)) {
+			*statementS = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -676,11 +942,17 @@ bool RecursiveDescentPredictiveParser::Statement()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::FuncDecl()
+bool RecursiveDescentPredictiveParser::FuncDecl(AST** funcDecl)
 {
 	//<FuncDecl> ::= 'func' 'id' '(' <FParams> ')' ':' <FuncDeclTail> ';'
 	if (isElementOfFirst({ TokenType::FUNC, TokenType::ID, TokenType::LEFT_PARENTHESIS, NonTerminal::FPARAMS, TokenType::RIGHT_PARENTHESIS, TokenType::COLON, NonTerminal::FUNCDECLTAIL, TokenType::SEMICOLON })) {
-		if (match(TokenType::FUNC) && match(TokenType::ID) && match(TokenType::LEFT_PARENTHESIS) && FParams() && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::COLON) && FuncDeclTail() && match(TokenType::SEMICOLON)) {
+		addDerivation("<FuncDecl> ::= 'func' 'id' '(' <FParams> ')' ':' <FuncDeclTail> ';'");
+
+		AST* fParams = nullptr;
+		AST* returnType = nullptr;
+		if (match(TokenType::FUNC) && match(TokenType::ID) && match(TokenType::LEFT_PARENTHESIS) && FParams(&fParams) && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::COLON) && FuncDeclTail(&returnType) && match(TokenType::SEMICOLON)) {
+			AST* funcId = attributeStack.top(); attributeStack.pop();
+			*funcDecl = ASTFactory::makeFamily(CompositeConcept::FUNCDECL, { funcId, fParams, returnType });
 			return true;
 		}
 		else {
@@ -692,11 +964,21 @@ bool RecursiveDescentPredictiveParser::FuncDecl()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::VarDecl()
+bool RecursiveDescentPredictiveParser::VarDecl(AST** varDecl)
 {
 	//<VarDecl> ::= <Type> 'id' <ArraySizeRept> ';' 
 	if (isElementOfFirst({ NonTerminal::TYPE, TokenType::ID, NonTerminal::ARRAYSIZEREPT, TokenType::SEMICOLON })) {
-		if (Type() && match(TokenType::ID) && ArraySizeRept() && match(TokenType::SEMICOLON)) {
+		addDerivation("<VarDecl> ::= <Type> 'id' <ArraySizeRept> ';'");
+
+		AST* type = nullptr;
+		AST* arraySizeRept = nullptr;
+		if (Type(&type) && match(TokenType::ID) && ArraySizeRept(&arraySizeRept) && match(TokenType::SEMICOLON)) {
+			AST* varId = attributeStack.top(); attributeStack.pop();
+			AST* arraySizeReptList = nullptr;
+			if (arraySizeRept) {
+				arraySizeReptList = ASTFactory::makeFamily(CompositeConcept::ARRAYSIZEREPTLIST, { arraySizeRept });
+			}
+			*varDecl = ASTFactory::makeFamily(CompositeConcept::VARDECL, { type, varId, arraySizeReptList });
 			return true;
 		}
 		else {
@@ -708,11 +990,13 @@ bool RecursiveDescentPredictiveParser::VarDecl()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::IntNum()
+bool RecursiveDescentPredictiveParser::IntNum(AST** intNum)
 {
 	//<IntNum> :: = 'intnum'
 	if (isElementOfFirst({ TokenType::INTEGER })) {
+		addDerivation("<IntNum> :: = 'intnum'");
 		if (match(TokenType::INTEGER)) {
+			*intNum = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -721,6 +1005,7 @@ bool RecursiveDescentPredictiveParser::IntNum()
 	}
 	//< IntNum > :: = EPSILON
 	else if (isElementOfFollow(NonTerminal::INTNUM)) {
+		addDerivation("<IntNum> :: = EPSILON'");
 		return true;
 	}
 	else {
@@ -728,11 +1013,14 @@ bool RecursiveDescentPredictiveParser::IntNum()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::FuncOrAssignStat()
+bool RecursiveDescentPredictiveParser::FuncOrAssignStat(AST** funcOrAssignStat)
 {
 	//<FuncOrAssignStat> ::= 'id' <FuncOrAssignStatIdnest> 
 	if (isElementOfFirst({ TokenType::ID, NonTerminal::FUNCORASSIGNSTATIDNEST })) {
-		if (match(TokenType::ID) && FuncOrAssignStatIDNest()) {
+		addDerivation("<FuncOrAssignStat> ::= 'id' <FuncOrAssignStatIdnest>");
+
+		if (match(TokenType::ID) && FuncOrAssignStatIDNest(funcOrAssignStat, attributeStack.top())) {
+			attributeStack.pop();
 			return true;
 		}
 		else {
@@ -744,11 +1032,14 @@ bool RecursiveDescentPredictiveParser::FuncOrAssignStat()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::Expr()
+bool RecursiveDescentPredictiveParser::Expr(AST** exprS)
 {
 	//<Expr> ::= <ArithExpr> <ExprTail> 
 	if (isElementOfFirst({ NonTerminal::ARITHEXPR, NonTerminal::EXPRTAIL })) {
-		if (ArithExpr() && ExprTail()) {
+		addDerivation("<Expr> ::= <ArithExpr> <ExprTail>");
+
+		AST* lhsArithExpr = nullptr;
+		if (ArithExpr(&lhsArithExpr) && ExprTail(exprS, lhsArithExpr)) {
 			return true;
 		}
 		else {
@@ -760,11 +1051,14 @@ bool RecursiveDescentPredictiveParser::Expr()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::StatBlock()
+bool RecursiveDescentPredictiveParser::StatBlock(AST** statBlock)
 {
 	//<StatBlock> ::= '{' <StatementList> '}' 
 	if (isElementOfFirst({ TokenType::LEFT_CURLY_BRACKET, NonTerminal::STATEMENTLIST, TokenType::RIGHT_CURLY_BRACKET })) {
-		if (match(TokenType::LEFT_CURLY_BRACKET) && StatementList() && match(TokenType::RIGHT_CURLY_BRACKET)) {
+		addDerivation("<StatBlock> ::= '{' <StatementList> '}'");
+		AST* statementList = nullptr;
+		if (match(TokenType::LEFT_CURLY_BRACKET) && StatementList(&statementList) && match(TokenType::RIGHT_CURLY_BRACKET)) {
+			*statBlock = ASTFactory::makeFamily(CompositeConcept::STATEMENTLIST, { statementList });
 			return true;
 		}
 		else {
@@ -773,7 +1067,10 @@ bool RecursiveDescentPredictiveParser::StatBlock()
 	}
 	//<StatBlock> :: = <Statement>
 	else if (isElementOfFirst({ NonTerminal::STATEMENT })) {
-		if (Statement()) {
+		addDerivation("<StatBlock> :: = <Statement>");
+		AST* statement = nullptr;
+		if (Statement(&statement)) {
+			*statBlock = ASTFactory::makeFamily(CompositeConcept::STATEMENTLIST, { statement });
 			return true;
 		}
 		else {
@@ -782,6 +1079,7 @@ bool RecursiveDescentPredictiveParser::StatBlock()
 	}
 	//<StatBlock> :: = EPSILON
 	else if (isElementOfFollow(NonTerminal::STATBLOCK)) {
+		addDerivation("<StatBlock> :: = EPSILON");
 		return true;
 	}
 	else {
@@ -789,11 +1087,15 @@ bool RecursiveDescentPredictiveParser::StatBlock()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::Variable()
+bool RecursiveDescentPredictiveParser::Variable(AST** variable)
 {
 	//<Variable> ::= 'id' <VariableIdnest> 
 	if (isElementOfFirst({ TokenType::ID, NonTerminal::VARIABLEIDNEST })) {
-		if (match(TokenType::ID) && VariableIDNest()) {
+		addDerivation("<Variable> ::= 'id' <VariableIdnest>");
+		AST* variableIdNest = nullptr;
+		if (match(TokenType::ID) && VariableIDNest(&variableIdNest)) {
+			AST* varId = attributeStack.top(); attributeStack.pop();
+			*variable = ASTFactory::makeFamily(CompositeConcept::VARIABLE, { varId, variableIdNest });
 			return true;
 		}
 		else {
@@ -805,21 +1107,36 @@ bool RecursiveDescentPredictiveParser::Variable()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNest()
+bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNest(AST** funcOrAssignStatIDNest, AST* lhsId)
 {
+	//assignment
 	//<FuncOrAssignStatIdnest> ::= <IndiceRep> <FuncOrAssignStatIdnestVarTail> 
 	if (isElementOfFirst({ NonTerminal::INDICEREP, NonTerminal::FUNCORASSIGNSTATIDNESTVARTAIL })) {
-		if (IndiceRep() && FuncOrAssignStatIDNestVarTail()) {
-			return true;
+		addDerivation("<FuncOrAssignStatIdnest> ::= <IndiceRep> <FuncOrAssignStatIdnestVarTail>");
+		AST* indiceRep = nullptr;
+		if (IndiceRep(&indiceRep)) {
+			if (indiceRep) {
+				AST* varChildren = lhsId->makeSiblings(ASTFactory::makeFamily(CompositeConcept::INDICEREPLIST, { indiceRep }));
+				lhsId = ASTFactory::makeFamily(CompositeConcept::VARCALLSTAT, { varChildren });
+			}
+			if (FuncOrAssignStatIDNestVarTail(funcOrAssignStatIDNest, lhsId)) {
+				return true;
+			}
 		}
 		else {
 			return false;
 		}
 	}
-	//<FuncOrAssignStatIdnest> :: = '(' < AParams > ')' < FuncOrAssignStatIdnestFuncTail >
+	//function call
+	//<FuncOrAssignStatIdnest> :: = '(' <AParams> ')' <FuncOrAssignStatIdnestFuncTail>
 	else if (isElementOfFirst({ TokenType::LEFT_PARENTHESIS, NonTerminal::APARAMS, TokenType::RIGHT_PARENTHESIS, NonTerminal::FUNCORASSIGNSTATIDNESTFUNCTAIL })) {
-		if (match(TokenType::LEFT_PARENTHESIS) && AParams() && match(TokenType::RIGHT_PARENTHESIS) && FuncOrAssignStatIDNestFuncTail()) {
-			return true;
+		addDerivation("<FuncOrAssignStatIdnest> :: = '(' <AParams> ')' <FuncOrAssignStatIdnestFuncTail>");
+		AST* aParams = nullptr;
+		if (match(TokenType::LEFT_PARENTHESIS) && AParams(&aParams) && match(TokenType::RIGHT_PARENTHESIS)) {
+			lhsId->makeSiblings(aParams);
+			if (FuncOrAssignStatIDNestFuncTail(funcOrAssignStatIDNest, lhsId)) {
+				return true;
+			}
 		}
 		else {
 			return false;
@@ -830,11 +1147,15 @@ bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNest()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::ArithExpr()
+bool RecursiveDescentPredictiveParser::ArithExpr(AST** arithExpr)
 {
 	//<ArithExpr> ::= <Term> <ArithExprTail> 
 	if (isElementOfFirst({ NonTerminal::TERM, NonTerminal::ARITHEXPRTAIL })) {
-		if (Term() && ArithExprTail()) {
+		addDerivation("<ArithExpr> ::= <Term> <ArithExprTail>");
+
+		AST* lhsTerm = nullptr;
+		AST* arithExprTail = nullptr;
+		if (Term(&lhsTerm) && ArithExprTail(arithExpr, lhsTerm)) {
 			return true;
 		}
 		else {
@@ -846,19 +1167,27 @@ bool RecursiveDescentPredictiveParser::ArithExpr()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::ExprTail()
+bool RecursiveDescentPredictiveParser::ExprTail(AST** exprTail, AST* lhsArithExpr)
 {
 	//<ExprTail> ::= <RelOp> <ArithExpr> 
 	if (isElementOfFirst({ NonTerminal::RELOP, NonTerminal::ARITHEXPR })) {
-		if (RelOp() && ArithExpr()) {
+		addDerivation("<ExprTail> ::= <RelOp> <ArithExpr>");
+
+		AST* relOp = nullptr;
+		AST* rhsArithExpr = nullptr;
+		if (RelOp(&relOp) && ArithExpr(&rhsArithExpr)) {
+			ASTFactory::makeFamily(relOp, { lhsArithExpr, rhsArithExpr });
+			*exprTail = relOp;
 			return true;
 		}
 		else {
 			return false;
 		}
 	}
-	//<ExprTail> :: = EPSILON
+	//<ExprTail> ::= EPSILON
 	else if (isElementOfFollow(NonTerminal::EXPRTAIL)) {
+		*exprTail = lhsArithExpr;
+		addDerivation("<ExprTail> ::= EPSILON");
 		return true;
 	}
 	else {
@@ -866,11 +1195,18 @@ bool RecursiveDescentPredictiveParser::ExprTail()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::VariableIDNest()
+bool RecursiveDescentPredictiveParser::VariableIDNest(AST** variableIdNest)
 {
 	//<VariableIdnest> ::= <IndiceRep> <VariableIdnestTail> 
 	if (isElementOfFirst({ NonTerminal::INDICEREP, NonTerminal::VARIABLEIDNESTTAIL })) {
-		if (IndiceRep() && VariableIDNestTail()) {
+		addDerivation("<VariableIdnest> ::= <IndiceRep> <VariableIdnestTail>");
+		AST* indiceRep = nullptr;
+		AST* variableIdNestTail = nullptr;
+		if (IndiceRep(&indiceRep) && VariableIDNestTail(&variableIdNestTail)) {
+			if (indiceRep) {
+				indiceRep->makeSiblings(variableIdNestTail);
+			}
+			*variableIdNest = variableIdNestTail;
 			return true;
 		}
 		else {
@@ -882,11 +1218,16 @@ bool RecursiveDescentPredictiveParser::VariableIDNest()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::IndiceRep()
+bool RecursiveDescentPredictiveParser::IndiceRep(AST** indiceRep)
 {
 	//<IndiceRep> ::= '[' <Expr> ']' <IndiceRep> 
 	if (isElementOfFirst({ TokenType::LEFT_SQUARE_BRACKET, NonTerminal::EXPR, TokenType::RIGHT_SQUARE_BRACKET, NonTerminal::INDICEREP })) {
-		if (match(TokenType::LEFT_SQUARE_BRACKET) && Expr() && match(TokenType::RIGHT_SQUARE_BRACKET) && IndiceRep()) {
+		addDerivation("<IndiceRep> ::= '[' <Expr> ']' <IndiceRep>");
+		AST* expr = nullptr;
+		AST* indiceRepSibling = nullptr;
+		if (match(TokenType::LEFT_SQUARE_BRACKET) && Expr(&expr) && match(TokenType::RIGHT_SQUARE_BRACKET) && IndiceRep(&indiceRepSibling)) {
+			expr->makeSiblings(indiceRepSibling);
+			*indiceRep = expr;
 			return true;
 		}
 		else {
@@ -895,6 +1236,7 @@ bool RecursiveDescentPredictiveParser::IndiceRep()
 	}
 	//<IndiceRep> ::= EPSILON 
 	else if (isElementOfFollow(NonTerminal::INDICEREP)) {
+		addDerivation("<IndiceRep> ::= EPSILON");
 		return true;
 	}
 	else {
@@ -902,20 +1244,31 @@ bool RecursiveDescentPredictiveParser::IndiceRep()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNestVarTail()
+bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNestVarTail(AST** funcOrAssignStatIDNestVarTail, AST* lhsId)
 {
+	//function call
 	//<FuncOrAssignStatIdnestVarTail> ::= '.' 'id' <FuncOrAssignStatIdnest> 
 	if (isElementOfFirst({ TokenType::PERIOD, TokenType::ID, NonTerminal::FUNCORASSIGNSTATIDNEST })) {
-		if (match(TokenType::PERIOD) && match(TokenType::ID) && FuncOrAssignStatIDNest()) {
+		addDerivation("<FuncOrAssignStatIdnestVarTail> ::= '.' 'id' <FuncOrAssignStatIdnest>");
+		AST* funcOrAssignStatIDNest = nullptr;
+
+		if (match(TokenType::PERIOD) && match(TokenType::ID) && FuncOrAssignStatIDNest(&funcOrAssignStatIDNest, attributeStack.top())) {
+			AST* varId = attributeStack.top(); attributeStack.pop();
+			lhsId->makeSiblings(funcOrAssignStatIDNest);
+			*funcOrAssignStatIDNestVarTail = lhsId;
 			return true;
 		}
 		else {
 			return false;
 		}
 	}
+	//assignment
 	//<FuncOrAssignStatIdnestVarTail> ::= <AssignStatTail> 
 	else if (isElementOfFirst({ NonTerminal::ASSIGNSTATTAIL })) {
-		if (AssignStatTail()) {
+		addDerivation("<FuncOrAssignStatIdnestVarTail> ::= <AssignStatTail>");
+		AST* assignStatTail = nullptr;
+		if (AssignStatTail(&assignStatTail, lhsId)) {
+			*funcOrAssignStatIDNestVarTail = assignStatTail;
 			return true;
 		}
 		else {
@@ -927,11 +1280,16 @@ bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNestVarTail()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::AParams()
+bool RecursiveDescentPredictiveParser::AParams(AST** aParams)
 {
 	//<AParams> ::= <Expr> <AParamsTail> 
 	if (isElementOfFirst({ NonTerminal::EXPR, NonTerminal::APARAMSTAIL })) {
-		if (Expr() && AParamsTail()) {
+		addDerivation("<AParams> ::= <Expr> <AParamsTail>");
+
+		AST* expr = nullptr;
+		AST* aParamsTail = nullptr;
+		if (Expr(&expr) && AParamsTail(&aParamsTail)) {
+			*aParams = ASTFactory::makeFamily(CompositeConcept::APARAMSLIST, { expr, aParamsTail });
 			return true;
 		}
 		else {
@@ -940,6 +1298,7 @@ bool RecursiveDescentPredictiveParser::AParams()
 	}
 	//<AParams> ::= EPSILON 
 	else if (isElementOfFollow({ NonTerminal::APARAMS })) {
+		addDerivation("<AParams> ::= EPSILON");
 		return true;
 	}
 	else {
@@ -947,11 +1306,15 @@ bool RecursiveDescentPredictiveParser::AParams()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNestFuncTail()
+bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNestFuncTail(AST** funcOrAssignStatIdNestFuncTail, AST* lhsId)
 {
 	//<FuncOrAssignStatIdnestFuncTail> ::= '.' 'id' <FuncStatTail> 
 	if (isElementOfFirst({ TokenType::PERIOD, TokenType::ID, NonTerminal::FUNCSTATTAIL })) {
-		if (match(TokenType::PERIOD) && match(TokenType::ID) && FuncStatTail()) {
+		addDerivation("<FuncOrAssignStatIdnestFuncTail> ::= '.' 'id' <FuncStatTail>");
+		AST* funcStatTail = nullptr;
+		if (match(TokenType::PERIOD) && match(TokenType::ID) && FuncStatTail(&funcStatTail)) {
+			AST* rhsId = attributeStack.top(); attributeStack.pop();
+			*funcOrAssignStatIdNestFuncTail = ASTFactory::makeFamily(CompositeConcept::FUNCCALLSTAT, { lhsId, rhsId, funcStatTail });
 			return true;
 		}
 		else {
@@ -960,6 +1323,7 @@ bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNestFuncTail()
 	}
 	//<FuncOrAssignStatIdnestFuncTail> :: = EPSILON
 	else if (isElementOfFollow(NonTerminal::FUNCORASSIGNSTATIDNESTFUNCTAIL)) {
+		addDerivation("<FuncOrAssignStatIdnestFuncTail> ::= EPSILON");
 		return true;
 	}
 	else {
@@ -967,11 +1331,16 @@ bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNestFuncTail()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::Term()
+bool RecursiveDescentPredictiveParser::Term(AST** term)
 {
 	//<Term> ::= <Factor> <TermTail> 
 	if (isElementOfFirst({ NonTerminal::FACTOR, NonTerminal::TERMTAIL })) {
-		if (Factor() && TermTail()) {
+		addDerivation("<Term> ::= <Factor> <TermTail>");
+
+		AST* lhsFactor = nullptr;
+		AST* termTail = nullptr;
+		if (Factor(&lhsFactor, nullptr) && TermTail(&termTail, lhsFactor)) {
+			*term = termTail;
 			return true;
 		}
 		else {
@@ -983,11 +1352,18 @@ bool RecursiveDescentPredictiveParser::Term()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::ArithExprTail()
+bool RecursiveDescentPredictiveParser::ArithExprTail(AST** arithExprTail, AST* lhsTerm)
 {
 	//<ArithExprTail> ::= <AddOp> <Term> <ArithExprTail> 
 	if (isElementOfFirst({NonTerminal::ADDOP, NonTerminal::TERM, NonTerminal::ARITHEXPRTAIL})) {
-		if (AddOp() && Term() && ArithExprTail()) {
+		addDerivation("<ArithExprTail> ::= <AddOp> <Term> <ArithExprTail>");
+
+		AST* addOp = nullptr;
+		AST* rhsTerm = nullptr;
+		AST* rhsTermExpr = nullptr;
+		if (AddOp(&addOp) && Term(&rhsTerm) && ArithExprTail(&rhsTermExpr, rhsTerm)) {
+			ASTFactory::makeFamily(addOp, { lhsTerm, rhsTermExpr });
+			*arithExprTail = addOp;
 			return true;
 		}
 		else {
@@ -996,6 +1372,8 @@ bool RecursiveDescentPredictiveParser::ArithExprTail()
 	}
 	//<ArithExprTail> ::= EPSILON 
 	else if (isElementOfFollow(NonTerminal::ARITHEXPRTAIL)) {
+		*arithExprTail = lhsTerm;
+		addDerivation("<ArithExprTail> ::= EPSILON");
 		return true;
 	}
 	else {
@@ -1003,11 +1381,13 @@ bool RecursiveDescentPredictiveParser::ArithExprTail()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::RelOp()
+bool RecursiveDescentPredictiveParser::RelOp(AST** relOp)
 {
 	//<RelOp> ::= 'eq' 
 	if (isElementOfFirst({ TokenType::EQUAL_TO })) {
+		addDerivation("<RelOp> ::= 'eq'");
 		if (match(TokenType::EQUAL_TO)) {
+			*relOp = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1016,7 +1396,9 @@ bool RecursiveDescentPredictiveParser::RelOp()
 	}
 	//<RelOp> ::= 'neq' 
 	else if (isElementOfFirst({ TokenType::NOT_EQUAL_TO })) {
+		addDerivation("<RelOp> ::= 'neq'");
 		if (match(TokenType::NOT_EQUAL_TO)) {
+			*relOp = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1025,7 +1407,10 @@ bool RecursiveDescentPredictiveParser::RelOp()
 	}
 	//<RelOp> ::= 'lt' 
 	else if (isElementOfFirst({ TokenType::LESS_THAN })) {
+		addDerivation("<RelOp> ::= 'lt'");
+
 		if (match(TokenType::LESS_THAN)) {
+			*relOp = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1034,7 +1419,10 @@ bool RecursiveDescentPredictiveParser::RelOp()
 	}
 	//<RelOp> ::= 'gt' 
 	else if (isElementOfFirst({ TokenType::GREATER_THAN })) {
+		addDerivation("<RelOp> ::= 'gt'");
+
 		if (match(TokenType::GREATER_THAN)) {
+			*relOp = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1043,7 +1431,10 @@ bool RecursiveDescentPredictiveParser::RelOp()
 	}
 	//<RelOp> ::= 'leq' 
 	else if (isElementOfFirst({ TokenType::LESS_THAN_EQUAL_TO })) {
+		addDerivation("<RelOp> ::= 'leq'");
+
 		if (match(TokenType::LESS_THAN_EQUAL_TO)) {
+			*relOp = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1052,7 +1443,10 @@ bool RecursiveDescentPredictiveParser::RelOp()
 	}
 	//<RelOp> ::= 'geq' 
 	else if (isElementOfFirst({ TokenType::GREATER_THAN_EQUAL_TO })) {
+		addDerivation("<RelOp> ::= 'geq'");
+
 		if (match(TokenType::GREATER_THAN_EQUAL_TO)) {
+			*relOp = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1064,11 +1458,16 @@ bool RecursiveDescentPredictiveParser::RelOp()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::VariableIDNestTail()
+bool RecursiveDescentPredictiveParser::VariableIDNestTail(AST** variableIdNestTail)
 {
 	//<VariableIdnestTail> ::= '.' 'id' <VariableIdnest> 
 	if (isElementOfFirst({ TokenType::PERIOD, TokenType::ID, NonTerminal::VARIABLEIDNEST })) {
-		if (match(TokenType::PERIOD) && match(TokenType::ID) && VariableIDNest()) {
+		addDerivation("<VariableIdnestTail> ::= '.' 'id' <VariableIdnest>");
+		AST* variableIdNest = nullptr;
+		if (match(TokenType::PERIOD) && match(TokenType::ID) && VariableIDNest(&variableIdNest)) {
+			AST* varId = attributeStack.top(); attributeStack.pop();
+			varId->makeSiblings(variableIdNest);
+			*variableIdNestTail = varId;
 			return true;
 		}
 		else {
@@ -1077,6 +1476,7 @@ bool RecursiveDescentPredictiveParser::VariableIDNestTail()
 	}
 	//<VariableIdnestTail> ::= EPSILON 
 	else if (isElementOfFollow(NonTerminal::VARIABLEIDNESTTAIL)) {
+		addDerivation("<VariableIdnestTail> ::= EPSILON");
 		return true;
 	}
 	else {
@@ -1084,11 +1484,17 @@ bool RecursiveDescentPredictiveParser::VariableIDNestTail()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::AssignStatTail()
+bool RecursiveDescentPredictiveParser::AssignStatTail(AST** assignStatTail, AST* lhsAssignStat)
 {
 	//<AssignStatTail> ::= <AssignOp> <Expr> 
 	if (isElementOfFirst({ NonTerminal::ASSIGNOP, NonTerminal::EXPR })) {
-		if (AssignOp() && Expr()) {
+		addDerivation("<AssignStatTail> ::= <AssignOp> <Expr>");
+
+		AST* assignOp = nullptr;
+		AST* rhsExpr = nullptr;
+		if (AssignOp(&assignOp) && Expr(&rhsExpr)) {
+			ASTFactory::makeFamily(assignOp, { lhsAssignStat, rhsExpr });
+			*assignStatTail = assignOp;
 			return true;
 		}
 		else {
@@ -1100,11 +1506,17 @@ bool RecursiveDescentPredictiveParser::AssignStatTail()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::AParamsTail()
+bool RecursiveDescentPredictiveParser::AParamsTail(AST** aParamsTail)
 {
 	//<AParamsTail> ::= ',' <Expr> <AParamsTail> 
 	if (isElementOfFirst({ TokenType::COMMA, NonTerminal::EXPR, NonTerminal::APARAMSTAIL })) {
-		if (match(TokenType::COMMA) && Expr() && AParamsTail()) {
+		addDerivation("<AParamsTail> ::= ',' <Expr> <AParamsTail>");
+
+		AST* expr = nullptr;
+		AST* aParamsTailSibling = nullptr;
+		if (match(TokenType::COMMA) && Expr(&expr) && AParamsTail(&aParamsTailSibling)) {
+			expr->makeSiblings(aParamsTailSibling);
+			*aParamsTail = expr;
 			return true;
 		}
 		else {
@@ -1113,6 +1525,7 @@ bool RecursiveDescentPredictiveParser::AParamsTail()
 	}
 	//<AParamsTail> :: = EPSILON
 	else if (isElementOfFollow(NonTerminal::APARAMSTAIL)) {
+		addDerivation("<AParamsTail> ::= EPSILON");
 		return true;
 	}
 	else {
@@ -1120,11 +1533,20 @@ bool RecursiveDescentPredictiveParser::AParamsTail()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::FuncStatTail()
+bool RecursiveDescentPredictiveParser::FuncStatTail(AST** funcStatTail)
 {
 	//<FuncStatTail> ::= <IndiceRep> '.' 'id' <FuncStatTail> 
 	if (isElementOfFirst({ NonTerminal::INDICEREP, TokenType::PERIOD, TokenType::ID, NonTerminal::FUNCSTATTAIL })) {
-		if (IndiceRep() && match(TokenType::PERIOD) && match(TokenType::ID) && FuncStatTail()) {
+		addDerivation("<FuncStatTail> ::= <IndiceRep> '.' 'id' <FuncStatTail>");
+		AST* indiceRep = nullptr;
+		AST* funcStatTailSibling = nullptr;
+		if (IndiceRep(&indiceRep) && match(TokenType::PERIOD) && match(TokenType::ID) && FuncStatTail(&funcStatTailSibling)) {
+			AST* funcId = attributeStack.top(); attributeStack.pop();
+			if (indiceRep) {
+				indiceRep->makeSiblings(funcId);
+			}
+			funcId->makeSiblings(funcStatTailSibling);
+			*funcStatTail = funcId;
 			return true;
 		}
 		else {
@@ -1133,7 +1555,12 @@ bool RecursiveDescentPredictiveParser::FuncStatTail()
 	}
 	//<FuncStatTail> ::= '(' <AParams> ')' <FuncStatTailIdnest> 
 	else if (isElementOfFirst({ TokenType::LEFT_PARENTHESIS, NonTerminal::APARAMS, TokenType::RIGHT_PARENTHESIS, NonTerminal::FUNCSTATTAILIDNEST })) {
-		if (match(TokenType::LEFT_PARENTHESIS) && AParams() && match(TokenType::RIGHT_PARENTHESIS) && FuncStatTailIDNest()) {
+		addDerivation("<FuncStatTail> ::= '(' <AParams> ')' <FuncStatTailIdnest>");
+		AST* aParams = nullptr;
+		AST* funcStatTailIdNest = nullptr;
+		if (match(TokenType::LEFT_PARENTHESIS) && AParams(&aParams) && match(TokenType::RIGHT_PARENTHESIS) && FuncStatTailIDNest(&funcStatTailIdNest)) {
+			aParams->makeSiblings(funcStatTailIdNest);
+			*funcStatTail = aParams;
 			return true;
 		}
 		else {
@@ -1145,12 +1572,14 @@ bool RecursiveDescentPredictiveParser::FuncStatTail()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::Factor()
+bool RecursiveDescentPredictiveParser::Factor(AST** factor, AST* lhsFactor)
 {
 	
 	//<Factor> ::= 'intnum' 
 	if (isElementOfFirst({ TokenType::INTEGER })) {
+		addDerivation("<Factor> ::= 'intnum'");
 		if (match(TokenType::INTEGER)) {
+			*factor = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1159,7 +1588,9 @@ bool RecursiveDescentPredictiveParser::Factor()
 	}
 	//<Factor> ::= 'floatnum' 
 	else if (isElementOfFirst({ TokenType::FLOAT })) {
+		addDerivation("<Factor> ::= 'floatnum'");
 		if (match(TokenType::FLOAT)) {
+			*factor = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1168,7 +1599,9 @@ bool RecursiveDescentPredictiveParser::Factor()
 	}
 	//<Factor> ::= 'stringlit' 
 	else if (isElementOfFirst({ TokenType::STRING })) {
+		addDerivation("<Factor> ::= 'stringlit'");
 		if (match(TokenType::STRING)) {
+			*factor = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1177,7 +1610,10 @@ bool RecursiveDescentPredictiveParser::Factor()
 	}
 	//<Factor> ::= '(' <Expr> ')' 
 	else if (isElementOfFirst({ TokenType::LEFT_PARENTHESIS, NonTerminal::EXPR, TokenType::RIGHT_PARENTHESIS })) {
-		if (match(TokenType::LEFT_PARENTHESIS) && Expr() && match(TokenType::RIGHT_PARENTHESIS)) {
+		addDerivation("<Factor> ::= '(' <Expr> ')'");
+		AST* expr = nullptr;
+		if (match(TokenType::LEFT_PARENTHESIS) && Expr(&expr) && match(TokenType::RIGHT_PARENTHESIS)) {
+			*factor = expr;
 			return true;
 		}
 		else {
@@ -1186,7 +1622,11 @@ bool RecursiveDescentPredictiveParser::Factor()
 	}
 	//<Factor> ::= 'not' <Factor> 
 	else if (isElementOfFirst({ TokenType::NOT, NonTerminal::FACTOR })) {
-		if (match(TokenType::NOT) && Factor()) {
+		addDerivation("<Factor> ::= 'not' <Factor>");
+		AST* factor = nullptr;
+		if (match(TokenType::NOT) && Factor(&factor, nullptr)) {
+			AST* notOp = attributeStack.top(); attributeStack.pop();
+			notOp->adoptChildren(factor);
 			return true;
 		}
 		else {
@@ -1195,7 +1635,13 @@ bool RecursiveDescentPredictiveParser::Factor()
 	}
 	//<Factor> ::= 'qm' '[' <Expr> ':' <Expr> ':' <Expr> ']' 
 	else if (isElementOfFirst({ TokenType::QUESTION_MARK, TokenType::LEFT_SQUARE_BRACKET, NonTerminal::EXPR, TokenType::COLON,  NonTerminal::EXPR, TokenType::COLON, NonTerminal::EXPR, TokenType::RIGHT_SQUARE_BRACKET })) {
-		if (match(TokenType::QUESTION_MARK) && match(TokenType::LEFT_SQUARE_BRACKET) && Expr() && match(TokenType::COLON) && Expr() && match(TokenType::COLON) && Expr() && match(TokenType::RIGHT_SQUARE_BRACKET)) {
+		addDerivation("<Factor> ::= 'qm' '[' <Expr> ':' <Expr> ':' <Expr> ']'");
+		AST* truthExpr = nullptr;
+		AST* branch1Expr = nullptr;
+		AST* branch2Expr = nullptr;
+		if (match(TokenType::QUESTION_MARK) && match(TokenType::LEFT_SQUARE_BRACKET) && Expr(&truthExpr) && match(TokenType::COLON) && Expr(&branch1Expr) && match(TokenType::COLON) && Expr(&branch2Expr) && match(TokenType::RIGHT_SQUARE_BRACKET)) {
+			AST* ternary = ASTFactory::makeFamily(CompositeConcept::TERNARY, {truthExpr, branch1Expr, branch2Expr});
+			*factor = ternary;
 			return true;
 		}
 		else {
@@ -1204,7 +1650,12 @@ bool RecursiveDescentPredictiveParser::Factor()
 	}
 	//<Factor> ::= <Sign> <Factor> 
 	else if (isElementOfFirst({ NonTerminal::SIGN, NonTerminal::FACTOR })) {
-		if (Sign() && Factor()) {
+		addDerivation("<Factor> ::= <Sign> <Factor>");
+		AST* sign = nullptr;
+		AST* rhsFactorSibling = nullptr;
+		if (Sign(&sign) && Factor(&rhsFactorSibling, lhsFactor)) {
+			ASTFactory::makeFamily(sign, { lhsFactor, rhsFactorSibling });
+			*factor = sign;
 			return true;
 		}
 		else {
@@ -1213,7 +1664,10 @@ bool RecursiveDescentPredictiveParser::Factor()
 	}
 	//<Factor> ::= <FuncOrVar> 
 	else if (isElementOfFirst({ NonTerminal::FUNCORVAR })) {
-		if (FuncOrVar()) {
+		addDerivation("<Factor> ::= <FuncOrVar>");
+		AST* funcOrVar = nullptr;
+		if (FuncOrVar(&funcOrVar)) {
+			*factor = funcOrVar;
 			return true;
 		}
 		else {
@@ -1225,11 +1679,19 @@ bool RecursiveDescentPredictiveParser::Factor()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::TermTail()
+bool RecursiveDescentPredictiveParser::TermTail(AST** termTail, AST* lhsFactor)
 {
 	//<TermTail> ::= <MultOp> <Factor> <TermTail> 
 	if (isElementOfFirst({ NonTerminal::MULTOP, NonTerminal::FACTOR, NonTerminal::TERMTAIL })) {
-		if (MultOp() && Factor() && TermTail()) {
+		addDerivation("<TermTail> ::= <MultOp> <Factor> <TermTail>");
+		
+		AST* multOp = nullptr;
+		AST* rhsFactor = nullptr;
+		AST* termTailChild = nullptr;
+
+		if (MultOp(&multOp) && Factor(&rhsFactor, nullptr) && TermTail(&termTailChild, rhsFactor)) {
+			ASTFactory::makeFamily(multOp, { lhsFactor, termTailChild });
+			*termTail = multOp;
 			return true;
 		}
 		else {
@@ -1238,6 +1700,8 @@ bool RecursiveDescentPredictiveParser::TermTail()
 	}
 	//<TermTail> ::= EPSILON 
 	else if (isElementOfFollow(NonTerminal::TERMTAIL)) {
+		*termTail = lhsFactor;
+		addDerivation("<TermTail> ::= EPSILON");
 		return true;
 	}
 	else {
@@ -1245,11 +1709,13 @@ bool RecursiveDescentPredictiveParser::TermTail()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::AddOp()
+bool RecursiveDescentPredictiveParser::AddOp(AST** addOp)
 {
 	//<AddOp> ::= '+' 
 	if (isElementOfFirst({ TokenType::ADDITION })) {
+		addDerivation("<AddOp> ::= '+'");
 		if (match(TokenType::ADDITION)) {
+			*addOp = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1258,7 +1724,9 @@ bool RecursiveDescentPredictiveParser::AddOp()
 	}
 	//<AddOp> ::= '-' 
 	else if (isElementOfFirst({ TokenType::SUBTRACTION })) {
+		addDerivation("<AddOp> ::= '-'");
 		if (match(TokenType::SUBTRACTION)) {
+			*addOp = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1267,7 +1735,9 @@ bool RecursiveDescentPredictiveParser::AddOp()
 	}
 	//<AddOp> ::= 'or' 
 	else if (isElementOfFirst({ TokenType::OR })) {
+		addDerivation("<AddOp> ::= 'or'");
 		if (match(TokenType::OR)) {
+			*addOp = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1279,11 +1749,13 @@ bool RecursiveDescentPredictiveParser::AddOp()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::AssignOp()
+bool RecursiveDescentPredictiveParser::AssignOp(AST** assignOp)
 {
 	//<AssignOp> ::= 'assign'
 	if (isElementOfFirst({ TokenType::ASSIGNMENT })) {
+		addDerivation("<AssignOp> ::= 'assign'");
 		if (match(TokenType::ASSIGNMENT)) {
+			*assignOp = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1295,11 +1767,16 @@ bool RecursiveDescentPredictiveParser::AssignOp()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::FuncStatTailIDNest()
+bool RecursiveDescentPredictiveParser::FuncStatTailIDNest(AST** funcStatTailIdNest)
 {
 	//<FuncStatTailIdnest> ::= '.' 'id' <FuncStatTail> 
 	if (isElementOfFirst({ TokenType::PERIOD, TokenType::ID, NonTerminal::FUNCSTATTAIL })) {
-		if (match(TokenType::PERIOD) && match(TokenType::ID) && FuncStatTail()) {
+		addDerivation("<FuncStatTailIdnest> ::= '.' 'id' <FuncStatTail>");
+		AST* funcStatTail = nullptr;
+		if (match(TokenType::PERIOD) && match(TokenType::ID) && FuncStatTail(&funcStatTail)) {
+			AST* statId = attributeStack.top(); attributeStack.pop();
+			statId->makeSiblings(funcStatTail);
+			*funcStatTailIdNest = statId;
 			return true;
 		}
 		else {
@@ -1308,6 +1785,7 @@ bool RecursiveDescentPredictiveParser::FuncStatTailIDNest()
 	}
 	//<FuncStatTailIdnest> ::= EPSILON
 	else if (isElementOfFollow(NonTerminal::FUNCSTATTAILIDNEST)) {
+		addDerivation("<FuncStatTailIdnest> ::= EPSILON");
 		return true;
 	}
 	else {
@@ -1316,11 +1794,15 @@ bool RecursiveDescentPredictiveParser::FuncStatTailIDNest()
 	return false;
 }
 
-bool RecursiveDescentPredictiveParser::FuncOrVar()
+bool RecursiveDescentPredictiveParser::FuncOrVar(AST** funcOrVar)
 {
 	//<FuncOrVar> ::= 'id' <FuncOrVarIdnest> 
 	if (isElementOfFirst({ TokenType::ID, NonTerminal::FUNCORVARIDNEST })) {
-		if (match(TokenType::ID) && FuncOrVarIDNest()) {
+		addDerivation("<FuncOrVar> ::= 'id' <FuncOrVarIdnest>");
+		AST* funcOrVarIdNest = nullptr;
+		if (match(TokenType::ID) && FuncOrVarIDNest(&funcOrVarIdNest, attributeStack.top())) {
+			AST* id = attributeStack.top(); attributeStack.pop();
+			*funcOrVar = funcOrVarIdNest;
 			return true;
 		}
 		else {
@@ -1330,11 +1812,13 @@ bool RecursiveDescentPredictiveParser::FuncOrVar()
 	return false;
 }
 
-bool RecursiveDescentPredictiveParser::Sign()
+bool RecursiveDescentPredictiveParser::Sign(AST** sign)
 {
 	//<Sign> ::= '+' 
 	if (isElementOfFirst({ TokenType::ADDITION })) {
+		addDerivation("<Sign> :: = '+'");
 		if (match(TokenType::ADDITION)) {
+			*sign = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1343,7 +1827,9 @@ bool RecursiveDescentPredictiveParser::Sign()
 	}
 	//<Sign> ::= '-' 
 	else if (isElementOfFirst({ TokenType::SUBTRACTION })) {
+		addDerivation("<Sign> :: = '-'");
 		if (match(TokenType::SUBTRACTION)) {
+			*sign = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1355,11 +1841,13 @@ bool RecursiveDescentPredictiveParser::Sign()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::MultOp()
+bool RecursiveDescentPredictiveParser::MultOp(AST** multOp)
 {
 	//<MultOp> ::= '*' 
 	if (isElementOfFirst({ TokenType::MULTIPLICATION })) {
+		addDerivation("<MultOp> ::= '*'");
 		if (match(TokenType::MULTIPLICATION)) {
+			*multOp = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1368,7 +1856,9 @@ bool RecursiveDescentPredictiveParser::MultOp()
 	}
 	//<MultOp> ::= '/' 
 	else if (isElementOfFirst({ TokenType::DIVISION})) {
+		addDerivation("<MultOp> ::= '/'");
 		if (match(TokenType::DIVISION)) {
+			*multOp = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1377,7 +1867,9 @@ bool RecursiveDescentPredictiveParser::MultOp()
 	}
 	//<MultOp> ::= 'and'
 	else if (isElementOfFirst({ TokenType::AND })) {
+		addDerivation("<MultOp> ::= '/'");
 		if (match(TokenType::AND)) {
+			*multOp = attributeStack.top(); attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1389,20 +1881,31 @@ bool RecursiveDescentPredictiveParser::MultOp()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::FuncOrVarIDNest()
+bool RecursiveDescentPredictiveParser::FuncOrVarIDNest(AST** funcOrVarIdNest, AST* id)
 {
+	// function
 	//<FuncOrVarIdnest> ::= '(' <AParams> ')' <FuncOrVarIdnestTail> 
 	if (isElementOfFirst({ TokenType::LEFT_PARENTHESIS, NonTerminal::APARAMS, TokenType::RIGHT_PARENTHESIS, NonTerminal::FUNCORVARIDNESTTAIL })) {
-		if (match(TokenType::LEFT_PARENTHESIS) && AParams() && match(TokenType::RIGHT_PARENTHESIS) && FuncOrVarIDNestTail()) {
+		addDerivation("<FuncOrVarIdnest> ::= '(' <AParams> ')' <FuncOrVarIdnestTail>");
+		AST* aParams = nullptr;
+		AST* funcOrVarIdNestTail = nullptr;
+		if (match(TokenType::LEFT_PARENTHESIS) && AParams(&aParams) && match(TokenType::RIGHT_PARENTHESIS) && FuncOrVarIDNestTail(&funcOrVarIdNestTail)) {
+			*funcOrVarIdNest = ASTFactory::makeFamily(CompositeConcept::FUNCCALLSTAT, { id, aParams });
+			(*funcOrVarIdNest)->makeSiblings(funcOrVarIdNestTail);
 			return true;
 		}
 		else {
 			return false;
 		}
 	}
+	// variable
 	//<FuncOrVarIdnest> ::= <IndiceRep> <FuncOrVarIdnestTail> 
 	else if (isElementOfFirst({ NonTerminal::INDICEREP, NonTerminal::FUNCORVARIDNESTTAIL })) {
-		if (IndiceRep() && FuncOrVarIDNestTail()) {
+		addDerivation("<FuncOrVarIdnest> ::= <IndiceRep> <FuncOrVarIdnestTail>");
+		AST* indiceRep = nullptr;
+		AST* funcOrVarIdNestTail = nullptr;
+		if (IndiceRep(&indiceRep) && FuncOrVarIDNestTail(&funcOrVarIdNestTail)) {
+			*funcOrVarIdNest = ASTFactory::makeFamily(CompositeConcept::VARCALLSTAT, { id, indiceRep, funcOrVarIdNestTail });
 			return true;
 		}
 		else {
@@ -1414,11 +1917,13 @@ bool RecursiveDescentPredictiveParser::FuncOrVarIDNest()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::FuncOrVarIDNestTail()
+bool RecursiveDescentPredictiveParser::FuncOrVarIDNestTail(AST** funcOrVarIdNestTail)
 {
 	//<FuncOrVarIdnestTail> ::= '.' 'id' <FuncOrVarIdnest> 
 	if (isElementOfFirst({ TokenType::PERIOD, TokenType::ID, NonTerminal::FUNCORVARIDNEST })) {
-		if (match(TokenType::PERIOD) && match(TokenType::ID) && FuncOrVarIDNest()) {
+		addDerivation("<FuncOrVarIdnestTail> ::= '.' 'id' <FuncOrVarIdnest>");
+		if (match(TokenType::PERIOD) && match(TokenType::ID) && FuncOrVarIDNest(funcOrVarIdNestTail, attributeStack.top())) {
+			attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1427,6 +1932,7 @@ bool RecursiveDescentPredictiveParser::FuncOrVarIDNestTail()
 	}
 	//<FuncOrVarIdnestTail> ::= EPSILON 
 	else if (isElementOfFollow(NonTerminal::FUNCORVARIDNESTTAIL)) {
+		addDerivation("<FuncOrVarIdnestTail> ::= EPSILON");
 		return true;
 	}
 	else {
@@ -1434,11 +1940,17 @@ bool RecursiveDescentPredictiveParser::FuncOrVarIDNestTail()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::Function()
+bool RecursiveDescentPredictiveParser::Function(AST** functionS)
 {
 	//<Function> ::= <FuncHead> <FuncBody> 
 	if (isElementOfFirst({ NonTerminal::FUNCHEAD, NonTerminal::FUNCBODY })) {
-		if (FuncHead() && FuncBody()) {
+		addDerivation("<FuncHead> ::= 'func' 'id' <ClassMethod> '(' <FParams> ')' ':' <FuncDeclTail> ");
+
+		AST* funcHeadS = nullptr;
+		AST* funcBodyS = nullptr;
+		if (FuncHead(&funcHeadS) && FuncBody(&funcBodyS)) {
+			funcHeadS->makeSiblings(funcBodyS);
+			*functionS = funcHeadS;
 			return true;
 		}
 		else {
@@ -1450,11 +1962,18 @@ bool RecursiveDescentPredictiveParser::Function()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::FuncHead()
+bool RecursiveDescentPredictiveParser::FuncHead(AST** funcHeadS)
 {
 	//<FuncHead> ::= 'func' 'id' <ClassMethod> '(' <FParams> ')' ':' <FuncDeclTail> 
 	if (isElementOfFirst({ TokenType::FUNC, TokenType::ID, NonTerminal::CLASSMETHOD, TokenType::LEFT_PARENTHESIS, NonTerminal::FPARAMS, TokenType::RIGHT_PARENTHESIS, TokenType::COLON, NonTerminal::FUNCDECLTAIL })) {
-		if (match(TokenType::FUNC) && match(TokenType::ID) && ClassMethod() && match(TokenType::LEFT_PARENTHESIS) && FParams() && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::COLON) && FuncDeclTail()) {
+		addDerivation("<FuncHead> ::= 'func' 'id' <ClassMethod> '(' <FParams> ')' ':' <FuncDeclTail> ");
+
+		AST* classMethodS = nullptr;
+		AST* fParamsS = nullptr;
+		AST* funcDeclTailS = nullptr;
+		if (match(TokenType::FUNC) && match(TokenType::ID) && ClassMethod(&classMethodS) && match(TokenType::LEFT_PARENTHESIS) && FParams(&fParamsS) && match(TokenType::RIGHT_PARENTHESIS) && match(TokenType::COLON) && FuncDeclTail(&funcDeclTailS)) {
+			AST* functionId = attributeStack.top(); attributeStack.pop();
+			*funcHeadS = ASTFactory::makeFamily(CompositeConcept::FUNCHEAD, { functionId, classMethodS, fParamsS, funcDeclTailS });
 			return true;
 		}
 		else {
@@ -1466,11 +1985,15 @@ bool RecursiveDescentPredictiveParser::FuncHead()
 	}
 }
 
-bool RecursiveDescentPredictiveParser::ClassMethod()
+bool RecursiveDescentPredictiveParser::ClassMethod(AST** classMethodS)
 {
 	//<ClassMethod> ::= 'sr' 'id' 
 	if (isElementOfFirst({ TokenType::DOUBLE_COLON, TokenType::ID })) {
+		addDerivation("<ClassMethod> ::= 'sr' 'id'");
+
 		if (match(TokenType::DOUBLE_COLON) && match(TokenType::ID)) {
+			*classMethodS = ASTFactory::makeFamily(CompositeConcept::CLASSMETHOD, {attributeStack.top()}); 
+			attributeStack.pop();
 			return true;
 		}
 		else {
@@ -1479,6 +2002,7 @@ bool RecursiveDescentPredictiveParser::ClassMethod()
 	}
 	//<ClassMethod> ::= EPSILON 
 	else if (isElementOfFollow(NonTerminal::CLASSMETHOD)) {
+		addDerivation("<ClassMethod> ::= EPSILON");
 		return true;
 	}
 	else {

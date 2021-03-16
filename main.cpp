@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <string>
 #include "Lexer.h"
 #include "RecursiveDescentPredictiveParser.h"
 #include "Token.h"
@@ -7,6 +8,7 @@
 #include <functional>
 #include <boost/filesystem.hpp>
 #include <regex>
+#include "AST.h"
 
 using namespace std;
 
@@ -55,6 +57,18 @@ void writeOutlexTokensFile(vector<Token> tokens, string path) {
 	}
 }
 
+void writeDotFile(AST* tree, string path) {
+	ofstream file(path);
+
+	if (file.fail()) { return; }
+	
+	string dot = tree->toDotString();
+
+	file << "digraph finite_state_machine{\n";
+	file << tree->toDotString();
+	file << "}\n";
+}
+
 int main(int argc, char* argv[]) 
 { 
 	if (argc != 2) {
@@ -79,6 +93,7 @@ int main(int argc, char* argv[])
 
 	string outlexErrorsPath = p.parent_path().string() + "\\" + filename + ".outlexerrors";
 	string outlexTokensPath = p.parent_path().string() + "\\" + filename + ".outlextokens";
+	string outlexASTPath = p.parent_path().string() + "\\" + filename + ".outast";
 
 	ifstream file(argv[1]);
 
@@ -91,4 +106,5 @@ int main(int argc, char* argv[])
 
 	writeOutlexErrorFile(tokens, outlexErrorsPath);
 	writeOutlexTokensFile(tokens, outlexTokensPath);
+	writeDotFile(parser.getAST(), outlexASTPath);
 }

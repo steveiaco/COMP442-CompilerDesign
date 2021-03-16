@@ -2,73 +2,20 @@
 #include <fstream>
 #include <unordered_map>
 #include <set>
-#include <vector>
-#include "../COMP442/Token.h"
-#include "../COMP442/Lexer.h"
 #include <variant>
-
+#include <vector>
+#include <stack>
+#include "AST.h"
+#include "Token.h"
+#include "Lexer.h"
+#include "EnumDeclarations.h"
 
 using std::ifstream;
 using std::unordered_map;
 using std::set;
 using std::vector;
-
-enum class NonTerminal {
-	ADDOP,
-	APARAMSTAIL,
-	ARITHEXPRTAIL,
-	ASSIGNOP,
-	CLASSDECLBODY,
-	EXPRTAIL,
-	ARITHEXPR,
-	FPARAMSTAIL,
-	CLASSMETHOD,
-	FPARAMS,
-	FUNCDECLTAIL,
-	FUNCORASSIGNSTATIDNESTFUNCTAIL,
-	FUNCORASSIGNSTATIDNESTVARTAIL,
-	FUNCORASSIGNSTATIDNEST,
-	ASSIGNSTATTAIL,
-	FUNCORVAR,
-	FUNCORVARIDNESTTAIL,
-	FUNCORVARIDNEST,
-	APARAMS,
-	FUNCSTATTAILIDNEST,
-	FUNCSTATTAIL,
-	FUNCTION,
-	FUNCHEAD,
-	INHERIT,
-	INTNUM,
-	MEMBERDECL,
-	FUNCDECL,
-	METHODBODYVAR,
-	NESTEDID,
-	CLASSDECL,
-	FUNCDEF,
-	FUNCBODY,
-	RELOP,
-	SIGN,
-	START,
-	PROG,
-	FUNCORASSIGNSTAT,
-	STATBLOCK,
-	EXPR,
-	STATEMENT,
-	STATEMENTLIST,
-	TERM,
-	MULTOP,
-	FACTOR,
-	TERMTAIL,
-	TYPE,
-	ARRAYSIZEREPT,
-	VARDECL,
-	VARDECLREP,
-	VARIABLE,
-	INDICEREP,
-	VARIABLEIDNESTTAIL,
-	VARIABLEIDNEST,
-	VISIBILITY,
-};
+using std::stack;
+using std::shared_ptr;
 
 using Alphabet = std::variant<TokenType, NonTerminal>;
 
@@ -82,10 +29,18 @@ private:
 
 	Lexer& lexer;
 
-	Token lookAhead;
+	AST* ast;
 
+	Token lookAhead;
+	Token lastToken;
+
+	vector<string> derivation;
+	vector<string> syntaxErrors;
+
+	stack<AST*> attributeStack;
 	
 	bool match(TokenType t);
+	bool skipErrors(NonTerminal t);
 
 	void generateFirstSet();
 	void generateFollowSet();
@@ -96,63 +51,66 @@ private:
 	// Check if lookAhead is contained within FOLLOW(element)
 	bool isElementOfFollow(NonTerminal element);
 
+	// Adds a step to the derivation list
+	void addDerivation(string s);
+
 	Token nextToken();
 
 	// Non-terminal grammar functions
-	bool AddOp();
-	bool AParams();
-	bool AParamsTail();
-	bool ArithExpr();
-	bool ArithExprTail();
-	bool ArraySizeRept();
-	bool AssignOp();
-	bool AssignStatTail();
-	bool ClassDecl();
-	bool ClassDeclBody();
-	bool ClassMethod();
-	bool Expr();
-	bool ExprTail();
-	bool Factor();
-	bool FParams();
-	bool FParamsTail();
-	bool FuncBody();
-	bool FuncDecl();
-	bool FuncDeclTail();
-	bool FuncDef();
-	bool FuncHead();
-	bool FuncOrAssignStat();
-	bool FuncOrAssignStatIDNest();
-	bool FuncOrAssignStatIDNestFuncTail();
-	bool FuncOrAssignStatIDNestVarTail();
-	bool FuncOrVar();
-	bool FuncOrVarIDNest();
-	bool FuncOrVarIDNestTail();
-	bool FuncStatTail();
-	bool FuncStatTailIDNest();
-	bool Function();
-	bool IndiceRep();
-	bool Inherit();
-	bool IntNum();
-	bool MemberDecl();
-	bool MethodBodyVar();
-	bool MultOp();
-	bool NestedID();
-	bool Prog();
-	bool RelOp();
-	bool Sign();
-	bool Start();
-	bool StatBlock();
-	bool Statement();
-	bool StatementList();
-	bool Term();
-	bool TermTail();
-	bool Type();
-	bool VarDecl();
-	bool VarDeclRep();
-	bool Variable();
-	bool VariableIDNest();
-	bool VariableIDNestTail();
-	bool Visibility();
+	bool AddOp(AST** addOp);
+	bool AParams(AST** aParams);
+	bool AParamsTail(AST** aParamsTail);
+	bool ArithExpr(AST** arithExpr);
+	bool ArithExprTail(AST** arithExprTail, AST* lhsTerm);
+	bool ArraySizeRept(AST** arraySizeRept);
+	bool AssignOp(AST** assignOp);
+	bool AssignStatTail(AST** assignStatTail, AST* lhsAssignStat);
+	bool ClassDecl(AST** classDeclS);
+	bool ClassDeclBody(AST** classDeclBodyS);
+	bool ClassMethod(AST** classMethodS);
+	bool Expr(AST** exprS);
+	bool ExprTail(AST** exprTail, AST* lhsArithExpr);
+	bool Factor(AST** factor, AST* lhsFactor);
+	bool FParams(AST** fParams);
+	bool FParamsTail(AST** fParamsTail);
+	bool FuncBody(AST** funcBodyS);
+	bool FuncDecl(AST** funcDecl);
+	bool FuncDeclTail(AST** funcDeclTail);
+	bool FuncDef(AST** funcDefS);
+	bool FuncHead(AST** funcHeadS);
+	bool FuncOrAssignStat(AST** funcOrAssignStat);
+	bool FuncOrAssignStatIDNest(AST** funcOrAssignStatIDNest, AST* lhsId);
+	bool FuncOrAssignStatIDNestFuncTail(AST** funcOrAssignStatIdNestFuncTail, AST* lhsId);
+	bool FuncOrAssignStatIDNestVarTail(AST** funcOrAssignStatIDNestVarTail, AST* lhsId);
+	bool FuncOrVar(AST** funcOrVar);
+	bool FuncOrVarIDNest(AST** funcOrVarIdNest, AST* id);
+	bool FuncOrVarIDNestTail(AST** funcOrVarIdNestTail);
+	bool FuncStatTail(AST** funcStatTail);
+	bool FuncStatTailIDNest(AST** funcStatTailIdNest);
+	bool Function(AST** functionS);
+	bool IndiceRep(AST** indiceRep);
+	bool Inherit(AST** inheritS);
+	bool IntNum(AST** intNum);
+	bool MemberDecl(AST** memberDeclS);
+	bool MethodBodyVar(AST** methodBodyVar);
+	bool MultOp(AST** multOp);
+	bool NestedID(AST** nestedIdS);
+	bool Prog(AST** progS);
+	bool RelOp(AST** relOp);
+	bool Sign(AST** sign);
+	bool Start(AST** startS);
+	bool StatBlock(AST** statBlock);
+	bool Statement(AST** statementS);
+	bool StatementList(AST** statementListS);
+	bool Term(AST** term);
+	bool TermTail(AST** termTail, AST* lhsFactor);
+	bool Type(AST** type);
+	bool VarDecl(AST** varDecl);
+	bool VarDeclRep(AST** varDeclRep);
+	bool Variable(AST** variable);
+	bool VariableIDNest(AST** variableIdNest);
+	bool VariableIDNestTail(AST** variableIdNestTail);
+	bool Visibility(AST** visibilityS);
 
 
 public:
@@ -161,4 +119,5 @@ public:
 
 	bool parse();
 	vector<Token>& getTokens();
+	AST* getAST();
 };
