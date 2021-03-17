@@ -10,5 +10,5 @@ string GeneralTokenAST::toString()
 {
 	std::stringstream ss;
 	ss << (void const*)this;
-	return "GT: " + id + " (" + ss.str() + ")";
+	return id + " (" + ss.str() + ")";
 }

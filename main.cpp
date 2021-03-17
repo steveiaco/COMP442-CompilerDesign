@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
 	Lexer lexer(file);
 	RecursiveDescentPredictiveParser parser(lexer);
 
-	parser.parse();
+	cout << parser.parse();
 
 	vector<Token>& tokens = parser.getTokens();
 

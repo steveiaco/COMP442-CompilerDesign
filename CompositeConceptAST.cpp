@@ -45,7 +45,7 @@ string CompositeConceptAST::toString()
 		cctext = "FUNCORVARLIST";
 		break;
 	case CompositeConcept::INDICEREPLIST:
-		cctext = "INDICEREPLIST";
+		cctext = "INDICELIST";
 		break;
 	case CompositeConcept::INHERITLIST:
 		cctext = "INHERITLIST";
@@ -54,7 +54,7 @@ string CompositeConceptAST::toString()
 		cctext = "TERNARY";
 		break;
 	case CompositeConcept::VARCALLSTAT:
-		cctext = "VARCALLSTAT";
+		cctext = "VAR";
 		break;
 	case CompositeConcept::VARDECLLIST:
 		cctext = "VARDECLLIST";

@@ -84,9 +84,9 @@ private:
 	bool FuncOrAssignStatIDNestVarTail(AST** funcOrAssignStatIDNestVarTail, AST* lhsId);
 	bool FuncOrVar(AST** funcOrVar);
 	bool FuncOrVarIDNest(AST** funcOrVarIdNest, AST* id);
-	bool FuncOrVarIDNestTail(AST** funcOrVarIdNestTail);
-	bool FuncStatTail(AST** funcStatTail);
-	bool FuncStatTailIDNest(AST** funcStatTailIdNest);
+	bool FuncOrVarIDNestTail(AST** funcOrVarIdNestTail, AST* lhsId);
+	bool FuncStatTail(AST** funcStatTail, AST* lhsId);
+	bool FuncStatTailIDNest(AST** funcStatTailIdNest, AST* lhsId);
 	bool Function(AST** functionS);
 	bool IndiceRep(AST** indiceRep);
 	bool Inherit(AST** inheritS);
@@ -108,8 +108,8 @@ private:
 	bool VarDecl(AST** varDecl);
 	bool VarDeclRep(AST** varDeclRep);
 	bool Variable(AST** variable);
-	bool VariableIDNest(AST** variableIdNest);
-	bool VariableIDNestTail(AST** variableIdNestTail);
+	bool VariableIDNest(AST** variableIdNest, AST* lhdId);
+	bool VariableIDNestTail(AST** variableIdNestTail, AST* lhdId);
 	bool Visibility(AST** visibilityS);
 
 

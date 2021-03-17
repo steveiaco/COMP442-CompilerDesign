@@ -214,6 +214,7 @@ bool RecursiveDescentPredictiveParser::match(TokenType t)
 
 		case TokenType::NOT:
 		case TokenType::VOID:
+		case TokenType::PERIOD:
 			attributeStack.push(ASTFactory::makeNode(lastToken));
 			break;
 		}
@@ -254,6 +255,10 @@ bool RecursiveDescentPredictiveParser::skipErrors(NonTerminal t)
 
 			if (epsilonIsInFirst && (follow.find(lookAhead.getTokenType()) != follow.end())) {
 				syntaxErrors.push_back("fatal error: sorry, i could not recover from the previous syntax error.");
+				return false;
+			}
+			else if (lookAhead.getTokenType() == TokenType::END_OF_FILE) {
+				syntaxErrors.push_back("fatal error: reached end of file without encountering expected token.");
 				return false;
 			}
 		}
@@ -480,7 +485,7 @@ bool RecursiveDescentPredictiveParser::NestedID(AST** nestedIdS)
 	//<NestedId> ::= ',' 'id' < NestedId >
 	if (isElementOfFirst({ TokenType::COMMA, TokenType::ID, NonTerminal::NESTEDID })) {
 		addDerivation("<NestedId> ::= ',' 'id' <NestedId>");
-		AST* nestedIdSibling;
+		AST* nestedIdSibling = nullptr;
 		if (match(TokenType::COMMA) && match(TokenType::ID) && NestedID(&nestedIdSibling)) {
 			*nestedIdS = attributeStack.top(); attributeStack.pop();
 			if (nestedIdSibling) {
@@ -813,8 +818,8 @@ bool RecursiveDescentPredictiveParser::FParamsTail(AST** fParamsTail)
 		if (match(TokenType::COMMA) && Type(&type) && match(TokenType::ID) && ArraySizeRept(&arraySizeRept) && FParamsTail(&fParamsTailSibling)) {
 			AST* fParamsId = attributeStack.top(); attributeStack.pop();
 			AST* arraySizeReptList = nullptr;
-			if (arraySizeReptList) {
-				ASTFactory::makeFamily(CompositeConcept::ARRAYSIZEREPTLIST, { arraySizeRept });
+			if (arraySizeRept) {
+				arraySizeReptList = ASTFactory::makeFamily(CompositeConcept::ARRAYSIZEREPTLIST, { arraySizeRept });
 			}
 			*fParamsTail = ASTFactory::makeFamily(CompositeConcept::FPARAMS, { type, fParamsId, arraySizeReptList });
 			(*fParamsTail)->makeSiblings(fParamsTailSibling);
@@ -1130,9 +1135,9 @@ bool RecursiveDescentPredictiveParser::Variable(AST** variable)
 	if (isElementOfFirst({ TokenType::ID, NonTerminal::VARIABLEIDNEST })) {
 		addDerivation("<Variable> ::= 'id' <VariableIdnest>");
 		AST* variableIdNest = nullptr;
-		if (match(TokenType::ID) && VariableIDNest(&variableIdNest)) {
+		if (match(TokenType::ID) && VariableIDNest(&variableIdNest, attributeStack.top())) {
 			AST* varId = attributeStack.top(); attributeStack.pop();
-			*variable = ASTFactory::makeFamily(CompositeConcept::VARIABLE, { varId, variableIdNest });
+			*variable = variableIdNest;
 			return true;
 		}
 		else {
@@ -1146,6 +1151,7 @@ bool RecursiveDescentPredictiveParser::Variable(AST** variable)
 
 bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNest(AST** funcOrAssignStatIDNest, AST* lhsId)
 {
+	if (!skipErrors(NonTerminal::FUNCORASSIGNSTATIDNEST)) { return false; }
 	//assignment
 	//<FuncOrAssignStatIdnest> ::= <IndiceRep> <FuncOrAssignStatIdnestVarTail> 
 	if (isElementOfFirst({ NonTerminal::INDICEREP, NonTerminal::FUNCORASSIGNSTATIDNESTVARTAIL })) {
@@ -1170,8 +1176,8 @@ bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNest(AST** funcOrAssign
 		addDerivation("<FuncOrAssignStatIdnest> :: = '(' <AParams> ')' <FuncOrAssignStatIdnestFuncTail>");
 		AST* aParams = nullptr;
 		if (match(TokenType::LEFT_PARENTHESIS) && AParams(&aParams) && match(TokenType::RIGHT_PARENTHESIS)) {
-			lhsId->makeSiblings(aParams);
-			if (FuncOrAssignStatIDNestFuncTail(funcOrAssignStatIDNest, lhsId)) {
+			AST* funcCall = ASTFactory::makeFamily(CompositeConcept::FUNCCALLSTAT, { lhsId, aParams });
+			if (FuncOrAssignStatIDNestFuncTail(funcOrAssignStatIDNest, funcCall)) {
 				return true;
 			}
 		}
@@ -1207,6 +1213,7 @@ bool RecursiveDescentPredictiveParser::ArithExpr(AST** arithExpr)
 
 bool RecursiveDescentPredictiveParser::ExprTail(AST** exprTail, AST* lhsArithExpr)
 {
+	if (!skipErrors(NonTerminal::EXPRTAIL)) { return false; }
 	//<ExprTail> ::= <RelOp> <ArithExpr> 
 	if (isElementOfFirst({ NonTerminal::RELOP, NonTerminal::ARITHEXPR })) {
 		addDerivation("<ExprTail> ::= <RelOp> <ArithExpr>");
@@ -1233,7 +1240,7 @@ bool RecursiveDescentPredictiveParser::ExprTail(AST** exprTail, AST* lhsArithExp
 	}
 }
 
-bool RecursiveDescentPredictiveParser::VariableIDNest(AST** variableIdNest)
+bool RecursiveDescentPredictiveParser::VariableIDNest(AST** variableIdNest, AST* lhsId)
 {
 	if (!skipErrors(NonTerminal::VARIABLEIDNEST)) { return false; }
 	//<VariableIdnest> ::= <IndiceRep> <VariableIdnestTail> 
@@ -1241,9 +1248,9 @@ bool RecursiveDescentPredictiveParser::VariableIDNest(AST** variableIdNest)
 		addDerivation("<VariableIdnest> ::= <IndiceRep> <VariableIdnestTail>");
 		AST* indiceRep = nullptr;
 		AST* variableIdNestTail = nullptr;
-		if (IndiceRep(&indiceRep) && VariableIDNestTail(&variableIdNestTail)) {
+		if (IndiceRep(&indiceRep) && VariableIDNestTail(&variableIdNestTail, lhsId)) {
 			if (indiceRep) {
-				indiceRep->makeSiblings(variableIdNestTail);
+				lhsId->makeSiblings(indiceRep);
 			}
 			*variableIdNest = variableIdNestTail;
 			return true;
@@ -1286,6 +1293,7 @@ bool RecursiveDescentPredictiveParser::IndiceRep(AST** indiceRep)
 
 bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNestVarTail(AST** funcOrAssignStatIDNestVarTail, AST* lhsId)
 {
+	if (!skipErrors(NonTerminal::FUNCORASSIGNSTATIDNESTVARTAIL)) { return false; }
 	//function call
 	//<FuncOrAssignStatIdnestVarTail> ::= '.' 'id' <FuncOrAssignStatIdnest> 
 	if (isElementOfFirst({ TokenType::PERIOD, TokenType::ID, NonTerminal::FUNCORASSIGNSTATIDNEST })) {
@@ -1294,8 +1302,9 @@ bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNestVarTail(AST** funcO
 
 		if (match(TokenType::PERIOD) && match(TokenType::ID) && FuncOrAssignStatIDNest(&funcOrAssignStatIDNest, attributeStack.top())) {
 			AST* varId = attributeStack.top(); attributeStack.pop();
-			lhsId->makeSiblings(funcOrAssignStatIDNest);
-			*funcOrAssignStatIDNestVarTail = lhsId;
+			AST* dot = attributeStack.top(); attributeStack.pop();
+			ASTFactory::makeFamily(dot, { lhsId, funcOrAssignStatIDNest });
+			*funcOrAssignStatIDNestVarTail = dot;
 			return true;
 		}
 		else {
@@ -1349,13 +1358,16 @@ bool RecursiveDescentPredictiveParser::AParams(AST** aParams)
 
 bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNestFuncTail(AST** funcOrAssignStatIdNestFuncTail, AST* lhsId)
 {
+	if (!skipErrors(NonTerminal::FUNCORASSIGNSTATIDNESTFUNCTAIL)) { return false; }
 	//<FuncOrAssignStatIdnestFuncTail> ::= '.' 'id' <FuncStatTail> 
 	if (isElementOfFirst({ TokenType::PERIOD, TokenType::ID, NonTerminal::FUNCSTATTAIL })) {
 		addDerivation("<FuncOrAssignStatIdnestFuncTail> ::= '.' 'id' <FuncStatTail>");
 		AST* funcStatTail = nullptr;
-		if (match(TokenType::PERIOD) && match(TokenType::ID) && FuncStatTail(&funcStatTail)) {
+		if (match(TokenType::PERIOD) && match(TokenType::ID) && FuncStatTail(&funcStatTail, attributeStack.top())) {
 			AST* rhsId = attributeStack.top(); attributeStack.pop();
-			*funcOrAssignStatIdNestFuncTail = ASTFactory::makeFamily(CompositeConcept::FUNCCALLSTAT, { lhsId, rhsId, funcStatTail });
+			AST* dot = attributeStack.top(); attributeStack.pop();
+			ASTFactory::makeFamily(dot, { lhsId, funcStatTail });
+			*funcOrAssignStatIdNestFuncTail = dot;
 			return true;
 		}
 		else {
@@ -1365,6 +1377,7 @@ bool RecursiveDescentPredictiveParser::FuncOrAssignStatIDNestFuncTail(AST** func
 	//<FuncOrAssignStatIdnestFuncTail> :: = EPSILON
 	else if (isElementOfFollow(NonTerminal::FUNCORASSIGNSTATIDNESTFUNCTAIL)) {
 		addDerivation("<FuncOrAssignStatIdnestFuncTail> ::= EPSILON");
+		*funcOrAssignStatIdNestFuncTail = lhsId;
 		return true;
 	}
 	else {
@@ -1396,6 +1409,7 @@ bool RecursiveDescentPredictiveParser::Term(AST** term)
 
 bool RecursiveDescentPredictiveParser::ArithExprTail(AST** arithExprTail, AST* lhsTerm)
 {
+	if (!skipErrors(NonTerminal::ARITHEXPRTAIL)) { return false; }
 	//<ArithExprTail> ::= <AddOp> <Term> <ArithExprTail> 
 	if (isElementOfFirst({ NonTerminal::ADDOP, NonTerminal::TERM, NonTerminal::ARITHEXPRTAIL })) {
 		addDerivation("<ArithExprTail> ::= <AddOp> <Term> <ArithExprTail>");
@@ -1501,17 +1515,18 @@ bool RecursiveDescentPredictiveParser::RelOp(AST** relOp)
 	}
 }
 
-bool RecursiveDescentPredictiveParser::VariableIDNestTail(AST** variableIdNestTail)
+bool RecursiveDescentPredictiveParser::VariableIDNestTail(AST** variableIdNestTail, AST* lhsId)
 {
 	if (!skipErrors(NonTerminal::VARIABLEIDNESTTAIL)) { return false; }
 	//<VariableIdnestTail> ::= '.' 'id' <VariableIdnest> 
 	if (isElementOfFirst({ TokenType::PERIOD, TokenType::ID, NonTerminal::VARIABLEIDNEST })) {
 		addDerivation("<VariableIdnestTail> ::= '.' 'id' <VariableIdnest>");
 		AST* variableIdNest = nullptr;
-		if (match(TokenType::PERIOD) && match(TokenType::ID) && VariableIDNest(&variableIdNest)) {
-			AST* varId = attributeStack.top(); attributeStack.pop();
-			varId->makeSiblings(variableIdNest);
-			*variableIdNestTail = varId;
+		if (match(TokenType::PERIOD) && match(TokenType::ID) && VariableIDNest(&variableIdNest, attributeStack.top())) {
+			AST* rhsId = attributeStack.top(); attributeStack.pop();
+			AST* dot = attributeStack.top(); attributeStack.pop();
+			ASTFactory::makeFamily(dot, { lhsId, variableIdNest });
+			*variableIdNestTail = dot;
 			return true;
 		}
 		else {
@@ -1521,6 +1536,7 @@ bool RecursiveDescentPredictiveParser::VariableIDNestTail(AST** variableIdNestTa
 	//<VariableIdnestTail> ::= EPSILON 
 	else if (isElementOfFollow(NonTerminal::VARIABLEIDNESTTAIL)) {
 		addDerivation("<VariableIdnestTail> ::= EPSILON");
+		*variableIdNestTail = lhsId;
 		return true;
 	}
 	else {
@@ -1530,6 +1546,7 @@ bool RecursiveDescentPredictiveParser::VariableIDNestTail(AST** variableIdNestTa
 
 bool RecursiveDescentPredictiveParser::AssignStatTail(AST** assignStatTail, AST* lhsAssignStat)
 {
+	if (!skipErrors(NonTerminal::ASSIGNSTATTAIL)) { return false; }
 	//<AssignStatTail> ::= <AssignOp> <Expr> 
 	if (isElementOfFirst({ NonTerminal::ASSIGNOP, NonTerminal::EXPR })) {
 		addDerivation("<AssignStatTail> ::= <AssignOp> <Expr>");
@@ -1578,7 +1595,7 @@ bool RecursiveDescentPredictiveParser::AParamsTail(AST** aParamsTail)
 	}
 }
 
-bool RecursiveDescentPredictiveParser::FuncStatTail(AST** funcStatTail)
+bool RecursiveDescentPredictiveParser::FuncStatTail(AST** funcStatTail, AST* lhsId)
 {
 	if (!skipErrors(NonTerminal::FUNCSTATTAIL)) { return false; }
 	//<FuncStatTail> ::= <IndiceRep> '.' 'id' <FuncStatTail> 
@@ -1586,13 +1603,14 @@ bool RecursiveDescentPredictiveParser::FuncStatTail(AST** funcStatTail)
 		addDerivation("<FuncStatTail> ::= <IndiceRep> '.' 'id' <FuncStatTail>");
 		AST* indiceRep = nullptr;
 		AST* funcStatTailSibling = nullptr;
-		if (IndiceRep(&indiceRep) && match(TokenType::PERIOD) && match(TokenType::ID) && FuncStatTail(&funcStatTailSibling)) {
-			AST* funcId = attributeStack.top(); attributeStack.pop();
+		if (IndiceRep(&indiceRep) && match(TokenType::PERIOD) && match(TokenType::ID) && FuncStatTail(&funcStatTailSibling, attributeStack.top())) {
+			AST* dot = attributeStack.top(); attributeStack.pop();
+			AST* rhsId = attributeStack.top(); attributeStack.pop();
 			if (indiceRep) {
-				indiceRep->makeSiblings(funcId);
+				lhsId->makeSiblings(indiceRep);
 			}
-			funcId->makeSiblings(funcStatTailSibling);
-			*funcStatTail = funcId;
+			ASTFactory::makeFamily(dot, { lhsId, funcStatTailSibling });
+			*funcStatTail = dot;
 			return true;
 		}
 		else {
@@ -1604,9 +1622,9 @@ bool RecursiveDescentPredictiveParser::FuncStatTail(AST** funcStatTail)
 		addDerivation("<FuncStatTail> ::= '(' <AParams> ')' <FuncStatTailIdnest>");
 		AST* aParams = nullptr;
 		AST* funcStatTailIdNest = nullptr;
-		if (match(TokenType::LEFT_PARENTHESIS) && AParams(&aParams) && match(TokenType::RIGHT_PARENTHESIS) && FuncStatTailIDNest(&funcStatTailIdNest)) {
-			aParams->makeSiblings(funcStatTailIdNest);
-			*funcStatTail = aParams;
+		if (match(TokenType::LEFT_PARENTHESIS) && AParams(&aParams) && match(TokenType::RIGHT_PARENTHESIS) && FuncStatTailIDNest(&funcStatTailIdNest, lhsId)) {
+			lhsId->makeSiblings(aParams);
+			*funcStatTail = funcStatTailIdNest;
 			return true;
 		}
 		else {
@@ -1620,7 +1638,7 @@ bool RecursiveDescentPredictiveParser::FuncStatTail(AST** funcStatTail)
 
 bool RecursiveDescentPredictiveParser::Factor(AST** factor, AST* lhsFactor)
 {
-
+	if (!skipErrors(NonTerminal::FACTOR)) { return false; }
 	//<Factor> ::= 'intnum' 
 	if (isElementOfFirst({ TokenType::INTEGER })) {
 		addDerivation("<Factor> ::= 'intnum'");
@@ -1669,10 +1687,11 @@ bool RecursiveDescentPredictiveParser::Factor(AST** factor, AST* lhsFactor)
 	//<Factor> ::= 'not' <Factor> 
 	else if (isElementOfFirst({ TokenType::NOT, NonTerminal::FACTOR })) {
 		addDerivation("<Factor> ::= 'not' <Factor>");
-		AST* factor = nullptr;
-		if (match(TokenType::NOT) && Factor(&factor, nullptr)) {
+		AST* factorS = nullptr;
+		if (match(TokenType::NOT) && Factor(&factorS, nullptr)) {
 			AST* notOp = attributeStack.top(); attributeStack.pop();
-			notOp->adoptChildren(factor);
+			notOp->adoptChildren(factorS);
+			*factor = notOp;
 			return true;
 		}
 		else {
@@ -1727,6 +1746,7 @@ bool RecursiveDescentPredictiveParser::Factor(AST** factor, AST* lhsFactor)
 
 bool RecursiveDescentPredictiveParser::TermTail(AST** termTail, AST* lhsFactor)
 {
+	if (!skipErrors(NonTerminal::TERMTAIL)) { return false; }
 	//<TermTail> ::= <MultOp> <Factor> <TermTail> 
 	if (isElementOfFirst({ NonTerminal::MULTOP, NonTerminal::FACTOR, NonTerminal::TERMTAIL })) {
 		addDerivation("<TermTail> ::= <MultOp> <Factor> <TermTail>");
@@ -1815,17 +1835,18 @@ bool RecursiveDescentPredictiveParser::AssignOp(AST** assignOp)
 	}
 }
 
-bool RecursiveDescentPredictiveParser::FuncStatTailIDNest(AST** funcStatTailIdNest)
+bool RecursiveDescentPredictiveParser::FuncStatTailIDNest(AST** funcStatTailIdNest, AST* lhsId)
 {
 	if (!skipErrors(NonTerminal::FUNCSTATTAILIDNEST)) { return false; }
 	//<FuncStatTailIdnest> ::= '.' 'id' <FuncStatTail> 
 	if (isElementOfFirst({ TokenType::PERIOD, TokenType::ID, NonTerminal::FUNCSTATTAIL })) {
 		addDerivation("<FuncStatTailIdnest> ::= '.' 'id' <FuncStatTail>");
 		AST* funcStatTail = nullptr;
-		if (match(TokenType::PERIOD) && match(TokenType::ID) && FuncStatTail(&funcStatTail)) {
+		if (match(TokenType::PERIOD) && match(TokenType::ID) && FuncStatTail(&funcStatTail, attributeStack.top())) {
 			AST* statId = attributeStack.top(); attributeStack.pop();
-			statId->makeSiblings(funcStatTail);
-			*funcStatTailIdNest = statId;
+			AST* dot = attributeStack.top(); attributeStack.pop();
+			ASTFactory::makeFamily(dot, { lhsId, funcStatTail });
+			*funcStatTailIdNest = dot;
 			return true;
 		}
 		else {
@@ -1933,18 +1954,22 @@ bool RecursiveDescentPredictiveParser::MultOp(AST** multOp)
 	}
 }
 
-bool RecursiveDescentPredictiveParser::FuncOrVarIDNest(AST** funcOrVarIdNest, AST* id)
+bool RecursiveDescentPredictiveParser::FuncOrVarIDNest(AST** funcOrVarIdNest, AST* lhsId)
 {
+	if (!skipErrors(NonTerminal::FUNCORVARIDNEST)) { return false; }
 	// function
 	//<FuncOrVarIdnest> ::= '(' <AParams> ')' <FuncOrVarIdnestTail> 
 	if (isElementOfFirst({ TokenType::LEFT_PARENTHESIS, NonTerminal::APARAMS, TokenType::RIGHT_PARENTHESIS, NonTerminal::FUNCORVARIDNESTTAIL })) {
 		addDerivation("<FuncOrVarIdnest> ::= '(' <AParams> ')' <FuncOrVarIdnestTail>");
 		AST* aParams = nullptr;
 		AST* funcOrVarIdNestTail = nullptr;
-		if (match(TokenType::LEFT_PARENTHESIS) && AParams(&aParams) && match(TokenType::RIGHT_PARENTHESIS) && FuncOrVarIDNestTail(&funcOrVarIdNestTail)) {
-			*funcOrVarIdNest = ASTFactory::makeFamily(CompositeConcept::FUNCCALLSTAT, { id, aParams });
-			(*funcOrVarIdNest)->makeSiblings(funcOrVarIdNestTail);
-			return true;
+		if (match(TokenType::LEFT_PARENTHESIS) && AParams(&aParams) && match(TokenType::RIGHT_PARENTHESIS)) {
+			AST* funcCall = ASTFactory::makeFamily(CompositeConcept::FUNCCALLSTAT, { lhsId, aParams });
+
+			if (FuncOrVarIDNestTail(&funcOrVarIdNestTail, funcCall)) {
+				*funcOrVarIdNest = funcOrVarIdNestTail;
+				return true;
+			}
 		}
 		else {
 			return false;
@@ -1956,9 +1981,16 @@ bool RecursiveDescentPredictiveParser::FuncOrVarIDNest(AST** funcOrVarIdNest, AS
 		addDerivation("<FuncOrVarIdnest> ::= <IndiceRep> <FuncOrVarIdnestTail>");
 		AST* indiceRep = nullptr;
 		AST* funcOrVarIdNestTail = nullptr;
-		if (IndiceRep(&indiceRep) && FuncOrVarIDNestTail(&funcOrVarIdNestTail)) {
-			*funcOrVarIdNest = ASTFactory::makeFamily(CompositeConcept::VARCALLSTAT, { id, indiceRep, funcOrVarIdNestTail });
-			return true;
+		if (IndiceRep(&indiceRep)) {
+			AST* indiceList = nullptr;
+			if (indiceRep) {
+				indiceList = ASTFactory::makeFamily(CompositeConcept::INDICEREPLIST, { indiceRep });
+			}
+			AST* varStat = ASTFactory::makeFamily(CompositeConcept::VARCALLSTAT, { lhsId, indiceList });
+			if (FuncOrVarIDNestTail(&funcOrVarIdNestTail, varStat)) {
+				*funcOrVarIdNest = funcOrVarIdNestTail;
+				return true;
+			}
 		}
 		else {
 			return false;
@@ -1969,14 +2001,18 @@ bool RecursiveDescentPredictiveParser::FuncOrVarIDNest(AST** funcOrVarIdNest, AS
 	}
 }
 
-bool RecursiveDescentPredictiveParser::FuncOrVarIDNestTail(AST** funcOrVarIdNestTail)
+bool RecursiveDescentPredictiveParser::FuncOrVarIDNestTail(AST** funcOrVarIdNestTail, AST* lhsId)
 {
 	if (!skipErrors(NonTerminal::FUNCORVARIDNESTTAIL)) { return false; }
 	//<FuncOrVarIdnestTail> ::= '.' 'id' <FuncOrVarIdnest> 
 	if (isElementOfFirst({ TokenType::PERIOD, TokenType::ID, NonTerminal::FUNCORVARIDNEST })) {
 		addDerivation("<FuncOrVarIdnestTail> ::= '.' 'id' <FuncOrVarIdnest>");
-		if (match(TokenType::PERIOD) && match(TokenType::ID) && FuncOrVarIDNest(funcOrVarIdNestTail, attributeStack.top())) {
-			attributeStack.pop();
+		AST* funcOrVarIDNest = nullptr;
+		if (match(TokenType::PERIOD) && match(TokenType::ID) && FuncOrVarIDNest(&funcOrVarIDNest, attributeStack.top())) {
+			AST* rhsId = attributeStack.top(); attributeStack.pop();
+			AST* dot = attributeStack.top(); attributeStack.pop();
+			ASTFactory::makeFamily(dot, { lhsId, funcOrVarIDNest });
+			*funcOrVarIdNestTail = dot;
 			return true;
 		}
 		else {
@@ -1986,6 +2022,7 @@ bool RecursiveDescentPredictiveParser::FuncOrVarIDNestTail(AST** funcOrVarIdNest
 	//<FuncOrVarIdnestTail> ::= EPSILON 
 	else if (isElementOfFollow(NonTerminal::FUNCORVARIDNESTTAIL)) {
 		addDerivation("<FuncOrVarIdnestTail> ::= EPSILON");
+		*funcOrVarIdNestTail = lhsId;
 		return true;
 	}
 	else {
