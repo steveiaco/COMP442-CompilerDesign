@@ -162,6 +162,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CompositeConceptAST.cpp" />
+    <ClCompile Include="EnumDeclarations.cpp" />
     <ClCompile Include="FloatAST.cpp" />
     <ClCompile Include="GeneralTokenAST.cpp" />
     <ClCompile Include="IdAST.cpp" />

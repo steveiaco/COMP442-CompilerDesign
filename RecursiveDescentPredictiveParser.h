@@ -4,6 +4,7 @@
 #include <set>
 #include <variant>
 #include <vector>
+#include <queue>
 #include <stack>
 #include "AST.h"
 #include "Token.h"
@@ -34,7 +35,8 @@ private:
 	Token lookAhead;
 	Token lastToken;
 
-	vector<string> derivation;
+	vector<string> derivationList;
+	vector<Alphabet> derivationStack;
 	vector<string> syntaxErrors;
 
 	stack<AST*> attributeStack;
@@ -52,7 +54,8 @@ private:
 	bool isElementOfFollow(NonTerminal element);
 
 	// Adds a step to the derivation list
-	void addDerivation(string s);
+	void applyDerivation(NonTerminal lhs, vector<Alphabet> rhs, string rule);
+	string dumpDerivationStackToString(string rule);
 
 	Token nextToken();
 

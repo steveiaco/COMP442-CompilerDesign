@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 enum class NonTerminal {
 	ADDOP,
@@ -181,4 +182,9 @@ enum class TokenType {
 	END_OF_FILE,
 	// Used for parser
 	EPSILON
+};
+
+class EnumDeclarations {
+public:
+	static std::string nonTerminalToString(NonTerminal t);
 };
