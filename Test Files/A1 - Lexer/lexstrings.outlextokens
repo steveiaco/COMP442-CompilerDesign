@@ -1,0 +1,5 @@
+[COMMENT, // 5.11 String literals, 1] 
+[STRING, this is a string, 2] 
+[STRING, this is another string, 3] 
+[STRING, this string contains special characters 12345678890!@#$%^&*()[]{}|\:, 4] [STRING, this is another string, 4] 
+[INVALID_STRING, #$newstring, 5] 

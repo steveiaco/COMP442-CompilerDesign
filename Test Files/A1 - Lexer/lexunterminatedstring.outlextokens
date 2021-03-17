@@ -1,0 +1,2 @@
+[COMMENT, // 5.12 - Unterminated string, 1] 
+[INVALID_STRING, this is an unterminated string\ny = x + z;, 2] 

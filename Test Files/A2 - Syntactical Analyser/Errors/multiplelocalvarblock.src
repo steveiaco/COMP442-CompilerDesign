@@ -1,0 +1,14 @@
+class SINGLE_CLASS {
+	public float datamember;
+};
+
+func one_statement() : float 
+{
+  var {  }
+  var {  }
+  n = 2;
+}
+
+main{
+
+}

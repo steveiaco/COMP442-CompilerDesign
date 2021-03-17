@@ -1,0 +1,190 @@
+class NO_DATA_MEMBER_OR_FUNCTION { };
+
+class DATA_MEMBER {
+	public float datamember;
+};
+
+class MULTIPLE_DATA_MEMBER {
+	public float datamember1;
+    private int datamember2;
+    int datamember2;
+};
+
+class FUNCTION_MEMBER {
+    public func fun1(float x) : float;
+};
+
+class MULTIPLE_FUNCTION_MEMBERS {
+    public func fun1(float x) : float;
+    private func fun2(float x) : float;
+};
+
+class ONE_INHERITS inherits DATA_MEMBER {
+	public float datamember;
+};
+
+class MULTIPLE_INHERITS inherits DATA_MEMBER, ONE_INHERITS {
+	public float datamember;
+};
+
+func DATA_MEMBER::evaluate(float x) : float
+{
+  return (0);
+}
+
+func DATA_MEMBER::evaluate2(float x) : float
+{
+  return (0);
+}
+
+main
+{
+    var{
+        DATA_MEMBER a;
+        DATA_MEMBER b;
+    }
+    result = a.evaluate(3);
+    b.evaluate2(2);
+}
+
+/*
+    classes
+    --------------------------------------
+| | no class declaration
+| | class declaration
+|X| multiple class declarations
+|X| no data member declaration
+|X| data member declaration
+|X| multiple data member declaration
+|X| no member function declaration
+|X| member function declaration
+|X| multiple member function declaration
+|X| no member
+|X| no inherited class
+|X| one inherited class
+|X| multiple inherited classes
+|X| private member specifier
+|X| public member specifier
+|X| absence of member specifier
+
+    functions: definitions
+    --------------------------------------
+| | no main function definition (not allowed)
+|X| main function definition
+| | multiple main function definitions (not allowed)
+|X| no free function definition
+| | free function definition
+| | multiple free function definitions
+| | no member function definition
+| | member function definition
+| | multiple member function definitions
+| | return type: void
+| | return type: integer
+| | return type: float
+| | return type: string
+| | return type: id
+| | return type: array (not allowed)
+
+
+    functions: formal parameters
+    --------------------------------------
+| | type: integer
+| | type: float
+| | type: string
+| | type: id
+| | type: 1-dim array 
+| | type: n-dim array
+| | type: array (with size)
+| | type: array (without size)
+
+    functions: calls
+    --------------------------------------
+| | free function call
+| | member function call
+| | parameters:0
+| | parameters:1
+| | parameters:n
+| | array parameter - 1-dim
+| | array parameter - n-dim
+| | array parameter - with size
+| | array parameter - without size
+|X| function call as statement
+|X| function call as expression factor
+| | expression as parameter
+
+    variable declaration
+    --------------------------------------
+| | type: integer
+| | type: float
+| | type: string
+| | type: id
+| | type: 1-dim array 
+| | type: n-dim array
+| | type: array (with size)
+| | type: array (without size)
+
+    function body: local variable declaration block
+    --------------------------------------
+| | no local variable declarations block
+| | local variable declaration block
+| | multiple local variable declarations block (not allowed)
+| | no variables in block
+| | 1 variable declared in block
+| | multiple variables declared in block
+
+    function body: statements
+    --------------------------------------
+| | no statement
+| | 1 statement
+| | n statements
+| | if statement
+| | if: empty then or else blocks
+| | if: 1-statement then or else blocks
+| | if: n-statements then or else blocks
+| | while statement
+| | while: empty block
+| | while: 1-statement block
+| | while: n-statement block
+| | read(<variable>) statement
+| | write(<expr>) statement
+| | return(<expr>) statement
+| | break statement
+| | continue statement
+| | assignment statement
+
+    variable + idnest
+    --------------------------------------
+| | id
+| | id.id
+| | id.id(id)
+| | id(id).id
+| | id(id).id()
+| | id.id[id]
+| | id[id].id
+| | id[id].id[id]
+| | id.id[id][id]
+| | id[id][id].id
+| | id[id][id].id[id][id]
+| | id(id).id[id]
+| | id(id).id[id][id]
+| | expression as array index
+
+    expressions
+    --------------------------------------
+| | single variable
+| | involving addop
+| | involving multop
+| | involving relop
+| | involving addop + multop
+| | involving multop + relop
+| | involving addop + multop + relop
+| | involving parentheses
+| | involving nested parenhteses
+| | involving ternary operator
+| | involving not
+| | involving sign
+| | involving literals
+| | involving variable + idnest
+| | involving function calls
+| | involving all the above in one expression
+*/
