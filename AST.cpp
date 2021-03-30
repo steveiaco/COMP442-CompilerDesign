@@ -14,12 +14,14 @@ AST::~AST()
 {
 }
 
-string AST::toString()
+AST* AST::getChild(int c)
 {
-	std::stringstream ss;
-	ss << "Node:";
-	ss << (void const*)this;
-	return ss.str();
+	AST* child = leftMostChild;
+	int childCount = 0;
+	while (child != nullptr && childCount != c) {
+		child = child->rightSibling;
+	}
+	return child;
 }
 
 string AST::toDotString()

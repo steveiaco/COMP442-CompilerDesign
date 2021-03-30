@@ -7,8 +7,12 @@
 using std::string;
 
 class CompositeConceptAST : public AST {
-	CompositeConcept concept;
+	CompositeConcept cconcept;
 public:
 	CompositeConceptAST(CompositeConcept t);
 	string toString();
+	CompositeConcept getCompositeConcept();
+
+	// Inherited via AST
+	virtual void accept(Visitor* visitor) override;
 };

@@ -14,9 +14,6 @@ class ASTFactory {
 private:
 	static vector<shared_ptr<AST>> treesProduced;
 public:
-	// Null node
-	static AST* makeNode();
-
 	// Node of specific type
 	static AST* makeNode(Token t);
 	static AST* makeNode(CompositeConcept t);

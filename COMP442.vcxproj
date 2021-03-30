@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -151,13 +151,16 @@
     <ClInclude Include="FloatAST.h" />
     <ClInclude Include="GeneralTokenAST.h" />
     <ClInclude Include="IdAST.h" />
-    <ClInclude Include="IfClass.h" />
     <ClInclude Include="IntegerAST.h" />
     <ClInclude Include="Lexer.h" />
     <ClInclude Include="RecursiveDescentPredictiveParser.h" />
     <ClInclude Include="StringAST.h" />
+    <ClInclude Include="SymTabCreationVisitor.h" />
+    <ClInclude Include="SymTabEntry.h" />
     <ClInclude Include="Token.h" />
+    <ClInclude Include="VariableEntry.h" />
     <ClInclude Include="VisibilityAST.h" />
+    <ClInclude Include="Visitor.h" />
     <ClInclude Include="WhileAST.h" />
   </ItemGroup>
   <ItemGroup>
@@ -166,7 +169,6 @@
     <ClCompile Include="FloatAST.cpp" />
     <ClCompile Include="GeneralTokenAST.cpp" />
     <ClCompile Include="IdAST.cpp" />
-    <ClCompile Include="IfClass.cpp" />
     <ClCompile Include="IntegerAST.cpp" />
     <ClCompile Include="Lexer.cpp" />
     <ClCompile Include="main.cpp" />
@@ -174,8 +176,12 @@
     <ClCompile Include="AST.cpp" />
     <ClCompile Include="ASTFactory.cpp" />
     <ClCompile Include="StringAST.cpp" />
+    <ClCompile Include="SymTabCreationVisitor.cpp" />
+    <ClCompile Include="SymTabEntry.cpp" />
     <ClCompile Include="Token.cpp" />
+    <ClCompile Include="VariableEntry.cpp" />
     <ClCompile Include="VisibilityAST.cpp" />
+    <ClCompile Include="Visitor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -1,14 +1,18 @@
 #include "FloatAST.h"
 #include <sstream>
 
-FloatAST::FloatAST(Token token) : token(token)
+FloatAST::FloatAST(Token token) : TokenAST(token)
 {
-	flt = token.getLexeme();
 }
 
 string FloatAST::toString()
 {
 	std::stringstream ss;
 	ss << (void const*)this;
-	return "float: " + flt + " (" + ss.str() + ")";
+	return "float: " + getToken().getLexeme() + " (" + ss.str() + ")";
+}
+
+void FloatAST::accept(Visitor* visitor)
+{
+	visitor->visit(this);
 }

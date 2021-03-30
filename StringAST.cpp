@@ -1,14 +1,18 @@
 #include "StringAST.h"
 #include <sstream>
 
-StringAST::StringAST(Token token) : token(token)
+StringAST::StringAST(Token token) : TokenAST(token)
 {
-	str = token.getLexeme();
 }
 
 string StringAST::toString()
 {
 	std::stringstream ss;
 	ss << (void const*)this;
-	return "string: " + str + " (" + ss.str() + ")";
+	return "string: " + getValue() + " (" + ss.str() + ")";
+}
+
+void StringAST::accept(Visitor* visitor)
+{
+	visitor->visit(this);
 }

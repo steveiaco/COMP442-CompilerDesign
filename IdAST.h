@@ -1,20 +1,15 @@
 #pragma once
-#include "AST.h"
+#include "TokenAST.h"
 #include <string>
 #include "Token.h"
 
 using std::string;
 
-class IdAST : public AST {
-private:
-	Token token;
-	string id;
-
+class IdAST : public TokenAST {
 public:
 	IdAST(Token token);
 
-	string toString();
-
-	void setId(string id);
-	string getId();
+	// Inherited via TokenAST
+	virtual string toString() override;
+	virtual void accept(Visitor* visitor) override;
 };

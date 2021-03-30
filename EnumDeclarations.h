@@ -79,11 +79,9 @@ enum class CompositeConcept {
 
 	// Part of the grammar
 	ARITHEXPR,
-	BREAK,
 	CLASSDECL,
 	CLASSDECLBODY,
 	CLASSMETHOD,
-	CONTINUE,
 	EXPR,
 	FPARAMS,
 	FUNCBODY,
@@ -184,7 +182,15 @@ enum class TokenType {
 	EPSILON
 };
 
+enum class SymTableEntryKind {
+	CLASS,
+	FUNCTION,
+	PARAMETER,
+	VARIABLE
+};
+
 class EnumDeclarations {
 public:
 	static std::string nonTerminalToString(NonTerminal t);
+	static std::string compositeConceptToString(CompositeConcept c);
 };

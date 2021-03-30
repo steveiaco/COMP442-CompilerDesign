@@ -3,15 +3,14 @@
 #include <string>
 #include "Token.h"
 
-class GeneralTokenAST : public AST
+class TokenAST : public AST
 {
 private:
 	Token token;
-	string id;
 
 public:
-	GeneralTokenAST(Token token);
-
-	string toString();
+	TokenAST(Token token);
+	Token getToken();
+	std::string getValue();
 };
 

@@ -1,17 +1,12 @@
 #pragma once
-#include "AST.h"
-#include <string>
-#include "Token.h"
+#include "TokenAST.h"
 
-using std::string;
-
-class FloatAST : public AST {
-private:
-	Token token;
-	string flt;
+class FloatAST : public TokenAST {
 
 public:
 	FloatAST(Token token);
 
-	string toString();
+	// Inherited via TokenAST
+	virtual string toString() override;
+	virtual void accept(Visitor* visitor) override;
 };

@@ -25,6 +25,12 @@
     <Filter Include="Source Files\Composite Concepts">
       <UniqueIdentifier>{3e3d399f-7634-4d4c-9b39-32e023ab8088}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\SymTab Records">
+      <UniqueIdentifier>{ae8346cf-a0d3-4187-9919-138a8e4981d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SymTab Records">
+      <UniqueIdentifier>{dd1523de-b07b-49d4-b4f4-f8ab6b0fdece}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Token.h">
@@ -66,11 +72,20 @@
     <ClInclude Include="WhileAST.h">
       <Filter>Header Files\Atomic Concepts</Filter>
     </ClInclude>
-    <ClInclude Include="IfClass.h">
-      <Filter>Header Files\Composite Concepts</Filter>
-    </ClInclude>
     <ClInclude Include="GeneralTokenAST.h">
       <Filter>Header Files\Atomic Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="Visitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SymTabCreationVisitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SymTabEntry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VariableEntry.h">
+      <Filter>Header Files\SymTab Records</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -107,16 +122,25 @@
     <ClCompile Include="FloatAST.cpp">
       <Filter>Source Files\Atomic Concepts</Filter>
     </ClCompile>
-    <ClCompile Include="ASTFactory.cpp">
-      <Filter>Source Files\Atomic Concepts</Filter>
-    </ClCompile>
-    <ClCompile Include="IfClass.cpp">
-      <Filter>Source Files\Composite Concepts</Filter>
-    </ClCompile>
     <ClCompile Include="GeneralTokenAST.cpp">
       <Filter>Source Files\Atomic Concepts</Filter>
     </ClCompile>
     <ClCompile Include="EnumDeclarations.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Visitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SymTabCreationVisitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SymTabEntry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VariableEntry.cpp">
+      <Filter>Source Files\SymTab Records</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

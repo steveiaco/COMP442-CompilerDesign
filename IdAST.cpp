@@ -2,24 +2,18 @@
 #include <sstream>
 
 
-IdAST::IdAST(Token token) : token(token)
+IdAST::IdAST(Token token) : TokenAST(token)
 {
-	id = token.getLexeme();
 }
 
 string IdAST::toString()
 {
 	std::stringstream ss;
 	ss << (void const*)this;
-	return "ID: " + id + " (" + ss.str() + ")";
+	return "ID: " + getValue() + " (" + ss.str() + ")";
 }
 
-void IdAST::setId(string id)
+void IdAST::accept(Visitor* visitor)
 {
-	this->id = id;
-}
-
-string IdAST::getId()
-{
-	return id;
+	visitor->visit(this);
 }
