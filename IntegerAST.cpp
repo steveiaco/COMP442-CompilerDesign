@@ -1,5 +1,6 @@
 #include "IntegerAST.h"
 #include <sstream>
+#include "Visitor.h"
 
 IntegerAST::IntegerAST(Token token) : TokenAST(token)
 {

@@ -1,8 +1,22 @@
 #include "VariableEntry.h"
+#include <sstream>
 
-VariableEntry::VariableEntry(string name, string type, vector<int> arrayInd)
+VariableEntry::VariableEntry()
 {
-	this->name = name;
-	this->type = type;
-	this->indices = arrayInd;
+}
+
+string VariableEntry::toString()
+{
+	std::stringstream ss;
+
+	for (int arrayInd : arrayIndices) {
+		if (arrayInd == -1) {
+			ss << "[]";
+		}
+		else {
+			ss << "[" + std::to_string(arrayInd) + "]";
+		}
+	}
+
+	return "variable: " + ss.str();
 }

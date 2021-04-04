@@ -1,4 +1,5 @@
 #include "StringIdAST.h"
+#include "Visitor.h"
 
 StringIdAST::StringIdAST(Token token) : TokenAST(token)
 {

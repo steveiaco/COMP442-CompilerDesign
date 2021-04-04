@@ -1,5 +1,6 @@
 #include "IntegerIdAST.h"
 #include <sstream>
+#include "Visitor.h"
 
 IntegerIdAST::IntegerIdAST(Token t) : TokenAST(t)
 {

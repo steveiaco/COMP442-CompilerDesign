@@ -1,5 +1,6 @@
 #include "PublicAST.h"
 #include <sstream>
+#include "Visitor.h"
 
 PublicAST::PublicAST(Token token) : TokenAST(token)
 {

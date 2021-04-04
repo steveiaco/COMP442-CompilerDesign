@@ -4,5 +4,6 @@ class MultiplicationAST : public CompositeConceptTokenAST
 {
 public:
 	MultiplicationAST(Token token);
+	virtual void accept(Visitor* visitor) override;
 };
 

@@ -219,7 +219,7 @@ std::string EnumDeclarations::compositeConceptToString(CompositeConcept c)
 		cctext = "TERNARY";
 		break;
 	case CompositeConcept::VARCALLSTAT:
-		cctext = "VAR";
+		cctext = "VARCALLSTAT";
 		break;
 	case CompositeConcept::VARDECLLIST:
 		cctext = "VARDECLLIST";

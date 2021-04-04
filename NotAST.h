@@ -5,5 +5,6 @@ class NotAST :
 {
 public:
 	NotAST(Token token);
+	virtual void accept(Visitor* visitor) override;
 };
 

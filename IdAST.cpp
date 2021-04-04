@@ -1,5 +1,6 @@
 #include "IdAST.h"
 #include <sstream>
+#include "Visitor.h"
 
 
 IdAST::IdAST(Token token) : TokenAST(token)

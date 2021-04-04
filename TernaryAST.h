@@ -5,5 +5,6 @@ class TernaryAST :
 {
 public:
 	TernaryAST(Token token);
+	virtual void accept(Visitor* visitor) override;
 };
 

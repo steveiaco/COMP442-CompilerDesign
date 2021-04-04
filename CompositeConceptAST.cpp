@@ -1,4 +1,5 @@
 #include "CompositeConceptAST.h"
+#include "Visitor.h"
 #include <sstream>
 
 CompositeConceptAST::CompositeConceptAST(CompositeConcept t) : cconcept(t)

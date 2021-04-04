@@ -1,5 +1,6 @@
 #include "ContinueAST.h"
 #include <sstream>
+#include "Visitor.h"
 
 ContinueAST::ContinueAST(Token token) : TokenAST(token)
 {

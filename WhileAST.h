@@ -1,17 +1,12 @@
 #pragma once
-#include "AST.h"
+#include "CompositeConceptAST.h"
 #include <string>
 #include "Token.h"
 
 using std::string;
 
-class WhileAST : public AST {
-private:
-	Token token;
-	string id;
-
+class WhileAST : public CompositeConceptAST {
 public:
-	WhileAST(Token token);
-
-	string toString();
+	WhileAST(CompositeConcept c);
+	virtual void accept(Visitor* visitor) override;
 };

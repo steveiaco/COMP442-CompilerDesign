@@ -1,5 +1,6 @@
 #include "StringAST.h"
 #include <sstream>
+#include "Visitor.h"
 
 StringAST::StringAST(Token token) : TokenAST(token)
 {

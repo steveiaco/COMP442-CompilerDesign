@@ -1,4 +1,5 @@
 #include "BreakAST.h"
+#include "Visitor.h"
 #include <sstream>
 
 BreakAST::BreakAST(Token token) : TokenAST(token) 

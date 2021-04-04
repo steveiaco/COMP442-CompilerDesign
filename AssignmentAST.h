@@ -5,5 +5,6 @@ class AssignmentAST :
 {
 public:
 	AssignmentAST(Token token);
+	virtual void accept(Visitor* visitor) override;
 };
 

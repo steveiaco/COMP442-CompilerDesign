@@ -14,6 +14,18 @@ AST::~AST()
 {
 }
 
+std::vector<AST*> AST::getChildren()
+{
+	vector<AST*> children;
+	AST* child = leftMostChild;
+
+	while (child != nullptr) {
+		children.push_back(child);
+		child = child->rightSibling;
+	}
+	return children;
+}
+
 AST* AST::getChild(int c)
 {
 	AST* child = leftMostChild;

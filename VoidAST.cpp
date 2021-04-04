@@ -1,5 +1,7 @@
 #include "VoidAST.h"
 #include <sstream>
+#include "Visitor.h"
+
 VoidAST::VoidAST(Token token) : TokenAST(token)
 {
 }

@@ -9,6 +9,7 @@
 #include <boost/filesystem.hpp>
 #include <regex>
 #include "AST.h"
+#include "SymTabCreationVisitor.h"
 
 using namespace std;
 
@@ -123,6 +124,10 @@ int main(int argc, char* argv[])
 	cout << parser.parse();
 
 	vector<Token>& tokens = parser.getTokens();
+
+	SymTabCreationVisitor* symTabCreationVisitor = &SymTabCreationVisitor();
+
+	parser.getAST()->accept(symTabCreationVisitor);
 
 	writeOutlexErrorFile(tokens, outlexErrorsPath);
 	writeOutlexTokensFile(tokens, outlexTokensPath);

@@ -261,6 +261,7 @@ bool RecursiveDescentPredictiveParser::match(TokenType t)
 		case TokenType::NOT:
 		case TokenType::VOID:
 		case TokenType::PERIOD:
+		case TokenType::QUESTION_MARK:
 			attributeStack.push(ASTFactory::makeNode(lastToken));
 			break;
 		}
@@ -1754,8 +1755,8 @@ bool RecursiveDescentPredictiveParser::Factor(AST** factor, AST* lhsFactor)
 		AST* branch1Expr = nullptr;
 		AST* branch2Expr = nullptr;
 		if (match(TokenType::QUESTION_MARK) && match(TokenType::LEFT_SQUARE_BRACKET) && Expr(&truthExpr) && match(TokenType::COLON) && Expr(&branch1Expr) && match(TokenType::COLON) && Expr(&branch2Expr) && match(TokenType::RIGHT_SQUARE_BRACKET)) {
-			AST* ternary = ASTFactory::makeFamily(CompositeConcept::TERNARY, { truthExpr, branch1Expr, branch2Expr });
-			*factor = ternary;
+			*factor = attributeStack.top(); attributeStack.pop();
+			ASTFactory::makeFamily(*factor, { truthExpr, branch1Expr, branch2Expr });
 			return true;
 		}
 		else {

@@ -1,5 +1,6 @@
 #include "PrivateAST.h"
 #include <sstream>
+#include "Visitor.h"
 
 PrivateAST::PrivateAST(Token token) : TokenAST(token)
 {

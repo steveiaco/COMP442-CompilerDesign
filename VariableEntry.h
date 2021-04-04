@@ -1,19 +1,21 @@
 #pragma once
-#include "SymTabEntry.h"
+#include "VisibilityEntry.h"
 #include "Token.h"
 #include <vector>
 #include "AST.h"
 
 using std::vector;
 
-class VariableEntry : public SymTabEntry
+class VariableEntry : public VisibilityEntry
 {
 public:
+	string visibility;
 	string type;
+	vector<int> arrayIndices;
 
-	// -1 represents an empty array declaration (a[][2] => [-1,2])
-	vector<int> indices;
+	VariableEntry();
 
-	VariableEntry(string name, string type, vector<int> arrayInd);
+	// Inherited via VisibilityEntry
+	virtual string toString() override;
 };
 

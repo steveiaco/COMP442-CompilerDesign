@@ -5,5 +5,6 @@ class OrAST :
 {
 public:
 	OrAST(Token token);
+	virtual void accept(Visitor* visitor) override;
 };
 

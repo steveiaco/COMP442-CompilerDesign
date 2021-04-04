@@ -1,11 +1,6 @@
 #include "Visitor.h"
 
-void Visitor::visit(AST* n)
+void Visitor::reportError(string error)
 {
-	if (CompositeConceptAST* c = dynamic_cast<CompositeConceptAST*>(n)) {
-		visit(c);
-	}
-	else if (GeneralTokenAST* c = dynamic_cast<GeneralTokenAST*>(n)) {
-		visit(c);
-	}
+	errorList.push_back(error);
 }

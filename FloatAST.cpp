@@ -1,5 +1,6 @@
 #include "FloatAST.h"
 #include <sstream>
+#include "Visitor.h"
 
 FloatAST::FloatAST(Token token) : TokenAST(token)
 {

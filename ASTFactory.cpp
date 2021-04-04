@@ -28,7 +28,47 @@
 #include "AndAST.h"
 #include "NotAST.h"
 #include "TernaryAST.h"
+#include "PeriodAST.h"
 #include "TokenAST.h"
+#include "AParamsListAST.h"
+#include "ArrayDimensionAST.h"
+#include "ArraySizeReptListAST.h"
+#include "AssignStatAST.h"
+#include "ClassDeclBodyListAST.h"
+#include "ClassListAST.h"
+#include "FParamsListAST.h"
+#include "FuncCallStatAST.h"
+#include "FuncListAST.h"
+#include "FuncOrVarListAST.h"
+#include "IndiceRepListAST.h"
+#include "InheritListAST.h"
+#include "VarCallStatAST.h"
+#include "VarDeclListAST.h"
+#include "ArithExprAST.h"
+#include "ClassDeclAST.h"
+#include "ClassDeclBodyAST.h"
+#include "ClassMethodAST.h"
+#include "ExprAST.h"
+#include "FParamsAST.h"
+#include "FuncBodyAST.h"
+#include "FuncDeclAST.h"
+#include "FuncDefAST.h"
+#include "FuncHeadAST.h"
+#include "FuncStatAST.h"
+#include "FunctionAST.h"
+#include "IfAST.h"
+#include "IndiceRepAST.h"
+#include "InheritAST.h"
+#include "ProgAST.h"
+#include "ReadAST.h"
+#include "ReturnAST.h"
+#include "StartAST.h"
+#include "StatementAST.h"
+#include "StatementListAST.h"
+#include "VarDeclAST.h"
+#include "VariableAST.h"
+#include "WhileAST.h"
+#include "WriteAST.h"
 
 vector<std::shared_ptr<AST>> ASTFactory::treesProduced;
 
@@ -121,6 +161,9 @@ AST* ASTFactory::makeNode(Token t)
 	case TokenType::QUESTION_MARK:
 		treesProduced.push_back(shared_ptr<AST>(new TernaryAST(t)));
 		break;
+	case TokenType::PERIOD:
+		treesProduced.push_back(shared_ptr<AST>(new PeriodAST(t)));
+		break;
 	default:
 		//we got an issue...
 		throw "missing token type";
@@ -169,9 +212,6 @@ AST* ASTFactory::makeNode(CompositeConcept t)
 		break;
 	case CompositeConcept::INHERITLIST:
 		treesProduced.push_back(shared_ptr<AST>(new InheritListAST(t)));
-		break;
-	case CompositeConcept::TERNARY:
-		treesProduced.push_back(shared_ptr<AST>(new TernaryAST(t)));
 		break;
 	case CompositeConcept::VARCALLSTAT:
 		treesProduced.push_back(shared_ptr<AST>(new VarCallStatAST(t)));
@@ -256,7 +296,10 @@ AST* ASTFactory::makeNode(CompositeConcept t)
 	case CompositeConcept::WRITE:
 		treesProduced.push_back(shared_ptr<AST>(new WriteAST(t)));
 		break;
+	default:
+		treesProduced.push_back(shared_ptr<AST>(new CompositeConceptAST(t)));
 	}
+	//TODO DEBUG THIS
 	treesProduced.push_back(shared_ptr<AST>(new CompositeConceptAST(t)));
 	return treesProduced[treesProduced.size() - 1].get();
 }
