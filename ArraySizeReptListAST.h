@@ -5,7 +5,7 @@ class ArraySizeReptListAST :
 	public CompositeConceptAST
 {
 public:
-	ArraySizeReptListAST(CompositeConceptAST c);
+	ArraySizeReptListAST(CompositeConcept c);
 	virtual void accept(Visitor* visitor) override;
 };
 

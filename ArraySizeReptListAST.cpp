@@ -1,7 +1,7 @@
 #include "ArraySizeReptListAST.h"
 #include "Visitor.h"
 
-ArraySizeReptListAST::ArraySizeReptListAST(CompositeConceptAST c) : CompositeConceptAST(c)
+ArraySizeReptListAST::ArraySizeReptListAST(CompositeConcept c) : CompositeConceptAST(c)
 {
 }
 
