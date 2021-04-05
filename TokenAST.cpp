@@ -14,3 +14,8 @@ std::string TokenAST::getValue()
 {
 	return token.getLexeme();
 }
+
+string TokenAST::getData()
+{
+	return token.getLexeme();
+}

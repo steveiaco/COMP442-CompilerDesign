@@ -11,5 +11,8 @@ public:
 
 	// Inherited via SymTabEntry
 	virtual string toString() override;
+
+	// Inherited via SymTabEntry
+	virtual string toDotString() override;
 };
 

@@ -15,5 +15,6 @@ public:
 	SymTab* link;
 
 	virtual string toString() = 0;
+	virtual string toDotString() = 0;
 };
 

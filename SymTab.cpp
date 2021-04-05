@@ -4,6 +4,7 @@
 #include "FunctionEntry.h"
 #include "ParameterEntry.h"
 #include "VariableEntry.h"
+#include <sstream>
 
 SymTab::SymTab()
 {
@@ -116,4 +117,29 @@ VariableEntry* SymTab::findVariableRecord(string name)
 		}
 	}
 	return entryFound;
+}
+
+string SymTab::toDotString()
+{
+	std::stringstream currentTable;
+
+	currentTable	<<	"\"" + name + "\"" + " [label=<\n"
+					<<	"<TABLE BORDER = \"0\" CELLBORDER = \"1\" CELLSPACING = \"0\">\n"
+					<<	"<TR><TD COLSPAN = \"4\">" + name + "</TD></TR>\n"
+					<<	"<TR><TD>Name</TD><TD>Kind</TD><TD>Type</TD><TD>Link</TD></TR>\n";
+
+	std::stringstream other;
+
+	for (SymTabEntry* entry : table) {
+		currentTable << entry->toDotString();
+		if (entry->link) {
+			other << entry->link->toDotString();
+			other << "\"" << name << "\"" << ":\"" << entry->toString() << "\"->\"" << entry->link->name << "\"\n";
+		}
+	}
+
+	currentTable << "</TABLE>>];\n";
+	currentTable << other.str();
+
+	return currentTable.str();
 }

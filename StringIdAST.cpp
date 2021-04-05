@@ -12,5 +12,8 @@ void StringIdAST::accept(Visitor* visitor)
 
 string StringIdAST::toString()
 {
-	return string();
+	std::stringstream ss;
+	ss << "integer ";
+	ss << "(" << (void const*)this << ")";
+	return ss.str();
 }

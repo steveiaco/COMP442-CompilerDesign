@@ -14,6 +14,7 @@ class SymTab
 {
 private:
 	std::vector<SymTabEntry*> table;
+	string name;
 
 public:
 	SymTab();
@@ -28,5 +29,10 @@ public:
 	FunctionEntry* findFunctionRecord(string name);
 	ParameterEntry* findParameterRecord(string name);
 	VariableEntry* findVariableRecord(string name);
+
+	string getName() { return name; }
+	void setName(string name) { this->name = name; }
+
+	string toDotString();
 };
 

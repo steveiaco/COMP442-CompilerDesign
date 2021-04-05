@@ -68,8 +68,10 @@
 #include "WhileAST.h"
 #include "WriteAST.h"
 #include <vector>
+#include <string>
 
 using std::vector;
+using std::string;
 
 class Visitor
 {
@@ -148,6 +150,7 @@ public:
 	virtual void visit(VariableAST* n) = 0;
 	virtual void visit(WhileAST* n) = 0;
 	virtual void visit(WriteAST* n) = 0;
-	void reportError(string error);
+	void reportError(string error, int line);
+	std::vector<string> getErrors() { return errorList; }
 };
 

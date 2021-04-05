@@ -1,5 +1,5 @@
 #include "FloatIdAST.h"
-
+#include <sstream>
 FloatIdAST::FloatIdAST(Token token) : TokenAST(token)
 {
 }
@@ -10,5 +10,7 @@ void FloatIdAST::accept(Visitor* visitor)
 
 string FloatIdAST::toString()
 {
-	return string();
+	std::stringstream ss;
+	ss << (void const*)this;
+	return "float: " + getToken().getLexeme() + " (" + ss.str() + ")";
 }

@@ -2,7 +2,7 @@
 #include "Visitor.h"
 #include <sstream>
 
-CompositeConceptAST::CompositeConceptAST(CompositeConcept t) : cconcept(t)
+CompositeConceptAST::CompositeConceptAST(CompositeConcept t) : AST(), cconcept(t)
 {
 }
 

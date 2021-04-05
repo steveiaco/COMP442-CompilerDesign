@@ -1,6 +1,8 @@
 #include "AST.h"
 #include "ASTFactory.h"
 #include "Token.h"
+#include <iostream>
+#include "SymTabFactory.h"
 
 AST::AST()
 {
@@ -8,10 +10,14 @@ AST::AST()
 	leftMostChild = nullptr;
 	rightSibling = nullptr;
 	parent = nullptr;
+
+	symRec = nullptr;
+	symTable = nullptr;
 }
 
 AST::~AST()
 {
+	std::cout << "deleting";
 }
 
 std::vector<AST*> AST::getChildren()
@@ -32,6 +38,7 @@ AST* AST::getChild(int c)
 	int childCount = 0;
 	while (child != nullptr && childCount != c) {
 		child = child->rightSibling;
+		childCount++;
 	}
 	return child;
 }
@@ -50,6 +57,12 @@ string AST::toDotString()
 	}
 
 	return astDot.str();
+}
+
+void AST::setSymTab(SymTab* symTable)
+{
+	this->symTable = symTable;
+	this->symTable->setName(toString());
 }
 
 AST* AST::makeSiblings(AST* y)

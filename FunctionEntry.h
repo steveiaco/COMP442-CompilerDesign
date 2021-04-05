@@ -5,8 +5,8 @@
 using std::vector;
 class FunctionEntry : public VisibilityEntry
 {
+	string signatureString();
 public:
-	string visibility;
 	string classmethod;
 
 	// type, arrayind
@@ -18,5 +18,8 @@ public:
 
 	// Inherited via VisibilityEntry
 	virtual string toString() override;
+
+	// Inherited via VisibilityEntry
+	virtual string toDotString() override;
 };
 

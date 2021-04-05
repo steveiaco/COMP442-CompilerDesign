@@ -12,5 +12,9 @@ public:
 	TokenAST(Token token);
 	Token getToken();
 	std::string getValue();
+
+	virtual string toString() = 0;
+	virtual string getData() override;
+
 };
 

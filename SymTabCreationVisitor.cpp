@@ -211,7 +211,7 @@ void SymTabCreationVisitor::visit(ClassListAST* n)
 {
 
 	std::vector<AST*> children = n->getChildren();
-
+	std::vector<string> duplicateClasses;
 	// check for multiply declared classes
 	for (int i = 0; i < children.size(); i++) {
 		for (int j = 0; j < children.size(); j++) {
@@ -221,7 +221,14 @@ void SymTabCreationVisitor::visit(ClassListAST* n)
 
 			// if we have a duplicate, it's an error
 			if (children[i]->getSymRec()->name == children[j]->getSymRec()->name) {
-				reportError("multiply declared class: " + children[i]->getSymRec()->name);
+				if (std::find(duplicateClasses.begin(), duplicateClasses.end(), children[i]->getSymRec()->name) == duplicateClasses.end()) {
+					int line = ((TokenAST*)children[j]->getChild(0))->getToken().getLineNumber();
+					reportError("multiply declared class: " + children[i]->getSymRec()->name, line);
+					duplicateClasses.push_back(children[i]->getSymRec()->name);
+				}
+				else {
+					// else we have already detected this duplicate
+				}
 			}
 		}
 	}
@@ -234,7 +241,8 @@ void SymTabCreationVisitor::visit(ClassListAST* n)
 
 			// if the current class name is the same as the class it's inheriting, this is a self inheritance
 			if (classDecl->getSymRec()->name == ancestor->name) {
-				reportError("circular inhertiance (class attempting to inherit itself): " + classDecl->getSymRec()->name);
+				int line = ((TokenAST*)classDecl->getChild(0))->getToken().getLineNumber();
+				reportError("circular inhertiance (class attempting to inherit itself): " + classDecl->getSymRec()->name, line);
 			}
 
 			bool matchFound = false;
@@ -248,7 +256,8 @@ void SymTabCreationVisitor::visit(ClassListAST* n)
 			}
 
 			if (!matchFound) {
-				reportError("inherit undeclared class: " + ancestor->name);
+				int line = ((TokenAST*)classDecl->getChild(0))->getToken().getLineNumber();
+				reportError("inherit undeclared class: " + ancestor->name, line);
 			}
 		}
 
@@ -298,7 +307,19 @@ void SymTabCreationVisitor::visit(VarCallStatAST* n)
 
 void SymTabCreationVisitor::visit(VarDeclListAST* n)
 {
-	//don't need to do anything
+	std::vector<AST*> varDeclNodes = n->getChildren();
+	std::vector<string> duplicateDetected;
+	for (AST* varDecl : varDeclNodes) {
+		for (AST* varDeclCompare : varDeclNodes) {
+			if (varDecl != varDeclCompare && varDecl->getSymRec()->name == varDeclCompare->getSymRec()->name) {
+				if (std::find(duplicateDetected.begin(), duplicateDetected.end(), varDecl->getSymRec()->name) == duplicateDetected.end()) {
+					int line = ((TokenAST*)varDeclCompare->getChild(1))->getToken().getLineNumber();
+					reportError("multiply declared data member", line);
+					duplicateDetected.push_back(varDecl->getSymRec()->name);
+				}
+			}
+		}
+	}
 }
 
 void SymTabCreationVisitor::visit(ArithExprAST* n)
@@ -411,29 +432,22 @@ void SymTabCreationVisitor::visit(FuncBodyAST* n)
 
 void SymTabCreationVisitor::visit(FuncDeclAST* n)
 {
-	std::vector<AST*> children = n->getChildren();
+	std::vector<AST*> funcDeclChildren = n->getChildren();
 	FunctionEntry* fe = SymTabFactory::makeSymFunctionEntry();
-	SymTab* symTable = SymTabFactory::makeSymTab();
-	fe->link = symTable;
+	n->setSymRec(fe);
 
-	if (children.size() == 2) {
-		std::vector<AST*> funcHeadChildren = children[0]->getChildren();
-		if (funcHeadChildren.size() == 3) {
-			// set function name
-			fe->name = funcHeadChildren[0]->getData();
-			// set function return type
-			fe->returnType = funcHeadChildren[2]->getData();
+	if (funcDeclChildren.size() == 3) {
+		// set function name
+		fe->name = funcDeclChildren[0]->getData();
+		// set function return type
+		fe->returnType = funcDeclChildren[2]->getData();
 
-			// set function parameters
-			for (AST* funcParam : funcHeadChildren[1]->getChildren()) {
-				symTable->insertRecord(funcParam->getSymRec());
-				fe->parameterVarList;
-				((FunctionEntry*)funcParam->getSymRec())->parameterVarList;
-			}
+		// set function parameters
+		for (AST* funcParam : funcDeclChildren[1]->getChildren()) {
+			ParameterEntry* param = ((ParameterEntry*)funcParam->getSymRec());
+			fe->parameterVarList.push_back(std::make_tuple(param->type, param->name, param->arrayIndices));
 		}
 
-		//not needed?
-		std::vector<AST*> funcBodyChildren = children[1]->getChildren();
 	}
 }
 
@@ -443,7 +457,8 @@ void SymTabCreationVisitor::visit(FuncDefAST* n)
 	FunctionEntry* fe = SymTabFactory::makeSymFunctionEntry();
 	SymTab* symTable = SymTabFactory::makeSymTab();
 	fe->link = symTable;
-
+	n->setSymTab(symTable);
+	n->setSymRec(fe);
 
 	if (children.size() == 2) {
 		std::vector<AST*> funcHeadChildren = children[0]->getChildren();
@@ -458,27 +473,37 @@ void SymTabCreationVisitor::visit(FuncDefAST* n)
 			// set function parameters
 			for (AST* funcParam : funcHeadChildren[1]->getChildren()) {
 				symTable->insertRecord(funcParam->getSymRec());
-				fe->parameterVarList;
-				((FunctionEntry*)funcParam->getSymRec())->parameterVarList;
+				ParameterEntry* param = ((ParameterEntry*)funcParam->getSymRec());
+				fe->parameterVarList.push_back(std::make_tuple(param->type, param->name, param->arrayIndices));
 			}
 		}
+		// class member function
 		else if (funcHeadChildren.size() == 4) {
 			// set function name
-			fe->name = funcHeadChildren[0]->getData();
+			fe->name = funcHeadChildren[1]->getChild(0)->getData();
 			// set function return type
 			fe->returnType = funcHeadChildren[3]->getData();
 			// set function class method if it is a member function
-			fe->classmethod = funcHeadChildren[1]->getData();
+			fe->classmethod = funcHeadChildren[0]->getData();
 			// set function parameters
 			for (AST* funcParam : funcHeadChildren[2]->getChildren()) {
 				symTable->insertRecord(funcParam->getSymRec());
-				fe->parameterVarList;
-				((FunctionEntry*)funcParam->getSymRec())->parameterVarList;
+				ParameterEntry* param = ((ParameterEntry*)funcParam->getSymRec());
+				fe->parameterVarList.push_back(std::make_tuple(param->type, param->name, param->arrayIndices));
 			}
 		}
 
-		//not needed?
 		std::vector<AST*> funcBodyChildren = children[1]->getChildren();
+		// if the VarDeclList is excluded, then there will only be 1 child (the StatementList)
+		if (funcBodyChildren.size() == 2) {
+			std::vector<AST*> varDeclListChildren = funcBodyChildren[0]->getChildren();
+
+			for (AST* varDecl : varDeclListChildren) {
+				symTable->insertRecord(varDecl->getSymRec());
+			}
+		}
+
+
 	}
 }
 
@@ -536,9 +561,9 @@ void SymTabCreationVisitor::visit(ProgAST* n)
 		}
 
 		// gather function SymRecords
-		for (AST* funcDeclNode : funcListChildren) {
-			FunctionEntry* functionSymbol = (FunctionEntry*)(funcDeclNode->getSymRec());
-			
+		for (AST* funcDefNode : funcListChildren) {
+			FunctionEntry* functionSymbol = (FunctionEntry*)(funcDefNode->getSymRec());
+
 			// if we encounter a class member function
 			if (functionSymbol->classmethod != "") {
 				// we must find the corresponding function entry in the class symbol table and link it to this function's symbol table
@@ -551,13 +576,15 @@ void SymTabCreationVisitor::visit(ProgAST* n)
 						classFunctionEntry->link = functionSymbol->link;
 					}
 					else {
-						reportError("definition for undeclared class member function: " + functionSymbol->classmethod + "::" + functionSymbol->name);
+						int line = ((TokenAST*)funcDefNode->getChild(0)->getChild(0))->getToken().getLineNumber();
+						reportError("definition for undeclared class member function: " + functionSymbol->classmethod + "::" + functionSymbol->name, line);
 					}
 				}
 				else {
-					reportError("member function definition for undeclared class: " + functionSymbol->classmethod + "::" + functionSymbol->name);
+					int line = ((TokenAST*)funcDefNode->getChild(0)->getChild(0))->getToken().getLineNumber();
+					reportError("member function definition for undeclared class: " + functionSymbol->classmethod + "::" + functionSymbol->name, line);
 				}
-				
+
 			}
 			// if we encounter a global function
 			else {
@@ -577,7 +604,8 @@ void SymTabCreationVisitor::visit(ProgAST* n)
 
 			for (FunctionEntry* memberFunction : memberFunctions) {
 				if (memberFunction->link == nullptr) {
-					reportError("class member function definition not found: " + classDecl->getSymRec()->name + "::" + memberFunction->name);
+					int line = ((TokenAST*)classDecl->getChild(0)->getChild(0))->getToken().getLineNumber();
+					reportError("class member function definition not found: " + classDecl->getSymRec()->name + "::" + memberFunction->name, line);
 				}
 			}
 		}
@@ -617,11 +645,33 @@ void SymTabCreationVisitor::visit(VarDeclAST* n)
 {
 	std::vector<AST*> children = n->getChildren();
 	VariableEntry* variableRec = SymTabFactory::makeSymVariableRec();
+	n->setSymRec(variableRec);
+
+	// no array specifier 
 	if (children.size() == 2) {
 		variableRec->type = children[0]->getData();
 		variableRec->name = children[1]->getData();
 	}
-	n->setSymRec(variableRec);
+	// array specifier
+	else if (children.size() == 3) {
+		variableRec->type = children[0]->getData();
+		variableRec->name = children[1]->getData();
+
+		std::vector<int> indices;
+		std::vector<AST*> arrayDimensions = children[2]->getChildren();
+		for (AST* dim : arrayDimensions) {
+			std::vector<AST*> index = dim->getChildren();
+			// index specifier included
+			if (index.size() == 1) {
+				indices.push_back(std::stoi(index[0]->getData()));
+			}
+			// index specifier not included
+			else {
+				indices.push_back(-1);
+			}
+		}
+		variableRec->arrayIndices = indices;
+	}
 }
 
 void SymTabCreationVisitor::visit(VariableAST* n)

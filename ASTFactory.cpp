@@ -70,106 +70,106 @@
 #include "WhileAST.h"
 #include "WriteAST.h"
 
-vector<std::shared_ptr<AST>> ASTFactory::treesProduced;
+vector<AST*> ASTFactory::treesProduced;
 
 AST* ASTFactory::makeNode(Token t)
 {
 	// TODO add the rest of the class types here
 	switch (t.getTokenType()) {
 	case TokenType::ID:
-		treesProduced.push_back(shared_ptr<AST>(new IdAST(t)));
+		treesProduced.push_back(new IdAST(t));
 		break;
 		// TYPES
 	case TokenType::INTEGER:
-		treesProduced.push_back(shared_ptr<AST>(new IntegerAST(t)));
+		treesProduced.push_back(new IntegerAST(t));
 		break;
 	case TokenType::FLOAT:
-		treesProduced.push_back(shared_ptr<AST>(new FloatAST(t)));
+		treesProduced.push_back(new FloatAST(t));
 		break;
 	case TokenType::STRING:
-		treesProduced.push_back(shared_ptr<AST>(new StringAST(t)));
+		treesProduced.push_back(new StringAST(t));
 		break;
 		// KEYWORDS
 	case TokenType::INTEGER_ID:
-		treesProduced.push_back(shared_ptr<AST>(new IntegerIdAST(t)));
+		treesProduced.push_back(new IntegerIdAST(t));
 		break;
 	case TokenType::FLOAT_ID:
-		treesProduced.push_back(shared_ptr<AST>(new FloatIdAST(t)));
+		treesProduced.push_back(new FloatIdAST(t));
 		break;
 	case TokenType::STRING_ID:
-		treesProduced.push_back(shared_ptr<AST>(new StringIdAST(t)));
+		treesProduced.push_back(new StringIdAST(t));
 		break;
 	case TokenType::VOID:
-		treesProduced.push_back(shared_ptr<AST>(new VoidAST(t)));
+		treesProduced.push_back(new VoidAST(t));
 		break;
 	case TokenType::PUBLIC:
-		treesProduced.push_back(shared_ptr<AST>(new PublicAST(t)));
+		treesProduced.push_back(new PublicAST(t));
 		break;
 	case TokenType::PRIVATE:
-		treesProduced.push_back(shared_ptr<AST>(new PrivateAST(t)));
+		treesProduced.push_back(new PrivateAST(t));
 		break;
 	case TokenType::BREAK:
-		treesProduced.push_back(shared_ptr<AST>(new BreakAST(t)));
+		treesProduced.push_back(new BreakAST(t));
 		break;
 	case TokenType::CONTINUE:
-		treesProduced.push_back(shared_ptr<AST>(new ContinueAST(t)));
+		treesProduced.push_back(new ContinueAST(t));
 		break;
 		// OPERATORS
 	case TokenType::EQUAL_TO:
-		treesProduced.push_back(shared_ptr<AST>(new EqualToAST(t)));
+		treesProduced.push_back(new EqualToAST(t));
 		break;
 	case TokenType::NOT_EQUAL_TO:
-		treesProduced.push_back(shared_ptr<AST>(new NotEqualToAST(t)));
+		treesProduced.push_back(new NotEqualToAST(t));
 		break;
 	case TokenType::LESS_THAN:
-		treesProduced.push_back(shared_ptr<AST>(new LessThanAST(t)));
+		treesProduced.push_back(new LessThanAST(t));
 		break;
 	case TokenType::GREATER_THAN:
-		treesProduced.push_back(shared_ptr<AST>(new GreaterThanAST(t)));
+		treesProduced.push_back(new GreaterThanAST(t));
 		break;
 	case TokenType::LESS_THAN_EQUAL_TO:
-		treesProduced.push_back(shared_ptr<AST>(new LessThanEqualToAST(t)));
+		treesProduced.push_back(new LessThanEqualToAST(t));
 		break;
 	case TokenType::GREATER_THAN_EQUAL_TO:
-		treesProduced.push_back(shared_ptr<AST>(new GreaterThanEqualToAST(t)));
+		treesProduced.push_back(new GreaterThanEqualToAST(t));
 		break;
 		// MATH
 	case TokenType::ADDITION:
-		treesProduced.push_back(shared_ptr<AST>(new AdditionAST(t)));
+		treesProduced.push_back(new AdditionAST(t));
 		break;
 	case TokenType::SUBTRACTION:
-		treesProduced.push_back(shared_ptr<AST>(new SubtractionAST(t)));
+		treesProduced.push_back(new SubtractionAST(t));
 		break;
 	case TokenType::MULTIPLICATION:
-		treesProduced.push_back(shared_ptr<AST>(new MultiplicationAST(t)));
+		treesProduced.push_back(new MultiplicationAST(t));
 		break;
 	case TokenType::DIVISION:
-		treesProduced.push_back(shared_ptr<AST>(new DivisionAST(t)));
+		treesProduced.push_back(new DivisionAST(t));
 		break;
 	case TokenType::ASSIGNMENT:
-		treesProduced.push_back(shared_ptr<AST>(new AssignmentAST(t)));
+		treesProduced.push_back(new AssignmentAST(t));
 		break;
 	case TokenType::OR:
-		treesProduced.push_back(shared_ptr<AST>(new OrAST(t)));
+		treesProduced.push_back(new OrAST(t));
 		break;
 	case TokenType::AND:
-		treesProduced.push_back(shared_ptr<AST>(new AndAST(t)));
+		treesProduced.push_back(new AndAST(t));
 		break;
 	case TokenType::NOT:
-		treesProduced.push_back(shared_ptr<AST>(new NotAST(t)));
+		treesProduced.push_back(new NotAST(t));
 		break;
 	case TokenType::QUESTION_MARK:
-		treesProduced.push_back(shared_ptr<AST>(new TernaryAST(t)));
+		treesProduced.push_back(new TernaryAST(t));
 		break;
 	case TokenType::PERIOD:
-		treesProduced.push_back(shared_ptr<AST>(new PeriodAST(t)));
+		treesProduced.push_back(new PeriodAST(t));
 		break;
 	default:
 		//we got an issue...
 		throw "missing token type";
 	}
 
-	return treesProduced[treesProduced.size() - 1].get();
+	return treesProduced.back();
 }
 
 AST* ASTFactory::makeNode(CompositeConcept t)
@@ -178,130 +178,130 @@ AST* ASTFactory::makeNode(CompositeConcept t)
 	switch (t) {
 		// Not part of the grammar
 	case CompositeConcept::APARAMSLIST:
-		treesProduced.push_back(shared_ptr<AST>(new AParamsListAST(t)));
+		treesProduced.push_back(new AParamsListAST(t));
 		break;
 	case CompositeConcept::ARRAYDIMENSION:
-		treesProduced.push_back(shared_ptr<AST>(new ArrayDimensionAST(t)));
+		treesProduced.push_back(new ArrayDimensionAST(t));
 		break;
 	case CompositeConcept::ARRAYSIZEREPTLIST:
-		treesProduced.push_back(shared_ptr<AST>(new ArraySizeReptListAST(t)));
+		treesProduced.push_back(new ArraySizeReptListAST(t));
 		break;
 	case CompositeConcept::ASSIGNSTAT:
-		treesProduced.push_back(shared_ptr<AST>(new AssignStatAST(t)));
+		treesProduced.push_back(new AssignStatAST(t));
 		break;
 	case CompositeConcept::CLASSDECLBODYLIST:
-		treesProduced.push_back(shared_ptr<AST>(new ClassDeclBodyListAST(t)));
+		treesProduced.push_back(new ClassDeclBodyListAST(t));
 		break;
 	case CompositeConcept::CLASSLIST:
-		treesProduced.push_back(shared_ptr<AST>(new ClassListAST(t)));
+		treesProduced.push_back(new ClassListAST(t));
 		break;
 	case CompositeConcept::FPARAMSLIST:
-		treesProduced.push_back(shared_ptr<AST>(new FParamsListAST(t)));
+		treesProduced.push_back(new FParamsListAST(t));
 		break;
 	case CompositeConcept::FUNCCALLSTAT:
-		treesProduced.push_back(shared_ptr<AST>(new FuncCallStatAST(t)));
+		treesProduced.push_back(new FuncCallStatAST(t));
 		break;
 	case CompositeConcept::FUNCLIST:
-		treesProduced.push_back(shared_ptr<AST>(new FuncListAST(t)));
+		treesProduced.push_back(new FuncListAST(t));
 		break;
 	case CompositeConcept::FUNCORVARLIST:
-		treesProduced.push_back(shared_ptr<AST>(new FuncOrVarListAST(t)));
+		treesProduced.push_back(new FuncOrVarListAST(t));
 		break;
 	case CompositeConcept::INDICEREPLIST:
-		treesProduced.push_back(shared_ptr<AST>(new IndiceRepListAST(t)));
+		treesProduced.push_back(new IndiceRepListAST(t));
 		break;
 	case CompositeConcept::INHERITLIST:
-		treesProduced.push_back(shared_ptr<AST>(new InheritListAST(t)));
+		treesProduced.push_back(new InheritListAST(t));
 		break;
 	case CompositeConcept::VARCALLSTAT:
-		treesProduced.push_back(shared_ptr<AST>(new VarCallStatAST(t)));
+		treesProduced.push_back(new VarCallStatAST(t));
 		break;
 	case CompositeConcept::VARDECLLIST:
-		treesProduced.push_back(shared_ptr<AST>(new VarDeclListAST(t)));
+		treesProduced.push_back(new VarDeclListAST(t));
 		break;
 
 		// Part of the grammar
 	case CompositeConcept::ARITHEXPR:
-		treesProduced.push_back(shared_ptr<AST>(new ArithExprAST(t)));
+		treesProduced.push_back(new ArithExprAST(t));
 		break;
 	case CompositeConcept::CLASSDECL:
-		treesProduced.push_back(shared_ptr<AST>(new ClassDeclAST(t)));
+		treesProduced.push_back(new ClassDeclAST(t));
 		break;
 	case CompositeConcept::CLASSDECLBODY:
-		treesProduced.push_back(shared_ptr<AST>(new ClassDeclBodyAST(t)));
+		treesProduced.push_back(new ClassDeclBodyAST(t));
 		break;
 	case CompositeConcept::CLASSMETHOD:
-		treesProduced.push_back(shared_ptr<AST>(new ClassMethodAST(t)));
+		treesProduced.push_back(new ClassMethodAST(t));
 		break;
 	case CompositeConcept::EXPR:
-		treesProduced.push_back(shared_ptr<AST>(new ExprAST(t)));
+		treesProduced.push_back(new ExprAST(t));
 		break;
 	case CompositeConcept::FPARAMS:
-		treesProduced.push_back(shared_ptr<AST>(new FParamsAST(t)));
+		treesProduced.push_back(new FParamsAST(t));
 		break;
 	case CompositeConcept::FUNCBODY:
-		treesProduced.push_back(shared_ptr<AST>(new FuncBodyAST(t)));
+		treesProduced.push_back(new FuncBodyAST(t));
 		break;
 	case CompositeConcept::FUNCDECL:
-		treesProduced.push_back(shared_ptr<AST>(new FuncDeclAST(t)));
+		treesProduced.push_back(new FuncDeclAST(t));
 		break;
 	case CompositeConcept::FUNCDEF:
-		treesProduced.push_back(shared_ptr<AST>(new FuncDefAST(t)));
+		treesProduced.push_back(new FuncDefAST(t));
 		break;
 	case CompositeConcept::FUNCHEAD:
-		treesProduced.push_back(shared_ptr<AST>(new FuncHeadAST(t)));
+		treesProduced.push_back(new FuncHeadAST(t));
 		break;
 	case CompositeConcept::FUNCSTAT:
-		treesProduced.push_back(shared_ptr<AST>(new FuncStatAST(t)));
+		treesProduced.push_back(new FuncStatAST(t));
 		break;
 	case CompositeConcept::FUNCTION:
-		treesProduced.push_back(shared_ptr<AST>(new FunctionAST(t)));
+		treesProduced.push_back(new FunctionAST(t));
 		break;
 	case CompositeConcept::IF:
-		treesProduced.push_back(shared_ptr<AST>(new IfAST(t)));
+		treesProduced.push_back(new IfAST(t));
 		break;
 	case CompositeConcept::INDICEREP:
-		treesProduced.push_back(shared_ptr<AST>(new IndiceRepAST(t)));
+		treesProduced.push_back(new IndiceRepAST(t));
 		break;
 	case CompositeConcept::INHERIT:
-		treesProduced.push_back(shared_ptr<AST>(new InheritAST(t)));
+		treesProduced.push_back(new InheritAST(t));
 		break;
 	case CompositeConcept::PROG:
-		treesProduced.push_back(shared_ptr<AST>(new ProgAST(t)));
+		treesProduced.push_back(new ProgAST(t));
 		break;
 	case CompositeConcept::READ:
-		treesProduced.push_back(shared_ptr<AST>(new ReadAST(t)));
+		treesProduced.push_back(new ReadAST(t));
 		break;
 	case CompositeConcept::RETURN:
-		treesProduced.push_back(shared_ptr<AST>(new ReturnAST(t)));
+		treesProduced.push_back(new ReturnAST(t));
 		break;
 	case CompositeConcept::START:
-		treesProduced.push_back(shared_ptr<AST>(new StartAST(t)));
+		treesProduced.push_back(new StartAST(t));
 		break;
 	case CompositeConcept::STATEMENT:
-		treesProduced.push_back(shared_ptr<AST>(new StatementAST(t)));
+		treesProduced.push_back(new StatementAST(t));
 		break;
 	case CompositeConcept::STATEMENTLIST:
-		treesProduced.push_back(shared_ptr<AST>(new StatementListAST(t)));
+		treesProduced.push_back(new StatementListAST(t));
 		break;
 	case CompositeConcept::VARDECL:
-		treesProduced.push_back(shared_ptr<AST>(new VarDeclAST(t)));
+		treesProduced.push_back(new VarDeclAST(t));
 		break;
 	case CompositeConcept::VARIABLE:
-		treesProduced.push_back(shared_ptr<AST>(new VariableAST(t)));
+		treesProduced.push_back(new VariableAST(t));
 		break;
 	case CompositeConcept::WHILE:
-		treesProduced.push_back(shared_ptr<AST>(new WhileAST(t)));
+		treesProduced.push_back(new WhileAST(t));
 		break;
 	case CompositeConcept::WRITE:
-		treesProduced.push_back(shared_ptr<AST>(new WriteAST(t)));
+		treesProduced.push_back(new WriteAST(t));
 		break;
 	default:
-		treesProduced.push_back(shared_ptr<AST>(new CompositeConceptAST(t)));
+		throw "we got an issue";
 	}
 	//TODO DEBUG THIS
-	treesProduced.push_back(shared_ptr<AST>(new CompositeConceptAST(t)));
-	return treesProduced[treesProduced.size() - 1].get();
+	//treesProduced.push_back(new CompositeConceptAST(t));
+	return treesProduced.back();
 }
 
 AST* ASTFactory::makeFamily(CompositeConcept t, vector<AST*> children)

@@ -36,7 +36,6 @@ public:
 	virtual void accept(Visitor* visitor) = 0;
 
 	// symbol table functions
-	void createNewTable();
 	void insert(SymTabEntry s);
 	void search(SymTabEntry s);
 	void printSymTab();
@@ -53,5 +52,5 @@ public:
 	void setSymRec(SymTabEntry* data) { this->symRec = data; }
 
 	SymTab* getSymTab() { return symTable; }
-	void setSymTab(SymTab* symTable) { this->symTable = symTable; }
+	void setSymTab(SymTab* symTable);
 };

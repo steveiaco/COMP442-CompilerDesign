@@ -12,7 +12,7 @@ using std::shared_ptr;
 
 class ASTFactory {
 private:
-	static vector<shared_ptr<AST>> treesProduced;
+	static vector<AST*> treesProduced;
 public:
 	// Node of specific type
 	static AST* makeNode(Token t);

@@ -62,7 +62,9 @@ void writeOutlexTokensFile(vector<Token> tokens, string path) {
 	file.close();
 }
 
-void writeDotFile(AST* tree, string path) {
+void writeASTDotFile(AST* tree, string path) {
+
+	
 	ofstream file(path);
 
 	if (file.fail() || !tree) { return; }
@@ -75,6 +77,24 @@ void writeDotFile(AST* tree, string path) {
 
 	file.close();
 }
+
+void writeASTSymbolTableFile(AST* tree, string path) {
+	AST* progNode = tree->getChild(0);
+
+	ofstream file(path);
+
+	if (file.fail() || !tree) { return; }
+	
+	string dot = tree->toDotString();
+
+	file << "strict digraph structs {\n";
+	file << "\tnode [shape=plaintext]";
+	file << progNode->getSymTab()->toDotString();
+	file << "}\n";
+
+	file.close();
+}
+
 
 void writeOutStringVector(vector<string> strings, string path) {
 	ofstream file(path);
@@ -115,23 +135,30 @@ int main(int argc, char* argv[])
 	string outASTPath = p.parent_path().string() + "\\" + filename + ".outast";
 	string outSyntaxErrorsPath = p.parent_path().string() + "\\" + filename + ".outsyntaxerrors";
 	string outSyntaxDerivationPath = p.parent_path().string() + "\\" + filename + ".outderivation";
+	string outSymbolTablePath = p.parent_path().string() + "\\" + filename + ".outsymboltables";
+	string outSemanticErrorsPath = p.parent_path().string() + "\\" + filename + ".outsemanticerrors";
 
 	ifstream file(argv[1]);
 
 	Lexer lexer(file);
 	RecursiveDescentPredictiveParser parser(lexer);
 
-	cout << parser.parse();
+	bool parseSuccessful =  parser.parse();
+	cout << parseSuccessful;
 
 	vector<Token>& tokens = parser.getTokens();
 
 	SymTabCreationVisitor* symTabCreationVisitor = &SymTabCreationVisitor();
 
-	parser.getAST()->accept(symTabCreationVisitor);
+	if (parseSuccessful) {
+		parser.getAST()->accept(symTabCreationVisitor);
+	}
 
 	writeOutlexErrorFile(tokens, outlexErrorsPath);
 	writeOutlexTokensFile(tokens, outlexTokensPath);
-	writeDotFile(parser.getAST(), outASTPath);
+	writeASTDotFile(parser.getAST(), outASTPath);
+	writeASTSymbolTableFile(parser.getAST(), outSymbolTablePath);
 	writeOutStringVector(parser.getSyntaxErrors(), outSyntaxErrorsPath);
 	writeOutStringVector(parser.getDerivation(), outSyntaxDerivationPath);
+	writeOutStringVector(symTabCreationVisitor->getErrors(), outSemanticErrorsPath);
 }

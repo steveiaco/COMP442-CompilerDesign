@@ -8,6 +8,8 @@ using std::vector;
 
 class VariableEntry : public VisibilityEntry
 {
+	string genereateSignature();
+
 public:
 	string visibility;
 	string type;
@@ -17,5 +19,8 @@ public:
 
 	// Inherited via VisibilityEntry
 	virtual string toString() override;
+
+	// Inherited via VisibilityEntry
+	virtual string toDotString() override;
 };
 

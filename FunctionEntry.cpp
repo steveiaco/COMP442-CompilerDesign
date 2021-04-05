@@ -1,11 +1,7 @@
 #include "FunctionEntry.h"
 #include <sstream>
 
-FunctionEntry::FunctionEntry()
-{
-}
-
-string FunctionEntry::toString()
+string FunctionEntry::signatureString()
 {
 	std::stringstream ss;
 
@@ -17,14 +13,26 @@ string FunctionEntry::toString()
 				ss << "[]";
 			}
 			else {
-				ss << "[" + std::to_string(arrayInd)+ "]";
+				ss << "[" + std::to_string(arrayInd) + "]";
 			}
 		}
 
 		ss << ", ";
 	}
 
-	return "function: " + name +
-		"\n\treturn type: " + returnType +
-		"\n\tparameters: " + ss.str();
+	return ss.str();
+}
+
+FunctionEntry::FunctionEntry()
+{
+}
+
+string FunctionEntry::toString()
+{
+	return "function-" + name + "-" + signatureString();
+}
+
+string FunctionEntry::toDotString()
+{
+	return "<TR><TD>" + name + "</TD><TD>function</TD><TD>" + returnType + ":" + signatureString() + "</TD><TD PORT=\"" + "function-" + name + "-" + signatureString() + "\">+</TD></TR>\n";
 }
