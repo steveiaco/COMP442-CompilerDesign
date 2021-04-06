@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 
+class AST;
 class SymTabEntry;
 class ClassEntry;
 class FunctionEntry;
@@ -13,6 +14,7 @@ using std::string;
 class SymTab
 {
 private:
+	AST* associatedNode;
 	std::vector<SymTabEntry*> table;
 	string name;
 
@@ -26,12 +28,15 @@ public:
 	std::vector<VariableEntry*> getVariableRecords();
 
 	ClassEntry* findClassRecord(string name);
-	FunctionEntry* findFunctionRecord(string name);
+	std::vector<FunctionEntry*> findFunctionRecord(string name);
 	ParameterEntry* findParameterRecord(string name);
 	VariableEntry* findVariableRecord(string name);
 
 	string getName() { return name; }
 	void setName(string name) { this->name = name; }
+
+	AST* getNode() { return associatedNode; };
+	void setNode(AST* node) { this->associatedNode = node; }
 
 	string toDotString();
 };

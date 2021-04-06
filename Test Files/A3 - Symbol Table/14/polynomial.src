@@ -1,0 +1,63 @@
+// ====== Class declarations ====== //
+class POLYNOMIAL : LINEAR {
+  public LINEAR a;
+	public func evaluate(float x) : float;
+};
+
+class LINEAR inherits POLYNOMIAL {
+	private POLYNOMIAL a;
+	private float b;
+	
+	public func build(float A, float B) : LINEAR;
+	public func evaluate(float x) : float;
+};
+
+// ====== Function Definitions ====== //
+func POLYNOMIAL::evaluate(float x) : float
+{
+  return (0);
+}
+
+func LINEAR::evaluate(float x) : float 
+{
+  var
+  {
+    float result;
+  }
+  result = 0.0;
+  result = a * x + b;
+  return (result);
+}
+  
+func LINEAR::build(float A, float B) : LINEAR 
+{
+  var 
+  {
+    LINEAR new_function;
+  }
+  new_function.a = A;
+  new_function.b = B;
+  return (new_function);
+} 
+
+// ====== main ====== //
+main
+{
+  var
+  {
+    LINEAR f1;
+    QUADRATIC f2;
+    integer counter;
+  }
+  f1 = f1.build(2, 3.5, 33);
+  f2 = f2.build(-2.0, 1.0, 0.0);
+  f1 = f1[2];
+  counter = 1;
+	
+  while(counter <= 10)
+  {
+    write(counter);
+    write(f1.evaluate(counter));
+    write(f2.evaluate(counter));
+  };
+}

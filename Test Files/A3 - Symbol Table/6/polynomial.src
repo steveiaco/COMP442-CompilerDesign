@@ -1,5 +1,6 @@
 // ====== Class declarations ====== //
 class POLYNOMIAL {
+  public float a;
 	public func evaluate(float x) : float;
 };
 
@@ -17,7 +18,6 @@ class QUADRATIC inherits POLYNOMIAL {
 	private float c;
 	
 	public func build(float A, float B, float C) : QUADRATIC;
-	public func evaluate(float x) : float;
 };
 
 // ====== Function Definitions ====== //
@@ -26,16 +26,6 @@ func POLYNOMIAL::evaluate(float x) : float
   return (0);
 }
 
-func LINEAR::evaluate(float x) : float 
-{
-  var
-  {
-    float result;
-  }
-  result = 0.0;
-  result = a * x + b;
-  return (result);
-}
   
 func QUADRATIC::evaluate(float x) : float
 {
@@ -79,11 +69,11 @@ main
 {
   var
   {
-    linear f1;
-    quadratic f2;
+    LINEAR f1;
+    QUADRATIC f2;
     integer counter;
   }
-  f1 = f1.build(2, 3.5);
+  f1 = f1.build(2, 3.5, 33);
   f2 = f2.build(-2.0, 1.0, 0.0);
   counter = 1;
 	

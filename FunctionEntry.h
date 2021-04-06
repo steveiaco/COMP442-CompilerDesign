@@ -7,6 +7,7 @@ class FunctionEntry : public VisibilityEntry
 {
 	string signatureString();
 public:
+	SymTab* containerClass;
 	string classmethod;
 
 	// type, arrayind
@@ -21,5 +22,8 @@ public:
 
 	// Inherited via VisibilityEntry
 	virtual string toDotString() override;
+
+	// Inherited via VisibilityEntry
+	virtual bool compare(FunctionEntry* e);
 };
 

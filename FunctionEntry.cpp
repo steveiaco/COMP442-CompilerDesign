@@ -36,3 +36,20 @@ string FunctionEntry::toDotString()
 {
 	return "<TR><TD>" + name + "</TD><TD>function</TD><TD>" + returnType + ":" + signatureString() + "</TD><TD PORT=\"" + "function-" + name + "-" + signatureString() + "\">+</TD></TR>\n";
 }
+
+bool FunctionEntry::compare(FunctionEntry* e)
+{
+	if (name == e->name && returnType == e->returnType && parameterVarList.size() == e->parameterVarList.size()) {
+		bool fullMatch = true;
+		for (int i = 0; i < parameterVarList.size(); i++) {
+			auto t1 = parameterVarList[i];
+			auto t2 = e->parameterVarList[i];
+
+			if (!(std::get<0>(t1) == std::get<0>(t2) && std::get<2>(t1).size() == std::get<2>(t2).size())) {
+				fullMatch = false;
+			}
+		}
+		return fullMatch;
+	}
+	return false;
+}

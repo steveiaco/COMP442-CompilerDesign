@@ -3,6 +3,11 @@
 #include "Token.h"
 #include <iostream>
 #include "SymTabFactory.h"
+#include "VariableEntry.h"
+#include "FunctionEntry.h"
+#include "ClassEntry.h"
+#include "ParameterEntry.h"
+
 
 AST::AST()
 {
@@ -63,6 +68,80 @@ void AST::setSymTab(SymTab* symTable)
 {
 	this->symTable = symTable;
 	this->symTable->setName(toString());
+	this->symTable->setNode(this);
+}
+
+std::vector<VariableEntry*> AST::searchVariableScope(string name)
+{
+	std::vector<VariableEntry*> results;
+
+	//if (FunctionEntry* symRecFunction = dynamic_cast<FunctionEntry*>(symRec)) {
+	//	if (symRecFunction && symRecFunction->containerClass) {
+	//		symRecFunction->containerClass->findVariableRecord(name);
+	//	}
+	//}
+
+	if (symTable) {
+		if (VariableEntry* r = symTable->findVariableRecord(name)) {
+			results.emplace_back(r);
+		}
+	}
+
+	if (parent) {
+		std::vector<VariableEntry*> parentResults = parent->searchVariableScope(name);
+		results.insert(results.end(), parentResults.begin(), parentResults.end());
+	}
+
+	return results;
+}
+
+std::vector<FunctionEntry*> AST::searchFunctionScope(string name)
+{
+	std::vector<FunctionEntry*> results;
+
+	if (symTable) {
+		std::vector<FunctionEntry*> functionEntries = symTable->findFunctionRecord(name);
+		if (functionEntries.size() > 0) {
+			results.insert(results.end(), functionEntries.begin(), functionEntries.end());
+		}
+	}
+
+	if (parent) {
+		std::vector<FunctionEntry*> parentResults = parent->searchFunctionScope(name);
+		results.insert(results.end(), parentResults.begin(), parentResults.end());
+	}
+
+	return results;
+}
+
+ClassEntry* AST::searchClassScope(string name)
+{
+
+	if (symTable) {
+		ClassEntry* result = symTable->findClassRecord(name);
+		if (result) {
+			return result;
+		}
+	}
+
+	if (parent) {
+		return parent->searchClassScope(name);
+	}
+
+	return nullptr;
+}
+
+SymTab* AST::getNearestSymbolTable()
+{
+	if (symTable) {
+		return symTable;
+	}
+	else if(parent) {
+		return parent->getNearestSymbolTable();
+	}
+	else {
+		return nullptr;
+	}
 }
 
 AST* AST::makeSiblings(AST* y)

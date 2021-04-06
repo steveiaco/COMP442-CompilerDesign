@@ -324,6 +324,9 @@
     <ClInclude Include="VisibilityEntry.h">
       <Filter>Header Files\SymTab</Filter>
     </ClInclude>
+    <ClInclude Include="TypeCheckingVisitor.h">
+      <Filter>Header Files\Visitors</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Token.cpp">
@@ -586,6 +589,9 @@
     </ClCompile>
     <ClCompile Include="VariableEntry.cpp">
       <Filter>Source Files\SymTab Records\Entries</Filter>
+    </ClCompile>
+    <ClCompile Include="TypeCheckingVisitor.cpp">
+      <Filter>Source Files\Visitors</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -314,7 +314,7 @@ void SymTabCreationVisitor::visit(VarDeclListAST* n)
 			if (varDecl != varDeclCompare && varDecl->getSymRec()->name == varDeclCompare->getSymRec()->name) {
 				if (std::find(duplicateDetected.begin(), duplicateDetected.end(), varDecl->getSymRec()->name) == duplicateDetected.end()) {
 					int line = ((TokenAST*)varDeclCompare->getChild(1))->getToken().getLineNumber();
-					reportError("multiply declared data member", line);
+					reportError("multiply declared data member: " + varDecl->getSymRec()->name, line);
 					duplicateDetected.push_back(varDecl->getSymRec()->name);
 				}
 			}
@@ -571,9 +571,16 @@ void SymTabCreationVisitor::visit(ProgAST* n)
 
 				if (classEntry != nullptr) {
 					SymTab* classTable = classEntry->link;
-					FunctionEntry* classFunctionEntry = classTable->findFunctionRecord(functionSymbol->name);
-					if (classFunctionEntry != nullptr) {
-						classFunctionEntry->link = functionSymbol->link;
+					std::vector<FunctionEntry*> classFunctionEntries = classTable->findFunctionRecord(functionSymbol->name);
+
+					// check that the matched function has the same signature
+					if (classFunctionEntries.size() > 0) {
+						for (FunctionEntry* shadowFound : classFunctionEntries) {
+							if (functionSymbol->compare(shadowFound)) {
+								shadowFound->link = functionSymbol->link;
+							}
+						}
+						functionSymbol->containerClass = classTable;
 					}
 					else {
 						int line = ((TokenAST*)funcDefNode->getChild(0)->getChild(0))->getToken().getLineNumber();
@@ -588,6 +595,23 @@ void SymTabCreationVisitor::visit(ProgAST* n)
 			}
 			// if we encounter a global function
 			else {
+				std::vector<FunctionEntry*> results = globalTable->findFunctionRecord(functionSymbol->name);
+				if (results.size() > 0) {
+					for (FunctionEntry* result : results) {
+						// check if it is overloading another function
+						int line = ((TokenAST*)funcDefNode->getChild(0)->getChild(0))->getToken().getLineNumber();
+						if (result->compare(functionSymbol)) {
+							reportError("free function redefinition: " + functionSymbol->name, line);
+						}
+						else {
+							reportError("free function overload: " + functionSymbol->name, line);
+						}
+					}
+					
+
+					// check if it is redefining another function
+
+				}
 				// add it's symrec to the global scope symbol table
 				globalTable->insertRecord(functionSymbol);
 			}
@@ -598,14 +622,46 @@ void SymTabCreationVisitor::visit(ProgAST* n)
 			globalTable->insertRecord(mainVarDecl->getSymRec());
 		}
 
-		// check if all class member functions have a definition
+		//// check if all class member functions have a definition
+		//// detect shadowing class variables
 		for (AST* classDecl : classListChildren) {
 			std::vector<FunctionEntry*> memberFunctions = classDecl->getSymTab()->getFunctionRecords();
 
+			// check if all class member functions have a definition
 			for (FunctionEntry* memberFunction : memberFunctions) {
 				if (memberFunction->link == nullptr) {
-					int line = ((TokenAST*)classDecl->getChild(0)->getChild(0))->getToken().getLineNumber();
-					reportError("class member function definition not found: " + classDecl->getSymRec()->name + "::" + memberFunction->name, line);
+					int line = ((TokenAST*)classDecl->getChild(0))->getToken().getLineNumber();
+					string s = "class member function definition not found: " + classDecl->getSymRec()->name + "::" + memberFunction->name;
+					reportError(s, line);
+				}
+			}
+
+			SymTab* classSymTab = classDecl->getSymTab();
+
+			std::vector<ClassEntry*> classRecords = classSymTab->getClassRecords();
+			std::vector<VariableEntry*> variableRecords = classSymTab->getVariableRecords();
+			std::vector<FunctionEntry*> functionRecords = classSymTab->getFunctionRecords();
+
+			for (ClassEntry* classRec : classRecords) {
+				// detect shadowing class variables
+				for (VariableEntry* variable : variableRecords) {
+					VariableEntry* shadowedRecord = classRec->link->findVariableRecord(variable->name);
+					if (shadowedRecord) {
+						int line = ((TokenAST*)classDecl->getChild(0))->getToken().getLineNumber();
+						reportError("shadowed inherited member variable: " + classDecl->getSymRec()->name + "::" + variable->name + " shadows " + classRec->name + "::" + shadowedRecord->name, line);
+					}
+				}
+				// detect shadowing member functions
+				for (FunctionEntry* function : functionRecords) {
+					std::vector<FunctionEntry*> shadowedRecord = classRec->link->findFunctionRecord(function->name);
+					// we must compare the function signature, as we may have an overload
+					for (FunctionEntry* shadowFound : shadowedRecord) {
+						if (function->compare(shadowFound)) {
+							int line = ((TokenAST*)classDecl->getChild(0))->getToken().getLineNumber();
+							reportError("shadowed member function (overwritten function): " + classDecl->getSymRec()->name + "::" + function->name + " shadows " + classRec->name + "::" + shadowFound->name, line);
+						}
+
+					}
 				}
 			}
 		}

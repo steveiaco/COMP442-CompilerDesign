@@ -8,6 +8,7 @@
 
 SymTab::SymTab()
 {
+	associatedNode = nullptr;
 }
 
 void SymTab::insertRecord(SymTabEntry* e)
@@ -80,17 +81,16 @@ ClassEntry* SymTab::findClassRecord(string name)
 	return entryFound;
 }
 
-FunctionEntry* SymTab::findFunctionRecord(string name)
+std::vector<FunctionEntry*> SymTab::findFunctionRecord(string name)
 {
 	std::vector<FunctionEntry*> entries = getFunctionRecords();
-	FunctionEntry* entryFound = nullptr;
+	std::vector<FunctionEntry*> entriesFound;
 	for (FunctionEntry* entry : entries) {
 		if (entry->name == name) {
-			entryFound = entry;
-			break;
+			entriesFound.push_back(entry);
 		}
 	}
-	return entryFound;
+	return entriesFound;
 }
 
 ParameterEntry* SymTab::findParameterRecord(string name)

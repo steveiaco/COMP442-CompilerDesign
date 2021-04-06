@@ -10,6 +10,7 @@
 #include <regex>
 #include "AST.h"
 #include "SymTabCreationVisitor.h"
+#include "TypeCheckingVisitor.h"
 
 using namespace std;
 
@@ -137,28 +138,44 @@ int main(int argc, char* argv[])
 	string outSyntaxDerivationPath = p.parent_path().string() + "\\" + filename + ".outderivation";
 	string outSymbolTablePath = p.parent_path().string() + "\\" + filename + ".outsymboltables";
 	string outSemanticErrorsPath = p.parent_path().string() + "\\" + filename + ".outsemanticerrors";
+	string outTypeErrorsPath = p.parent_path().string() + "\\" + filename + ".outtypeerrors";
 
 	ifstream file(argv[1]);
 
 	Lexer lexer(file);
-	RecursiveDescentPredictiveParser parser(lexer);
+	RecursiveDescentPredictiveParser* parser = new RecursiveDescentPredictiveParser(lexer);
 
-	bool parseSuccessful =  parser.parse();
+	bool parseSuccessful = parser->parse();
 	cout << parseSuccessful;
 
-	vector<Token>& tokens = parser.getTokens();
-
-	SymTabCreationVisitor* symTabCreationVisitor = &SymTabCreationVisitor();
-
-	if (parseSuccessful) {
-		parser.getAST()->accept(symTabCreationVisitor);
-	}
-
+	vector<Token>& tokens = parser->getTokens();
+	
 	writeOutlexErrorFile(tokens, outlexErrorsPath);
 	writeOutlexTokensFile(tokens, outlexTokensPath);
-	writeASTDotFile(parser.getAST(), outASTPath);
-	writeASTSymbolTableFile(parser.getAST(), outSymbolTablePath);
-	writeOutStringVector(parser.getSyntaxErrors(), outSyntaxErrorsPath);
-	writeOutStringVector(parser.getDerivation(), outSyntaxDerivationPath);
+	writeOutStringVector(parser->getSyntaxErrors(), outSyntaxErrorsPath);
+
+	SymTabCreationVisitor* symTabCreationVisitor = new SymTabCreationVisitor();
+	TypeCheckingVisitor* typeCheckingVisitor = new TypeCheckingVisitor();
+
+	if (parseSuccessful) {
+		parser->getAST()->accept(symTabCreationVisitor);
+		parser->getAST()->accept(typeCheckingVisitor);
+	}
+	else {
+		return -1337;
+	}
+
+	writeASTDotFile(parser->getAST(), outASTPath);
+	writeOutStringVector(parser->getDerivation(), outSyntaxDerivationPath);
+	writeASTSymbolTableFile(parser->getAST(), outSymbolTablePath);
 	writeOutStringVector(symTabCreationVisitor->getErrors(), outSemanticErrorsPath);
+	writeOutStringVector(typeCheckingVisitor->getErrors(), outTypeErrorsPath);
+
+	delete parser;
+	delete symTabCreationVisitor;
+	delete typeCheckingVisitor;
+
+	parser = nullptr;
+	symTabCreationVisitor = nullptr;
+	typeCheckingVisitor = nullptr;
 }

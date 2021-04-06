@@ -10,6 +10,7 @@ using std::string;
 class AST {
 private:
 	string data;
+	string type;
 	SymTab* symTable;
 	SymTabEntry* symRec;
 
@@ -53,4 +54,13 @@ public:
 
 	SymTab* getSymTab() { return symTable; }
 	void setSymTab(SymTab* symTable);
+
+	string getType() { return type; }
+	void setType(string type) { this->type = type; }
+
+	std::vector<VariableEntry*> searchVariableScope(string name);
+	std::vector<FunctionEntry*> searchFunctionScope(string name);
+	ClassEntry* searchClassScope(string name);
+
+	SymTab* getNearestSymbolTable();
 };
