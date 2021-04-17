@@ -192,6 +192,7 @@
     <ClInclude Include="IndiceRepListAST.h" />
     <ClInclude Include="InheritAST.h" />
     <ClInclude Include="InheritListAST.h" />
+    <ClInclude Include="LabelGenerator.h" />
     <ClInclude Include="LessThanAST.h" />
     <ClInclude Include="LessThanEqualToAST.h" />
     <ClInclude Include="MultiplicationAST.h" />
@@ -283,6 +284,7 @@
     <ClCompile Include="IndiceRepListAST.cpp" />
     <ClCompile Include="InheritAST.cpp" />
     <ClCompile Include="InheritListAST.cpp" />
+    <ClCompile Include="LabelGenerator.cpp" />
     <ClCompile Include="LessThanAST.cpp" />
     <ClCompile Include="LessThanEqualToAST.cpp" />
     <ClCompile Include="MultiplicationAST.cpp" />

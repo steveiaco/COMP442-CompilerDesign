@@ -354,6 +354,9 @@
     <ClInclude Include="CreateTempVariablesVisitor.h">
       <Filter>Header Files\Visitors\Code Generator Module</Filter>
     </ClInclude>
+    <ClInclude Include="LabelGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Token.cpp">
@@ -631,6 +634,9 @@
     </ClCompile>
     <ClCompile Include="PeriodAST.cpp">
       <Filter>Source Files\AST\Composite Concepts\Operators</Filter>
+    </ClCompile>
+    <ClCompile Include="LabelGenerator.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

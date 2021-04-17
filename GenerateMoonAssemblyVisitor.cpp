@@ -2,6 +2,43 @@
 #include "SymTabFactory.h"
 #include <iostream>
 
+string GenerateMoonAssemblyVisitor::getRegister()
+{
+	string toReturn = registers.top();
+	registers.pop();
+	return toReturn;
+}
+
+string GenerateMoonAssemblyVisitor::loadVariable(AST* valueNode, SymTab* table)
+{
+	string reg = getRegister();
+
+	// If right child is VarCallStat
+	if (VarCallStatAST* varCallStatNode = dynamic_cast<VarCallStatAST*>(valueNode))
+	{
+
+		SymTabEntry* variable = table->findVarOrParamRecord(varCallStatNode->getData());
+
+		codeOperations.push_back("\tlw " + reg + "," + std::to_string(variable->getOffset()) + "(" + stackFramePointerRegister + ")");
+	}
+
+	// If the right child is an expression (operator)
+	else if (CompositeConceptTokenAST* operatorType = dynamic_cast<CompositeConceptTokenAST*>(valueNode))
+	{
+		SymTabEntry* tempVar = table->findTemporaryRecord(operatorType->getAssemData());
+
+		codeOperations.push_back("\tlw " + reg + "," + std::to_string(tempVar->getOffset()) + "(" + zeroRegister + ")");
+	}
+
+	// If right child is immediate type (integer, float, string)
+	else if (TokenAST* immType = dynamic_cast<TokenAST*>(valueNode))
+	{
+		codeOperations.push_back("\taddi " + reg + "," + zeroRegister + "," + immType->getAssemData());
+	}
+
+	return reg;
+}
+
 GenerateMoonAssemblyVisitor::GenerateMoonAssemblyVisitor()
 {
 	// Setup registers
@@ -29,9 +66,11 @@ std::vector<string> GenerateMoonAssemblyVisitor::getCode()
 	std::vector<string> construct;
 
 	//for (std::string::iterator stackContent = codeOperations.top().begin(); stackContent != codeOperations.top().end(); stackContent++) {
-	while (codeOperations.size() != 0) {
-		construct.push_back(codeOperations.top());
-		codeOperations.pop();
+	for (std::deque<string> func : functions) {
+		while (func.size() != 0) {
+			construct.push_back(func.front());
+			func.pop_front();
+		}
 	}
 
 	construct.insert(construct.end(), reserveOperations.begin(), reserveOperations.end());
@@ -95,46 +134,328 @@ void GenerateMoonAssemblyVisitor::visit(ContinueAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(EqualToAST* n)
 {
+	codeOperations.push_back("% equal to compare");
+
+	SymTab* table = n->getNearestSymbolTable();
+
+	std::vector<string> registersUsed;
+
+	// Load left and right operands into registers
+	registersUsed.push_back(loadVariable(n->getChild(0), table));
+	registersUsed.push_back(loadVariable(n->getChild(1), table));
+
+	if (registersUsed.size() == 2) {
+
+		string resultReg = getRegister();
+		registersUsed.push_back(resultReg);
+
+		// Perform operation on left and right operand, and save to temporary variable
+		codeOperations.push_back("\tceq " + resultReg + "," + registersUsed[0] + "," + registersUsed[1]);
+
+
+		// Save result to temporary variable
+		TemporaryEntry* tempRecord = table->findTemporaryRecord(n->getAssemData());
+		codeOperations.push_back("\tsw " + std::to_string(tempRecord->getOffset()) + "(" + stackFramePointerRegister + ")," + resultReg);
+	}
+
+	// Release registers
+	for (vector<string>::reverse_iterator reg = registersUsed.rbegin(); reg != registersUsed.rend(); ++reg) {
+		registers.push(*reg);
+	}
 }
 
 void GenerateMoonAssemblyVisitor::visit(NotEqualToAST* n)
 {
+	codeOperations.push_back("% not equal compare");
+
+	SymTab* table = n->getNearestSymbolTable();
+
+	std::vector<string> registersUsed;
+
+	// Load left and right operands into registers
+	registersUsed.push_back(loadVariable(n->getChild(0), table));
+	registersUsed.push_back(loadVariable(n->getChild(1), table));
+
+	if (registersUsed.size() == 2) {
+
+		string resultReg = getRegister();
+		registersUsed.push_back(resultReg);
+
+		// Perform operation on left and right operand, and save to temporary variable
+		codeOperations.push_back("\tcne " + resultReg + "," + registersUsed[0] + "," + registersUsed[1]);
+
+
+		// Save result to temporary variable
+		TemporaryEntry* tempRecord = table->findTemporaryRecord(n->getAssemData());
+		codeOperations.push_back("\tsw " + std::to_string(tempRecord->getOffset()) + "(" + stackFramePointerRegister + ")," + resultReg);
+	}
+
+	// Release registers
+	for (vector<string>::reverse_iterator reg = registersUsed.rbegin(); reg != registersUsed.rend(); ++reg) {
+		registers.push(*reg);
+	}
 }
 
 void GenerateMoonAssemblyVisitor::visit(LessThanAST* n)
 {
+	codeOperations.push_back("% less than compare");
+
+	SymTab* table = n->getNearestSymbolTable();
+
+	std::vector<string> registersUsed;
+
+	// Load left and right operands into registers
+	registersUsed.push_back(loadVariable(n->getChild(0), table));
+	registersUsed.push_back(loadVariable(n->getChild(1), table));
+
+	if (registersUsed.size() == 2) {
+
+		string resultReg = getRegister();
+		registersUsed.push_back(resultReg);
+
+		// Perform operation on left and right operand, and save to temporary variable
+		codeOperations.push_back("\tclt " + resultReg + "," + registersUsed[0] + "," + registersUsed[1]);
+
+
+		// Save result to temporary variable
+		TemporaryEntry* tempRecord = table->findTemporaryRecord(n->getAssemData());
+		codeOperations.push_back("\tsw " + std::to_string(tempRecord->getOffset()) + "(" + stackFramePointerRegister + ")," + resultReg);
+	}
+
+	// Release registers
+	for (vector<string>::reverse_iterator reg = registersUsed.rbegin(); reg != registersUsed.rend(); ++reg) {
+		registers.push(*reg);
+	}
 }
 
 void GenerateMoonAssemblyVisitor::visit(GreaterThanAST* n)
 {
+	codeOperations.push_back("% greater than compare");
+
+	SymTab* table = n->getNearestSymbolTable();
+
+	std::vector<string> registersUsed;
+
+	// Load left and right operands into registers
+	registersUsed.push_back(loadVariable(n->getChild(0), table));
+	registersUsed.push_back(loadVariable(n->getChild(1), table));
+
+	if (registersUsed.size() == 2) {
+
+		string resultReg = getRegister();
+		registersUsed.push_back(resultReg);
+
+		// Perform operation on left and right operand, and save to temporary variable
+		codeOperations.push_back("\tcgt " + resultReg + "," + registersUsed[0] + "," + registersUsed[1]);
+
+
+		// Save result to temporary variable
+		TemporaryEntry* tempRecord = table->findTemporaryRecord(n->getAssemData());
+		codeOperations.push_back("\tsw " + std::to_string(tempRecord->getOffset()) + "(" + stackFramePointerRegister + ")," + resultReg);
+	}
+
+	// Release registers
+	for (vector<string>::reverse_iterator reg = registersUsed.rbegin(); reg != registersUsed.rend(); ++reg) {
+		registers.push(*reg);
+	}
 }
 
 void GenerateMoonAssemblyVisitor::visit(LessThanEqualToAST* n)
 {
+	codeOperations.push_back("% less than or equal to compare");
+
+	SymTab* table = n->getNearestSymbolTable();
+
+	std::vector<string> registersUsed;
+
+	// Load left and right operands into registers
+	registersUsed.push_back(loadVariable(n->getChild(0), table));
+	registersUsed.push_back(loadVariable(n->getChild(1), table));
+
+	if (registersUsed.size() == 2) {
+
+		string resultReg = getRegister();
+		registersUsed.push_back(resultReg);
+
+		// Perform operation on left and right operand, and save to temporary variable
+		codeOperations.push_back("\tcle " + resultReg + "," + registersUsed[0] + "," + registersUsed[1]);
+
+
+		// Save result to temporary variable
+		TemporaryEntry* tempRecord = table->findTemporaryRecord(n->getAssemData());
+		codeOperations.push_back("\tsw " + std::to_string(tempRecord->getOffset()) + "(" + stackFramePointerRegister + ")," + resultReg);
+	}
+
+	// Release registers
+	for (vector<string>::reverse_iterator reg = registersUsed.rbegin(); reg != registersUsed.rend(); ++reg) {
+		registers.push(*reg);
+	}
 }
 
 void GenerateMoonAssemblyVisitor::visit(GreaterThanEqualToAST* n)
 {
+	codeOperations.push_back("% greater than or equal to compare");
+
+	SymTab* table = n->getNearestSymbolTable();
+
+	std::vector<string> registersUsed;
+
+	// Load left and right operands into registers
+	registersUsed.push_back(loadVariable(n->getChild(0), table));
+	registersUsed.push_back(loadVariable(n->getChild(1), table));
+
+	if (registersUsed.size() == 2) {
+
+		string resultReg = getRegister();
+		registersUsed.push_back(resultReg);
+
+		// Perform operation on left and right operand, and save to temporary variable
+		codeOperations.push_back("\tcge " + resultReg + "," + registersUsed[0] + "," + registersUsed[1]);
+
+
+		// Save result to temporary variable
+		TemporaryEntry* tempRecord = table->findTemporaryRecord(n->getAssemData());
+		codeOperations.push_back("\tsw " + std::to_string(tempRecord->getOffset()) + "(" + stackFramePointerRegister + ")," + resultReg);
+	}
+
+	// Release registers
+	for (vector<string>::reverse_iterator reg = registersUsed.rbegin(); reg != registersUsed.rend(); ++reg) {
+		registers.push(*reg);
+	}
 }
 
 void GenerateMoonAssemblyVisitor::visit(AdditionAST* n)
 {
+	codeOperations.push_back("% addition operation");
+
+	SymTab* table = n->getNearestSymbolTable();
+
+	std::vector<string> registersUsed;
+
+	// Load left and right operands into registers
+	registersUsed.push_back(loadVariable(n->getChild(0), table));
+	registersUsed.push_back(loadVariable(n->getChild(1), table));
+
+	if (registersUsed.size() == 2) {
+		
+		string resultReg = getRegister();
+		registersUsed.push_back(resultReg);
+
+		// Perform operation on left and right operand, and save to temporary variable
+		codeOperations.push_back("\tadd " + resultReg + "," + registersUsed[0] + "," + registersUsed[1]);
+
+
+		// Save result to temporary variable
+		TemporaryEntry* tempRecord = table->findTemporaryRecord(n->getAssemData());
+		codeOperations.push_back("\tsw " + std::to_string(tempRecord->getOffset()) + "(" + stackFramePointerRegister + ")," + resultReg);
+	}
+	
+	// Release registers
+	for (vector<string>::reverse_iterator reg = registersUsed.rbegin(); reg != registersUsed.rend(); ++reg) {
+		registers.push(*reg);
+	}
 }
 
 void GenerateMoonAssemblyVisitor::visit(SubtractionAST* n)
 {
+	codeOperations.push_back("% subtraction operation");
+
+	SymTab* table = n->getNearestSymbolTable();
+
+	std::vector<string> registersUsed;
+
+	// Load left and right operands into registers
+	registersUsed.push_back(loadVariable(n->getChild(0), table));
+	registersUsed.push_back(loadVariable(n->getChild(1), table));
+
+	if (registersUsed.size() == 2) {
+
+		string resultReg = getRegister();
+		registersUsed.push_back(resultReg);
+
+		// Perform operation on left and right operand, and save to temporary variable
+		codeOperations.push_back("\tsub " + resultReg + "," + registersUsed[0] + "," + registersUsed[1]);
+
+
+		// Save result to temporary variable
+		TemporaryEntry* tempRecord = table->findTemporaryRecord(n->getAssemData());
+		codeOperations.push_back("\tsw " + std::to_string(tempRecord->getOffset()) + "(" + stackFramePointerRegister + ")," + resultReg);
+	}
+
+	// Release registers
+	for (vector<string>::reverse_iterator reg = registersUsed.rbegin(); reg != registersUsed.rend(); ++reg) {
+		registers.push(*reg);
+	}
 }
 
 void GenerateMoonAssemblyVisitor::visit(MultiplicationAST* n)
 {
+	codeOperations.push_back("% multiplication operation");
+
+	SymTab* table = n->getNearestSymbolTable();
+
+	std::vector<string> registersUsed;
+
+	// Load left and right operands into registers
+	registersUsed.push_back(loadVariable(n->getChild(0), table));
+	registersUsed.push_back(loadVariable(n->getChild(1), table));
+
+	if (registersUsed.size() == 2) {
+
+		string resultReg = getRegister();
+		registersUsed.push_back(resultReg);
+
+		// Perform operation on left and right operand, and save to temporary variable
+		codeOperations.push_back("\tmul " + resultReg + "," + registersUsed[0] + "," + registersUsed[1]);
+
+
+		// Save result to temporary variable
+		TemporaryEntry* tempRecord = table->findTemporaryRecord(n->getAssemData());
+		codeOperations.push_back("\tsw " + std::to_string(tempRecord->getOffset()) + "(" + stackFramePointerRegister + ")," + resultReg);
+	}
+
+	// Release registers
+	for (vector<string>::reverse_iterator reg = registersUsed.rbegin(); reg != registersUsed.rend(); ++reg) {
+		registers.push(*reg);
+	}
 }
 
 void GenerateMoonAssemblyVisitor::visit(DivisionAST* n)
 {
+	codeOperations.push_back("% division operation");
+
+	SymTab* table = n->getNearestSymbolTable();
+
+	std::vector<string> registersUsed;
+
+	// Load left and right operands into registers
+	registersUsed.push_back(loadVariable(n->getChild(0), table));
+	registersUsed.push_back(loadVariable(n->getChild(1), table));
+
+	if (registersUsed.size() == 2) {
+
+		string resultReg = getRegister();
+		registersUsed.push_back(resultReg);
+
+		// Perform operation on left and right operand, and save to temporary variable
+		codeOperations.push_back("\tdiv " + resultReg + "," + registersUsed[0] + "," + registersUsed[1]);
+
+
+		// Save result to temporary variable
+		TemporaryEntry* tempRecord = table->findTemporaryRecord(n->getAssemData());
+		codeOperations.push_back("\tsw " + std::to_string(tempRecord->getOffset()) + "(" + stackFramePointerRegister + ")," + resultReg);
+	}
+
+	// Release registers
+	for (vector<string>::reverse_iterator reg = registersUsed.rbegin(); reg != registersUsed.rend(); ++reg) {
+		registers.push(*reg);
+	}
 }
 
 void GenerateMoonAssemblyVisitor::visit(AssignmentAST* n)
 {
+	codeOperations.push_back("% assignment operation");
+
 	AST* leftChild = n->getChild(0);
 	AST* rightChild = n->getChild(1);
 
@@ -159,13 +480,12 @@ void GenerateMoonAssemblyVisitor::visit(AssignmentAST* n)
 		// Get a register
 		string reg = registers.top(); registers.pop();
 
-		// FOLLOWING INSTRUCTIONS ARE OUTPUT IN OPPOSITE ORDER
+		// Load the variable's contents into a register
+		codeOperations.push_back("\tlw " + reg + "," + std::to_string(varAssignmentRHS->getOffset()) + "(" + stackFramePointerRegister + ")");
 
 		// Write the register contents to the variables stack offset
-		codeOperations.push("\tsw " + std::to_string(varAssignmentLHS->getOffset()) + "(" + stackFramePointerRegister + ")" + "," + reg);
+		codeOperations.push_back("\tsw " + std::to_string(varAssignmentLHS->getOffset()) + "(" + stackFramePointerRegister + ")" + "," + reg);
 
-		// Load the variable's contents into a register
-		codeOperations.push("\tlw " + reg + "," + std::to_string(varAssignmentRHS->getOffset()) + "(" + stackFramePointerRegister + ")");
 
 		// Put the register back as we're done with it
 		registers.push(reg);
@@ -180,13 +500,11 @@ void GenerateMoonAssemblyVisitor::visit(AssignmentAST* n)
 		// Get a register
 		string reg = registers.top(); registers.pop();
 
-		// FOLLOWING INSTRUCTIONS ARE OUTPUT IN OPPOSITE ORDER
+		// Load the variable's contents into a register
+		codeOperations.push_back("\tlw " + reg + "," + std::to_string(varAssignmentRHS->getOffset()) + "(" + stackFramePointerRegister + ")");
 
 		// Write the register contents to the variables stack offset
-		codeOperations.push("\tsw " + std::to_string(varAssignmentLHS->getOffset()) + "(" + stackFramePointerRegister + ")" + "," + reg);
-
-		// Load the variable's contents into a register
-		codeOperations.push("\tlw " + reg + "," + std::to_string(varAssignmentRHS->getOffset()) + "(" + stackFramePointerRegister + ")");
+		codeOperations.push_back("\tsw " + std::to_string(varAssignmentLHS->getOffset()) + "(" + stackFramePointerRegister + ")" + "," + reg);
 
 		// Put the register back as we're done with it
 		registers.push(reg);
@@ -198,16 +516,14 @@ void GenerateMoonAssemblyVisitor::visit(AssignmentAST* n)
 		// Get a register
 		string reg = registers.top(); registers.pop();
 
-		// FOLLOWING INSTRUCTIONS ARE OUTPUT IN OPPOSITE ORDER
-
-		// Write the register contents to the variable's stack offset
-		codeOperations.push("\tsw " + std::to_string(varAssignmentLHS->getOffset()) + "(" + stackFramePointerRegister + ")" + "," + reg);
+		// Clear the contents of the register
+		codeOperations.push_back("\tsub " + reg + "," + reg + "," + reg);
 
 		// Add the immediate value to the register
-		codeOperations.push("\taddi " + reg + "," + reg + "," + immType->getData());
+		codeOperations.push_back("\taddi " + reg + "," + reg + "," + immType->getData());
 
-		// Clear the contents of the register
-		codeOperations.push("\tsub " + reg + "," + reg + "," + reg);
+		// Write the register contents to the variable's stack offset
+		codeOperations.push_back("\tsw " + std::to_string(varAssignmentLHS->getOffset()) + "(" + stackFramePointerRegister + ")" + "," + reg);
 
 		// Put the register back as we're done with it
 		registers.push(reg);
@@ -217,14 +533,121 @@ void GenerateMoonAssemblyVisitor::visit(AssignmentAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(OrAST* n)
 {
+	codeOperations.push_back("% or operation");
+
+	SymTab* table = n->getNearestSymbolTable();
+
+	std::vector<string> registersUsed;
+
+	// Load left and right operands into registers
+	registersUsed.push_back(loadVariable(n->getChild(0), table));
+	registersUsed.push_back(loadVariable(n->getChild(1), table));
+
+	if (registersUsed.size() == 2) {
+
+		string resultReg = getRegister();
+		registersUsed.push_back(resultReg);
+
+		// Generate branch labels
+		string nonZeroLabel = lg.generateNonZeroLabel();
+		string endOrLabel = lg.generateEndOrLabel();
+
+		// Create branch operations
+		codeOperations.push_back("\tbnz " + registersUsed[0] + "," + nonZeroLabel);
+		codeOperations.push_back("\tbnz " + registersUsed[1] + "," + nonZeroLabel);
+
+		// Condition where both operands are zero
+		codeOperations.push_back("\taddi " + resultReg + "," + zeroRegister + ",0");
+		codeOperations.push_back("\tj " + endOrLabel);
+
+		// Condition where at least one operand is non-zero
+		codeOperations.push_back(nonZeroLabel + "\taddi " + resultReg + "," + zeroRegister + ",1");
+
+		// Save result to temporary variable
+		TemporaryEntry* tempRecord = table->findTemporaryRecord(n->getAssemData());
+		codeOperations.push_back(endOrLabel + "\tsw " + std::to_string(tempRecord->getOffset()) + "(" + stackFramePointerRegister + ")," + resultReg);
+	}
+
+	// Release registers
+	for (vector<string>::reverse_iterator reg = registersUsed.rbegin(); reg != registersUsed.rend(); ++reg) {
+		registers.push(*reg);
+	}
 }
 
 void GenerateMoonAssemblyVisitor::visit(AndAST* n)
 {
+	codeOperations.push_back("% and operation");
+
+	SymTab* table = n->getNearestSymbolTable();
+
+	std::vector<string> registersUsed;
+
+	// Load left and right operands into registers
+	registersUsed.push_back(loadVariable(n->getChild(0), table));
+	registersUsed.push_back(loadVariable(n->getChild(1), table));
+
+	if (registersUsed.size() == 2) {
+
+		string resultReg = getRegister();
+		registersUsed.push_back(resultReg);
+
+		// Generate branch labels
+		string zeroLabel = lg.generateZeroLabel();
+		string endAndLabel = lg.generateEndAndLabel();
+
+		// Create branch operations
+		codeOperations.push_back("\tbz " + registersUsed[0] + "," + zeroLabel);
+		codeOperations.push_back("\tbz " + registersUsed[1] + "," + zeroLabel);
+
+		// Condition where both operands are non-zero
+		codeOperations.push_back("\taddi " + resultReg + "," + zeroRegister + ",1");
+		codeOperations.push_back("\tj " + endAndLabel);
+
+		// Condition where at least one operand is zero
+		codeOperations.push_back(zeroLabel + "\taddi " + resultReg + "," + zeroRegister + ",0");
+
+		// Save result to temporary variable
+		TemporaryEntry* tempRecord = table->findTemporaryRecord(n->getAssemData());
+		codeOperations.push_back(endAndLabel + "\tsw " + std::to_string(tempRecord->getOffset()) + "(" + stackFramePointerRegister + ")," + resultReg);
+	}
+
+	// Release registers
+	for (vector<string>::reverse_iterator reg = registersUsed.rbegin(); reg != registersUsed.rend(); ++reg) {
+		registers.push(*reg);
+	}
 }
 
 void GenerateMoonAssemblyVisitor::visit(NotAST* n)
 {
+	codeOperations.push_back("% and operation");
+
+	SymTab* table = n->getNearestSymbolTable();
+
+	// Load operand into a register
+	string operandRegister = loadVariable(n->getChild(0), table);
+
+	// Generate branch labels
+	string zeroLabel = lg.generateZeroLabel();
+	string endNotLabel = lg.generateEndNotLabel();
+
+	// Get TemporaryEntry where we save our result to
+	TemporaryEntry* tempRecord = table->findTemporaryRecord(n->getAssemData());
+
+	// Create branch operations
+	codeOperations.push_back("\tbnz " + operandRegister + "," + zeroLabel);
+
+	// Condition where the operand is zero
+	codeOperations.push_back("\taddi " + operandRegister + "," + zeroRegister + ",1");
+	// Save result to temporary variable
+	codeOperations.push_back("\tsw " + std::to_string(tempRecord->getOffset()) + "(" + stackFramePointerRegister + ")," + operandRegister);
+	// Jump to the end of the operation
+	codeOperations.push_back("\tj " + endNotLabel);
+
+	// Condition where is non-zero
+	codeOperations.push_back(zeroLabel + "\tsw " + std::to_string(tempRecord->getOffset()) + "(" + stackFramePointerRegister + ")," + zeroRegister);
+
+	// Release registers
+	registers.push(operandRegister);
 }
 
 void GenerateMoonAssemblyVisitor::visit(TernaryAST* n)
@@ -285,33 +708,35 @@ void GenerateMoonAssemblyVisitor::visit(FuncCallStatAST* n)
 		if (entries.size() != 0) {
 			functionEntry = entries[0];
 		}
-
-		// decrement stack frame
-		codeOperations.push("\tsubi " + stackFramePointerRegister + "," + stackFramePointerRegister + "," + std::to_string(table->computeInternalOffset()));
-
-		// restore jump register state
-
-		// jump instruction
-		codeOperations.push("\tjl " + returnAddressRegister + "," + functionEntry->name);
-
-		// save jump register state
-
-		// increment stack frame
-		codeOperations.push("\taddi " + stackFramePointerRegister + "," + stackFramePointerRegister + "," + std::to_string(table->computeInternalOffset()));
+		// comment
+		codeOperations.push_back("\t% function call to " + functionNameNode->getData());
 
 		// TODO handle parameter copying
 
-		// comment
-		codeOperations.push("\t% function call to " + functionNameNode->getData());
+		// increment stack frame
+		codeOperations.push_back("\taddi " + stackFramePointerRegister + "," + stackFramePointerRegister + "," + std::to_string(table->computeInternalOffset()));
+		
+		// save jump register state
+		
+		// jump instruction
+		codeOperations.push_back("\tjl " + returnAddressRegister + "," + functionEntry->name);
+		
+		// restore jump register state
+		
+		// decrement stack frame
+		codeOperations.push_back("\tsubi " + stackFramePointerRegister + "," + stackFramePointerRegister + "," + std::to_string(table->computeInternalOffset()));
 	}
 }
 
 void GenerateMoonAssemblyVisitor::visit(FuncListAST* n)
 {
 	// This node is visited right before we start visiting the main subtree
-	// Add the hlt instruction to the end of main
+	// Prepare a new deque for the main function
 	if (ProgAST* progParent = dynamic_cast<ProgAST*>(n->parent)) {
-		codeOperations.push("\thlt");
+		if (codeOperations.size() != 0) {
+			functions.push_back(codeOperations);
+			codeOperations = std::deque<string>();
+		}
 	}
 }
 
@@ -370,8 +795,9 @@ void GenerateMoonAssemblyVisitor::visit(FuncDeclAST* n)
 void GenerateMoonAssemblyVisitor::visit(FuncDefAST* n)
 {
 	if (FunctionEntry* fEntry = dynamic_cast<FunctionEntry*>(n->getSymRec())) {
-		// TODO check if the table contains the correct function name, otherwise grab it from the function node itself
-		codeOperations.push(fEntry->name);
+		codeOperations.push_front(fEntry->name);
+		functions.push_back(codeOperations);
+		codeOperations = std::deque<string>();
 	}
 }
 
@@ -389,6 +815,10 @@ void GenerateMoonAssemblyVisitor::visit(FunctionAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(IfAST* n)
 {
+	SymTab* table = n->getSymTab();
+	string boolExpr = loadVariable(n->getChild(0), table);
+
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(IndiceRepAST* n)
@@ -403,9 +833,13 @@ void GenerateMoonAssemblyVisitor::visit(ProgAST* n)
 {
 	if (SymTab* table = n->getSymTab()) {
 		// Setup program entry
-		codeOperations.push("MAIN");
-		codeOperations.push("\taddi " + stackFramePointerRegister + "," + zeroRegister + ",topaddr");
-		codeOperations.push("\tentry");
+		codeOperations.push_front("MAIN");
+		codeOperations.push_front("\taddi " + stackFramePointerRegister + "," + zeroRegister + ",topaddr");
+		codeOperations.push_front("\tentry");
+		// Add the hlt instruction to the end of main
+		codeOperations.push_back("\thlt");
+
+		functions.push_back(codeOperations);
 	}
 }
 

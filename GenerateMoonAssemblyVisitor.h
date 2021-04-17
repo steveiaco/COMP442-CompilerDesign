@@ -1,7 +1,9 @@
 #pragma once
 #include "Visitor.h"
+#include "LabelGenerator.h"
 #include <vector>
 #include <stack>
+#include <deque>
 
 class GenerateMoonAssemblyVisitor :
 	public Visitor
@@ -10,12 +12,22 @@ private:
 	const int returnAddressSize = 4;
 
 	std::vector<string> reserveOperations;
-	std::stack<string> codeOperations;
+	std::deque<string> codeOperations;
+	
+	std::vector<std::deque<string>> functions;
 
 	std::stack<string> registers;
 	string zeroRegister;
 	string returnAddressRegister;
 	string stackFramePointerRegister;
+
+	string getRegister();
+	
+	// Loads from VarCallStat, immediate value (integer, float, string, etc..), or temporary value
+	// Adds code operations to codeOperations deque
+	string loadVariable(AST* valueNode, SymTab* table);
+
+	LabelGenerator lg;
 
 public:
 	GenerateMoonAssemblyVisitor();
