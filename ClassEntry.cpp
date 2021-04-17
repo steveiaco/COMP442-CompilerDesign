@@ -11,5 +11,16 @@ string ClassEntry::toString()
 
 string ClassEntry::toDotString()
 {
-	return "<TR><TD>" + name + "</TD><TD>class</TD><TD></TD><TD PORT=\"" + "class-" + name + "\">+</TD></TR>\n";
+	return "<TR><TD>" + name + "</TD><TD>class</TD><TD></TD><TD>" + std::to_string(computeSize()) + "</TD><TD>" + std::to_string(offset) + "</TD><TD PORT=\"" + "class-" + name + "\">+</TD></TR>\n";
+}
+
+int ClassEntry::computeSize()
+{
+	int baseSize = 0;
+
+	if (link != nullptr) {
+		baseSize = link->computeSize();
+	}
+
+	return baseSize;
 }

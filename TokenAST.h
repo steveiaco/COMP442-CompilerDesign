@@ -15,6 +15,6 @@ public:
 
 	virtual string toString() = 0;
 	virtual string getData() override;
-
+	virtual string getAssemData() override;
 };
 

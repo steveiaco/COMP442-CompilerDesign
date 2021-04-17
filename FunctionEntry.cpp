@@ -34,7 +34,7 @@ string FunctionEntry::toString()
 
 string FunctionEntry::toDotString()
 {
-	return "<TR><TD>" + name + "</TD><TD>function</TD><TD>" + returnType + ":" + signatureString() + "</TD><TD PORT=\"" + "function-" + name + "-" + signatureString() + "\">+</TD></TR>\n";
+	return "<TR><TD>" + name + "</TD><TD>function</TD><TD>" + returnType + ":" + signatureString() + "</TD><TD>" + std::to_string(computeSize()) + "</TD><TD>" + std::to_string(offset) + "</TD><TD PORT=\"" + "function-" + name + "-" + signatureString() + "\">+</TD></TR>\n";
 }
 
 bool FunctionEntry::compare(FunctionEntry* e)
@@ -52,4 +52,15 @@ bool FunctionEntry::compare(FunctionEntry* e)
 		return fullMatch;
 	}
 	return false;
+}
+
+int FunctionEntry::computeSize()
+{
+	int baseSize = 0;
+
+	if (link != nullptr) {
+		baseSize = link->computeSize();
+	}
+
+	return baseSize;
 }

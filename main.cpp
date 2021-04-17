@@ -11,6 +11,8 @@
 #include "AST.h"
 #include "SymTabCreationVisitor.h"
 #include "TypeCheckingVisitor.h"
+#include "CreateTempVariablesVisitor.h"
+#include "GenerateMoonAssemblyVisitor.h"
 
 using namespace std;
 
@@ -139,6 +141,7 @@ int main(int argc, char* argv[])
 	string outSymbolTablePath = p.parent_path().string() + "\\" + filename + ".outsymboltables";
 	string outSemanticErrorsPath = p.parent_path().string() + "\\" + filename + ".outsemanticerrors";
 	string outTypeErrorsPath = p.parent_path().string() + "\\" + filename + ".outtypeerrors";
+	string outMoonPath = p.parent_path().string() + "\\" + filename + ".moon";
 
 	ifstream file(argv[1]);
 
@@ -156,10 +159,14 @@ int main(int argc, char* argv[])
 
 	SymTabCreationVisitor* symTabCreationVisitor = new SymTabCreationVisitor();
 	TypeCheckingVisitor* typeCheckingVisitor = new TypeCheckingVisitor();
+	CreateTempVariablesVisitor* createTempVariablesVisitor = new CreateTempVariablesVisitor();
+	GenerateMoonAssemblyVisitor* generateMoonAssemblyVisitor = new GenerateMoonAssemblyVisitor();
 
 	if (parseSuccessful) {
 		parser->getAST()->accept(symTabCreationVisitor);
 		parser->getAST()->accept(typeCheckingVisitor);
+		parser->getAST()->accept(createTempVariablesVisitor);
+		parser->getAST()->accept(generateMoonAssemblyVisitor);
 	}
 	else {
 		return -1337;
@@ -170,12 +177,17 @@ int main(int argc, char* argv[])
 	writeASTSymbolTableFile(parser->getAST(), outSymbolTablePath);
 	writeOutStringVector(symTabCreationVisitor->getErrors(), outSemanticErrorsPath);
 	writeOutStringVector(typeCheckingVisitor->getErrors(), outTypeErrorsPath);
+	writeOutStringVector(generateMoonAssemblyVisitor->getCode(), outMoonPath);
 
 	delete parser;
 	delete symTabCreationVisitor;
 	delete typeCheckingVisitor;
+	delete createTempVariablesVisitor;
+	delete generateMoonAssemblyVisitor;
 
 	parser = nullptr;
 	symTabCreationVisitor = nullptr;
 	typeCheckingVisitor = nullptr;
+	createTempVariablesVisitor = nullptr;
+	generateMoonAssemblyVisitor = nullptr;
 }

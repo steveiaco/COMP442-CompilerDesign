@@ -10,6 +10,10 @@ using std::string;
 class AST {
 private:
 	string data;
+
+	string assemData;
+
+	// Symbolic entry and table generation, error checking visitors
 	string type;
 	SymTab* symTable;
 	SymTabEntry* symRec;
@@ -36,11 +40,6 @@ public:
 	// visitor functions
 	virtual void accept(Visitor* visitor) = 0;
 
-	// symbol table functions
-	void insert(SymTabEntry s);
-	void search(SymTabEntry s);
-	void printSymTab();
-	void deleteSymTab();
 
 	virtual string toString() = 0;
 	string toDotString();
@@ -48,6 +47,9 @@ public:
 	// todo remove?
 	virtual string getData() { return data; }
 	virtual void setData(string data) { this->data = data; }
+
+	virtual string getAssemData() { return assemData; }
+	virtual void setAssemData(string data) { this->assemData = data; }
 
 	SymTabEntry* getSymRec() { return symRec; }
 	void setSymRec(SymTabEntry* data) { this->symRec = data; }
@@ -60,7 +62,9 @@ public:
 
 	std::vector<VariableEntry*> searchVariableScope(string name);
 	std::vector<FunctionEntry*> searchFunctionScope(string name);
+	std::vector<ParameterEntry*> searchParameterScope(string name);
 	ClassEntry* searchClassScope(string name);
 
+	void insertIntoNearestTable(SymTabEntry* data);
 	SymTab* getNearestSymbolTable();
 };

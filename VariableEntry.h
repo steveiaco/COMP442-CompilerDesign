@@ -22,5 +22,8 @@ public:
 
 	// Inherited via VisibilityEntry
 	virtual string toDotString() override;
+
+	// Inherited via VisibilityEntry
+	virtual int computeSize() override;
 };
 

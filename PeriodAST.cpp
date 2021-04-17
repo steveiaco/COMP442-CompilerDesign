@@ -7,6 +7,6 @@ PeriodAST::PeriodAST(Token t) : CompositeConceptTokenAST(t)
 
 void PeriodAST::accept(Visitor* visitor)
 {
-	// don't go deeper, we only want to access the top level "."
+	CompositeConceptTokenAST::accept(visitor);
 	visitor->visit(this);
 }

@@ -4,3 +4,8 @@ SymTabEntry::SymTabEntry()
 { 
 	this->link = nullptr;
 }
+
+int SymTabEntry::getOffset()
+{
+	return offset;
+}

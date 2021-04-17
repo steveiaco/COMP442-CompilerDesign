@@ -95,6 +95,24 @@ std::vector<VariableEntry*> AST::searchVariableScope(string name)
 	return results;
 }
 
+std::vector<ParameterEntry*> AST::searchParameterScope(string name)
+{
+	std::vector<ParameterEntry*> results;
+
+	if (symTable) {
+		if (ParameterEntry* r = symTable->findParameterRecord(name)) {
+			results.emplace_back(r);
+		}
+	}
+
+	if (parent) {
+		std::vector<ParameterEntry*> parentResults = parent->searchParameterScope(name);
+		results.insert(results.end(), parentResults.begin(), parentResults.end());
+	}
+
+	return results;
+}
+
 std::vector<FunctionEntry*> AST::searchFunctionScope(string name)
 {
 	std::vector<FunctionEntry*> results;
@@ -129,6 +147,12 @@ ClassEntry* AST::searchClassScope(string name)
 	}
 
 	return nullptr;
+}
+
+void AST::insertIntoNearestTable(SymTabEntry* data)
+{
+	SymTab* table = getNearestSymbolTable();
+	table->insertRecord(data);
 }
 
 SymTab* AST::getNearestSymbolTable()

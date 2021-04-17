@@ -14,5 +14,8 @@ public:
 
 	// Inherited via SymTabEntry
 	virtual string toDotString() override;
+
+	// Inherited via SymTabEntry
+	virtual int computeSize() override;
 };
 

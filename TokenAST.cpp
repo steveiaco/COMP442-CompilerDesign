@@ -19,3 +19,8 @@ string TokenAST::getData()
 {
 	return token.getLexeme();
 }
+
+string TokenAST::getAssemData()
+{
+	return token.getLexeme();
+}

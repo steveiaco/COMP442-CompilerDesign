@@ -301,8 +301,9 @@ void SymTabCreationVisitor::visit(InheritListAST* n)
 
 void SymTabCreationVisitor::visit(VarCallStatAST* n)
 {
-	// non-declaration
-	return;
+	//may cause bugs!!
+	// this is a quick fix, pass the variable name up to it's parent node so that future traversals don't have to traverse all the way to the leaf to get the var name
+	n->setData(n->getChild(0)->getData());
 }
 
 void SymTabCreationVisitor::visit(VarDeclListAST* n)
@@ -453,6 +454,7 @@ void SymTabCreationVisitor::visit(FuncDeclAST* n)
 
 void SymTabCreationVisitor::visit(FuncDefAST* n)
 {
+	// in the case of the main function, the SymTab and FunctionEntry go unused
 	std::vector<AST*> children = n->getChildren();
 	FunctionEntry* fe = SymTabFactory::makeSymFunctionEntry();
 	SymTab* symTable = SymTabFactory::makeSymTab();

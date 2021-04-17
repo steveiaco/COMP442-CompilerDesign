@@ -382,10 +382,11 @@ void TypeCheckingVisitor::visit(VarCallStatAST* n)
 	vector<AST*> children = n->getChildren();
 	// check if the variable exists in the current scope
 	if (TokenAST* id = (TokenAST*)children[0]) {
-		std::vector<VariableEntry*> results = n->searchVariableScope(id->getData());
+		std::vector<VariableEntry*> varResults = n->searchVariableScope(id->getData());
+		std::vector<ParameterEntry*> paramResults = n->searchParameterScope(id->getData());
 
-		if (results.size() > 0) {
-			VariableEntry* record = results[0];
+		if (varResults.size() > 0) {
+			VariableEntry* record = varResults[0];
 			n->setType(record->type);
 
 			if (children.size() == 2) {
@@ -404,6 +405,9 @@ void TypeCheckingVisitor::visit(VarCallStatAST* n)
 					reportError("wrong number of dimensions used to access array: " + id->getData(), id->getToken().getLineNumber());
 				}
 			}
+		}
+		else if (paramResults.size()) {
+			// parameter was found
 		}
 		else {
 			reportError("use of undeclared variable: " + id->getData(), id->getToken().getLineNumber());
@@ -533,6 +537,12 @@ void TypeCheckingVisitor::visit(VarDeclAST* n)
 				reportError("use of undeclared class: " + record->type, ((TokenAST*)n->getChild(1))->getToken().getLineNumber());
 			}
 		}
+	}
+
+	// TODO this is a huge hack
+	VariableEntry* variableRec = (VariableEntry*)n->getSymRec();
+	if (ClassEntry* record = n->getNearestSymbolTable()->findClassRecord(variableRec->type)) {
+		variableRec->link = record->link;
 	}
 }
 

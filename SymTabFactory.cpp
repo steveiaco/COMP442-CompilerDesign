@@ -37,3 +37,10 @@ ParameterEntry* SymTabFactory::makeSymParameterEntry()
 	recordsCreated.push_back(r);
 	return r;
 }
+
+TemporaryEntry* SymTabFactory::makeSymTemporaryEntry()
+{
+	TemporaryEntry* r = new TemporaryEntry();
+	recordsCreated.push_back(r);
+	return r;
+}

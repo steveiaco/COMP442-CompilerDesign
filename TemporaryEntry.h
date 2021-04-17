@@ -1,21 +1,16 @@
 #pragma once
 #include "SymTabEntry.h"
-#include <vector>
-
-using std::vector;
-class ParameterEntry : public SymTabEntry
+class TemporaryEntry :
+	public SymTabEntry
 {
-	string genereateSignature();
 public:
-	string type;
-	vector<int> arrayIndices;
+	TemporaryEntry();
 
-	ParameterEntry();
+	string data;
+	string type;
 
 	// Inherited via SymTabEntry
 	virtual string toString() override;
-
-	// Inherited via SymTabEntry
 	virtual string toDotString() override;
 
 	// Inherited via SymTabEntry

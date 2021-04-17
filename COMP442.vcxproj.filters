@@ -64,6 +64,21 @@
     <Filter Include="Source Files\SymTab Records\Entries">
       <UniqueIdentifier>{d895fc0e-22f0-403f-a4d1-6978901e4400}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Visitors\Code Generator Module">
+      <UniqueIdentifier>{e88691de-5113-4c62-b813-6e76d9efd0e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Visitors\Semantic Analyzer Module">
+      <UniqueIdentifier>{d7ee00b0-7b61-497a-9e45-ac441ec4ea7f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Visitors\Code Generator Module">
+      <UniqueIdentifier>{a067fa4c-ffba-4893-9c8a-bdf119d32d08}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Visitors\Semantic Analyzer Module">
+      <UniqueIdentifier>{5d23824b-21a0-43a4-85ba-94415603b28b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\SymTab\Entries">
+      <UniqueIdentifier>{814048e5-2995-4cc2-9787-96a63b3c398e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Token.h">
@@ -90,16 +105,10 @@
     <ClInclude Include="StringAST.h">
       <Filter>Header Files\AST\Atomic Concepts</Filter>
     </ClInclude>
-    <ClInclude Include="VariableEntry.h">
-      <Filter>Header Files\SymTab</Filter>
-    </ClInclude>
     <ClInclude Include="IntegerIdAST.h">
       <Filter>Header Files\AST\Atomic Concepts</Filter>
     </ClInclude>
     <ClInclude Include="Visitor.h">
-      <Filter>Header Files\Visitors</Filter>
-    </ClInclude>
-    <ClInclude Include="SymTabCreationVisitor.h">
       <Filter>Header Files\Visitors</Filter>
     </ClInclude>
     <ClInclude Include="AST.h">
@@ -134,9 +143,6 @@
     </ClInclude>
     <ClInclude Include="NotEqualToAST.h">
       <Filter>Header Files\AST\Composite Concepts\Operators</Filter>
-    </ClInclude>
-    <ClInclude Include="SymTabEntry.h">
-      <Filter>Header Files\SymTab</Filter>
     </ClInclude>
     <ClInclude Include="BreakAST.h">
       <Filter>Header Files\AST\Atomic Concepts</Filter>
@@ -303,29 +309,50 @@
     <ClInclude Include="IndiceRepListAST.h">
       <Filter>Header Files\AST\Composite Concepts</Filter>
     </ClInclude>
-    <ClInclude Include="FunctionEntry.h">
-      <Filter>Header Files\SymTab</Filter>
-    </ClInclude>
     <ClInclude Include="SymTab.h">
       <Filter>Header Files\SymTab</Filter>
     </ClInclude>
     <ClInclude Include="SymTabFactory.h">
       <Filter>Header Files\SymTab</Filter>
     </ClInclude>
-    <ClInclude Include="ClassEntry.h">
-      <Filter>Header Files\SymTab</Filter>
-    </ClInclude>
-    <ClInclude Include="PeriodAST.h">
-      <Filter>Header Files\AST\Composite Concepts</Filter>
-    </ClInclude>
-    <ClInclude Include="ParameterEntry.h">
-      <Filter>Header Files\SymTab</Filter>
-    </ClInclude>
-    <ClInclude Include="VisibilityEntry.h">
-      <Filter>Header Files\SymTab</Filter>
+    <ClInclude Include="SymTabCreationVisitor.h">
+      <Filter>Header Files\Visitors\Semantic Analyzer Module</Filter>
     </ClInclude>
     <ClInclude Include="TypeCheckingVisitor.h">
-      <Filter>Header Files\Visitors</Filter>
+      <Filter>Header Files\Visitors\Semantic Analyzer Module</Filter>
+    </ClInclude>
+    <ClInclude Include="CalculateSizeVisitor.h">
+      <Filter>Header Files\Visitors\Code Generator Module</Filter>
+    </ClInclude>
+    <ClInclude Include="GenerateMoonAssemblyVisitor.h">
+      <Filter>Header Files\Visitors\Code Generator Module</Filter>
+    </ClInclude>
+    <ClInclude Include="ClassEntry.h">
+      <Filter>Header Files\SymTab\Entries</Filter>
+    </ClInclude>
+    <ClInclude Include="FunctionEntry.h">
+      <Filter>Header Files\SymTab\Entries</Filter>
+    </ClInclude>
+    <ClInclude Include="ParameterEntry.h">
+      <Filter>Header Files\SymTab\Entries</Filter>
+    </ClInclude>
+    <ClInclude Include="SymTabEntry.h">
+      <Filter>Header Files\SymTab\Entries</Filter>
+    </ClInclude>
+    <ClInclude Include="TemporaryEntry.h">
+      <Filter>Header Files\SymTab\Entries</Filter>
+    </ClInclude>
+    <ClInclude Include="VariableEntry.h">
+      <Filter>Header Files\SymTab\Entries</Filter>
+    </ClInclude>
+    <ClInclude Include="VisibilityEntry.h">
+      <Filter>Header Files\SymTab\Entries</Filter>
+    </ClInclude>
+    <ClInclude Include="PeriodAST.h">
+      <Filter>Header Files\AST\Composite Concepts\Operators</Filter>
+    </ClInclude>
+    <ClInclude Include="CreateTempVariablesVisitor.h">
+      <Filter>Header Files\Visitors\Code Generator Module</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -360,9 +387,6 @@
       <Filter>Source Files\AST\Atomic Concepts</Filter>
     </ClCompile>
     <ClCompile Include="Visitor.cpp">
-      <Filter>Source Files\Visitors</Filter>
-    </ClCompile>
-    <ClCompile Include="SymTabCreationVisitor.cpp">
       <Filter>Source Files\Visitors</Filter>
     </ClCompile>
     <ClCompile Include="SymTabEntry.cpp">
@@ -572,9 +596,6 @@
     <ClCompile Include="SymTabFactory.cpp">
       <Filter>Source Files\SymTab Records</Filter>
     </ClCompile>
-    <ClCompile Include="PeriodAST.cpp">
-      <Filter>Source Files\AST\Composite Concepts</Filter>
-    </ClCompile>
     <ClCompile Include="ClassEntry.cpp">
       <Filter>Source Files\SymTab Records\Entries</Filter>
     </ClCompile>
@@ -590,8 +611,26 @@
     <ClCompile Include="VariableEntry.cpp">
       <Filter>Source Files\SymTab Records\Entries</Filter>
     </ClCompile>
+    <ClCompile Include="SymTabCreationVisitor.cpp">
+      <Filter>Source Files\Visitors\Semantic Analyzer Module</Filter>
+    </ClCompile>
     <ClCompile Include="TypeCheckingVisitor.cpp">
-      <Filter>Source Files\Visitors</Filter>
+      <Filter>Source Files\Visitors\Semantic Analyzer Module</Filter>
+    </ClCompile>
+    <ClCompile Include="CalculateSizeVisitor.cpp">
+      <Filter>Source Files\Visitors\Code Generator Module</Filter>
+    </ClCompile>
+    <ClCompile Include="GenerateMoonAssemblyVisitor.cpp">
+      <Filter>Source Files\Visitors\Code Generator Module</Filter>
+    </ClCompile>
+    <ClCompile Include="TemporaryEntry.cpp">
+      <Filter>Source Files\SymTab Records\Entries</Filter>
+    </ClCompile>
+    <ClCompile Include="CreateTempVariablesVisitor.cpp">
+      <Filter>Source Files\Visitors\Code Generator Module</Filter>
+    </ClCompile>
+    <ClCompile Include="PeriodAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts\Operators</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

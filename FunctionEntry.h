@@ -25,5 +25,8 @@ public:
 
 	// Inherited via VisibilityEntry
 	virtual bool compare(FunctionEntry* e);
+
+	// Inherited via VisibilityEntry
+	virtual int computeSize() override;
 };
 

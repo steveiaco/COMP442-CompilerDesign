@@ -10,5 +10,6 @@ public:
 	// Inherited via AST
 	virtual void accept(Visitor* visitor) override;
 	virtual string toString() override;
+	virtual string getAssemData() override;
 };
 

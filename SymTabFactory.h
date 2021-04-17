@@ -6,6 +6,7 @@
 #include "VariableEntry.h"
 #include "ClassEntry.h"
 #include "ParameterEntry.h"
+#include "TemporaryEntry.h"
 
 using std::vector;
 
@@ -21,5 +22,6 @@ public:
 	static ClassEntry* makeSymClassRec();
 	static FunctionEntry* makeSymFunctionEntry();
 	static ParameterEntry* makeSymParameterEntry();
+	static TemporaryEntry* makeSymTemporaryEntry();
 };
 

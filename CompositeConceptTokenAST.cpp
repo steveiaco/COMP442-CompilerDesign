@@ -19,3 +19,8 @@ string CompositeConceptTokenAST::toString()
 	ss << (void const*)this;
 	return getValue() + " (" + ss.str() + ")";
 }
+
+string CompositeConceptTokenAST::getAssemData()
+{
+	return AST::getAssemData();
+}
