@@ -13,7 +13,7 @@ string StringAST::toString()
 	return "string: " + getValue() + " (" + ss.str() + ")";
 }
 
-void StringAST::accept(Visitor* visitor)
+void StringAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
 	visitor->visit(this);
 }

@@ -5,8 +5,8 @@ VariableAST::VariableAST(CompositeConcept c) : CompositeConceptAST(c)
 {
 }
 
-void VariableAST::accept(Visitor* visitor)
+void VariableAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptAST::accept(visitor);
+	CompositeConceptAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

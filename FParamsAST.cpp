@@ -5,8 +5,8 @@ FParamsAST::FParamsAST(CompositeConcept c) : CompositeConceptAST(c)
 {
 }
 
-void FParamsAST::accept(Visitor* visitor)
+void FParamsAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptAST::accept(visitor);
+	CompositeConceptAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

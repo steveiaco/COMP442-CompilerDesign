@@ -11,7 +11,7 @@ string TemporaryEntry::toString()
 
 string TemporaryEntry::toDotString()
 {
-	return "<TR><TD>" + name + "</TD><TD>temp var</TD><TD>" + type + "</TD><TD>" + std::to_string(computeSize()) +"</TD><TD>" + std::to_string(offset) + "</TD><TD PORT=\"" + "tempvar-" + name + type + "\">/</TD></TR>\n";
+	return "<TR><TD>" + name + "</TD><TD>temp var</TD><TD>" + type + "</TD><TD>" + std::to_string(computeSize()) + "</TD><TD>" + std::to_string(offset) + "</TD><TD PORT=\"" + "tempvar-" + name + type + "\">/</TD></TR>\n";
 }
 
 int TemporaryEntry::computeSize()

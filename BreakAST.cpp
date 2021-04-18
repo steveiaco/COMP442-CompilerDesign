@@ -2,11 +2,11 @@
 #include "Visitor.h"
 #include <sstream>
 
-BreakAST::BreakAST(Token token) : TokenAST(token) 
+BreakAST::BreakAST(Token token) : TokenAST(token)
 {
 }
 
-void BreakAST::accept(Visitor* visitor)
+void BreakAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
 	visitor->visit(this);
 }

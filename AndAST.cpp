@@ -4,8 +4,8 @@ AndAST::AndAST(Token token) : CompositeConceptTokenAST(token)
 {
 }
 
-void AndAST::accept(Visitor* visitor)
+void AndAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptTokenAST::accept(visitor);
+	CompositeConceptTokenAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

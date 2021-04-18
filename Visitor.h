@@ -76,7 +76,7 @@ using std::string;
 class Visitor
 {
 	std::vector<string> errorList;
-	
+
 public:
 	virtual void visit(CompositeConceptAST* n) = 0;
 

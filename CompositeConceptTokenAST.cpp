@@ -1,15 +1,17 @@
 #include "CompositeConceptTokenAST.h"
 
-CompositeConceptTokenAST::CompositeConceptTokenAST(Token token) : TokenAST(token) 
+CompositeConceptTokenAST::CompositeConceptTokenAST(Token token) : TokenAST(token)
 {
 }
 
-void CompositeConceptTokenAST::accept(Visitor* visitor)
+void CompositeConceptTokenAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	AST* child = leftMostChild;
-	while (child != nullptr) {
-		child->accept(visitor);
-		child = child->rightSibling;
+	if (handleDepthSearch) {
+		AST* child = leftMostChild;
+		while (child != nullptr) {
+			child->accept(visitor);
+			child = child->rightSibling;
+		}
 	}
 }
 

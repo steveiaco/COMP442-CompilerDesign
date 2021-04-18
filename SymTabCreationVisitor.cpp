@@ -609,7 +609,7 @@ void SymTabCreationVisitor::visit(ProgAST* n)
 							reportError("free function overload: " + functionSymbol->name, line);
 						}
 					}
-					
+
 
 					// check if it is redefining another function
 

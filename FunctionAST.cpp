@@ -5,8 +5,8 @@ FunctionAST::FunctionAST(CompositeConcept c) : CompositeConceptAST(c)
 {
 }
 
-void FunctionAST::accept(Visitor* visitor)
+void FunctionAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptAST::accept(visitor);
+	CompositeConceptAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

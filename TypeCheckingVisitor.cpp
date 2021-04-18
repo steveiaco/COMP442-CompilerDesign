@@ -256,7 +256,7 @@ void TypeCheckingVisitor::visit(PeriodAST* n)
 
 		}
 		else {
-			
+
 		}
 	}
 }
@@ -298,7 +298,7 @@ void TypeCheckingVisitor::visit(FParamsListAST* n)
 
 void TypeCheckingVisitor::visit(FuncCallStatAST* n)
 {
-	
+
 	// if the node's parent is a PeriodAST, then skip checking as we are accessing a method
 	if (!dynamic_cast<PeriodAST*>(n->parent)) {
 		// if it is not a period, then we are accessing a free function (or a class member function from within the scope of a class!)
@@ -342,7 +342,7 @@ void TypeCheckingVisitor::visit(FuncCallStatAST* n)
 					functionWithMatchingParameterListFound = true;
 				}
 			}
-			
+
 		}
 
 		if (!functionWithSameNumberOfParametersFound) {

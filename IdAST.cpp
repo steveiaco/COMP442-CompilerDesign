@@ -14,7 +14,7 @@ string IdAST::toString()
 	return "ID: " + getValue() + " (" + ss.str() + ")";
 }
 
-void IdAST::accept(Visitor* visitor)
+void IdAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
 	visitor->visit(this);
 }

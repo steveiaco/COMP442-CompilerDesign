@@ -14,7 +14,7 @@ string IntegerIdAST::toString()
 	return ss.str();
 }
 
-void IntegerIdAST::accept(Visitor* visitor)
+void IntegerIdAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
 	visitor->visit(this);
 }

@@ -5,8 +5,8 @@ StartAST::StartAST(CompositeConcept c) : CompositeConceptAST(c)
 {
 }
 
-void StartAST::accept(Visitor* visitor)
+void StartAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptAST::accept(visitor);
+	CompositeConceptAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

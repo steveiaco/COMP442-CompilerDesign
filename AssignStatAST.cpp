@@ -5,8 +5,8 @@ AssignStatAST::AssignStatAST(CompositeConcept c) : CompositeConceptAST(c)
 {
 }
 
-void AssignStatAST::accept(Visitor* visitor)
+void AssignStatAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptAST::accept(visitor);
+	CompositeConceptAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

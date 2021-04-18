@@ -1,7 +1,7 @@
 #include "SymTabEntry.h"
 
-SymTabEntry::SymTabEntry() 
-{ 
+SymTabEntry::SymTabEntry()
+{
 	this->link = nullptr;
 }
 

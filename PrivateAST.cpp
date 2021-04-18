@@ -6,7 +6,7 @@ PrivateAST::PrivateAST(Token token) : TokenAST(token)
 {
 }
 
-void PrivateAST::accept(Visitor* visitor)
+void PrivateAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
 	visitor->visit(this);
 }

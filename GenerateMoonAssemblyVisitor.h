@@ -13,7 +13,7 @@ private:
 
 	std::vector<string> reserveOperations;
 	std::deque<string> codeOperations;
-	
+
 	std::vector<std::deque<string>> functions;
 
 	std::stack<string> registers;
@@ -22,10 +22,13 @@ private:
 	string stackFramePointerRegister;
 
 	string getRegister();
-	
+
 	// Loads from VarCallStat, immediate value (integer, float, string, etc..), or temporary value
 	// Adds code operations to codeOperations deque
+	// Returns a register which MUST be readded to the register stack by the calling function
 	string loadVariable(AST* valueNode, SymTab* table);
+
+	void visitChildren(AST* parent);
 
 	LabelGenerator lg;
 

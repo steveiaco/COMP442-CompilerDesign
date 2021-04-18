@@ -160,7 +160,7 @@ SymTab* AST::getNearestSymbolTable()
 	if (symTable) {
 		return symTable;
 	}
-	else if(parent) {
+	else if (parent) {
 		return parent->getNearestSymbolTable();
 	}
 	else {

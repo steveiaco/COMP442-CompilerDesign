@@ -5,8 +5,8 @@ FuncDeclAST::FuncDeclAST(CompositeConcept c) : CompositeConceptAST(c)
 {
 }
 
-void FuncDeclAST::accept(Visitor* visitor)
+void FuncDeclAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptAST::accept(visitor);
+	CompositeConceptAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

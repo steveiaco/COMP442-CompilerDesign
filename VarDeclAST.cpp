@@ -5,8 +5,8 @@ VarDeclAST::VarDeclAST(CompositeConcept c) : CompositeConceptAST(c)
 {
 }
 
-void VarDeclAST::accept(Visitor* visitor)
+void VarDeclAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptAST::accept(visitor);
+	CompositeConceptAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

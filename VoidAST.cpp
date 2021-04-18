@@ -6,7 +6,7 @@ VoidAST::VoidAST(Token token) : TokenAST(token)
 {
 }
 
-void VoidAST::accept(Visitor* visitor)
+void VoidAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
 	visitor->visit(this);
 }

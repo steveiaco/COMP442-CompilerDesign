@@ -5,8 +5,8 @@ IfAST::IfAST(CompositeConcept c) : CompositeConceptAST(c)
 {
 }
 
-void IfAST::accept(Visitor* visitor)
+void IfAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptAST::accept(visitor);
+	CompositeConceptAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

@@ -34,6 +34,7 @@ public:
 	ParameterEntry* findParameterRecord(string name);
 	VariableEntry* findVariableRecord(string name);
 	TemporaryEntry* findTemporaryRecord(string name);
+	SymTabEntry* findVarOrParamRecord(string name);
 
 	string getName() { return name; }
 	void setName(string name) { this->name = name; }

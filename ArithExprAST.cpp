@@ -5,8 +5,8 @@ ArithExprAST::ArithExprAST(CompositeConcept c) : CompositeConceptAST(c)
 {
 }
 
-void ArithExprAST::accept(Visitor* visitor)
+void ArithExprAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptAST::accept(visitor);
+	CompositeConceptAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

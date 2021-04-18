@@ -25,7 +25,7 @@ VariableEntry::VariableEntry()
 
 string VariableEntry::toString()
 {
-	return "variable-"+ genereateSignature();
+	return "variable-" + genereateSignature();
 }
 
 string VariableEntry::toDotString()

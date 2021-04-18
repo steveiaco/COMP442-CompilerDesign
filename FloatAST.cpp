@@ -13,7 +13,7 @@ string FloatAST::toString()
 	return "float: " + getToken().getLexeme() + " (" + ss.str() + ")";
 }
 
-void FloatAST::accept(Visitor* visitor)
+void FloatAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
 	visitor->visit(this);
 }

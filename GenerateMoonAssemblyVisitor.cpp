@@ -27,7 +27,7 @@ string GenerateMoonAssemblyVisitor::loadVariable(AST* valueNode, SymTab* table)
 	{
 		SymTabEntry* tempVar = table->findTemporaryRecord(operatorType->getAssemData());
 
-		codeOperations.push_back("\tlw " + reg + "," + std::to_string(tempVar->getOffset()) + "(" + zeroRegister + ")");
+		codeOperations.push_back("\tlw " + reg + "," + std::to_string(tempVar->getOffset()) + "(" + stackFramePointerRegister + ")");
 	}
 
 	// If right child is immediate type (integer, float, string)
@@ -37,6 +37,15 @@ string GenerateMoonAssemblyVisitor::loadVariable(AST* valueNode, SymTab* table)
 	}
 
 	return reg;
+}
+
+void GenerateMoonAssemblyVisitor::visitChildren(AST* parent)
+{
+	AST* child = parent->leftMostChild;
+	while (child != nullptr) {
+		child->accept(this, false);
+		child = child->rightSibling;
+	}
 }
 
 GenerateMoonAssemblyVisitor::GenerateMoonAssemblyVisitor()
@@ -58,14 +67,14 @@ GenerateMoonAssemblyVisitor::GenerateMoonAssemblyVisitor()
 	registers.push("r10");
 	registers.push("r11");
 	registers.push("r12");
-	registers.push("r13");
+	// Removed over concerns with lib.m conflicts
+	//registers.push("r13");
 }
 
 std::vector<string> GenerateMoonAssemblyVisitor::getCode()
 {
 	std::vector<string> construct;
 
-	//for (std::string::iterator stackContent = codeOperations.top().begin(); stackContent != codeOperations.top().end(); stackContent++) {
 	for (std::deque<string> func : functions) {
 		while (func.size() != 0) {
 			construct.push_back(func.front());
@@ -79,61 +88,73 @@ std::vector<string> GenerateMoonAssemblyVisitor::getCode()
 
 void GenerateMoonAssemblyVisitor::visit(CompositeConceptAST* n)
 {
+	visitChildren(n);
 }
 
 void GenerateMoonAssemblyVisitor::visit(IdAST* n)
 {
+	visitChildren(n);
 }
 
 void GenerateMoonAssemblyVisitor::visit(IntegerAST* n)
 {
-	// assem data is already setup
+	visitChildren(n);
 }
 
 void GenerateMoonAssemblyVisitor::visit(FloatAST* n)
 {
-	// assem data is already setup
+	visitChildren(n);
 }
 
 void GenerateMoonAssemblyVisitor::visit(StringAST* n)
 {
-	// assem data is already setup
+	visitChildren(n);
 }
 
 void GenerateMoonAssemblyVisitor::visit(IntegerIdAST* n)
 {
+	visitChildren(n);
 }
 
 void GenerateMoonAssemblyVisitor::visit(FloatIdAST* n)
 {
+	visitChildren(n);
 }
 
 void GenerateMoonAssemblyVisitor::visit(StringIdAST* n)
 {
+	visitChildren(n);
 }
 
 void GenerateMoonAssemblyVisitor::visit(VoidAST* n)
 {
+	visitChildren(n);
 }
 
 void GenerateMoonAssemblyVisitor::visit(PublicAST* n)
 {
+	visitChildren(n);
 }
 
 void GenerateMoonAssemblyVisitor::visit(PrivateAST* n)
 {
+	visitChildren(n);
 }
 
 void GenerateMoonAssemblyVisitor::visit(BreakAST* n)
 {
+	visitChildren(n);
 }
 
 void GenerateMoonAssemblyVisitor::visit(ContinueAST* n)
 {
+	visitChildren(n);
 }
 
 void GenerateMoonAssemblyVisitor::visit(EqualToAST* n)
 {
+	visitChildren(n);
+
 	codeOperations.push_back("% equal to compare");
 
 	SymTab* table = n->getNearestSymbolTable();
@@ -166,6 +187,8 @@ void GenerateMoonAssemblyVisitor::visit(EqualToAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(NotEqualToAST* n)
 {
+	visitChildren(n);
+
 	codeOperations.push_back("% not equal compare");
 
 	SymTab* table = n->getNearestSymbolTable();
@@ -198,6 +221,8 @@ void GenerateMoonAssemblyVisitor::visit(NotEqualToAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(LessThanAST* n)
 {
+	visitChildren(n);
+
 	codeOperations.push_back("% less than compare");
 
 	SymTab* table = n->getNearestSymbolTable();
@@ -230,6 +255,8 @@ void GenerateMoonAssemblyVisitor::visit(LessThanAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(GreaterThanAST* n)
 {
+	visitChildren(n);
+
 	codeOperations.push_back("% greater than compare");
 
 	SymTab* table = n->getNearestSymbolTable();
@@ -262,6 +289,8 @@ void GenerateMoonAssemblyVisitor::visit(GreaterThanAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(LessThanEqualToAST* n)
 {
+	visitChildren(n);
+
 	codeOperations.push_back("% less than or equal to compare");
 
 	SymTab* table = n->getNearestSymbolTable();
@@ -294,6 +323,8 @@ void GenerateMoonAssemblyVisitor::visit(LessThanEqualToAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(GreaterThanEqualToAST* n)
 {
+	visitChildren(n);
+
 	codeOperations.push_back("% greater than or equal to compare");
 
 	SymTab* table = n->getNearestSymbolTable();
@@ -326,6 +357,8 @@ void GenerateMoonAssemblyVisitor::visit(GreaterThanEqualToAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(AdditionAST* n)
 {
+	visitChildren(n);
+
 	codeOperations.push_back("% addition operation");
 
 	SymTab* table = n->getNearestSymbolTable();
@@ -337,7 +370,7 @@ void GenerateMoonAssemblyVisitor::visit(AdditionAST* n)
 	registersUsed.push_back(loadVariable(n->getChild(1), table));
 
 	if (registersUsed.size() == 2) {
-		
+
 		string resultReg = getRegister();
 		registersUsed.push_back(resultReg);
 
@@ -349,7 +382,7 @@ void GenerateMoonAssemblyVisitor::visit(AdditionAST* n)
 		TemporaryEntry* tempRecord = table->findTemporaryRecord(n->getAssemData());
 		codeOperations.push_back("\tsw " + std::to_string(tempRecord->getOffset()) + "(" + stackFramePointerRegister + ")," + resultReg);
 	}
-	
+
 	// Release registers
 	for (vector<string>::reverse_iterator reg = registersUsed.rbegin(); reg != registersUsed.rend(); ++reg) {
 		registers.push(*reg);
@@ -358,6 +391,8 @@ void GenerateMoonAssemblyVisitor::visit(AdditionAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(SubtractionAST* n)
 {
+	visitChildren(n);
+
 	codeOperations.push_back("% subtraction operation");
 
 	SymTab* table = n->getNearestSymbolTable();
@@ -390,6 +425,8 @@ void GenerateMoonAssemblyVisitor::visit(SubtractionAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(MultiplicationAST* n)
 {
+	visitChildren(n);
+
 	codeOperations.push_back("% multiplication operation");
 
 	SymTab* table = n->getNearestSymbolTable();
@@ -422,6 +459,8 @@ void GenerateMoonAssemblyVisitor::visit(MultiplicationAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(DivisionAST* n)
 {
+	visitChildren(n);
+
 	codeOperations.push_back("% division operation");
 
 	SymTab* table = n->getNearestSymbolTable();
@@ -454,6 +493,8 @@ void GenerateMoonAssemblyVisitor::visit(DivisionAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(AssignmentAST* n)
 {
+	visitChildren(n);
+
 	codeOperations.push_back("% assignment operation");
 
 	AST* leftChild = n->getChild(0);
@@ -463,7 +504,7 @@ void GenerateMoonAssemblyVisitor::visit(AssignmentAST* n)
 
 	// Search variable and parameter in symtab
 	SymTabEntry* varAssignmentLHS = table->findVariableRecord(leftChild->getData());
-	if (varAssignmentLHS == nullptr) 
+	if (varAssignmentLHS == nullptr)
 	{
 		varAssignmentLHS = table->findParameterRecord(leftChild->getData());
 	}
@@ -511,7 +552,7 @@ void GenerateMoonAssemblyVisitor::visit(AssignmentAST* n)
 	}
 
 	// If right child is immediate type (integer, float, string)
-	else if (TokenAST* immType = dynamic_cast<TokenAST*>(rightChild)) 
+	else if (TokenAST* immType = dynamic_cast<TokenAST*>(rightChild))
 	{
 		// Get a register
 		string reg = registers.top(); registers.pop();
@@ -533,6 +574,8 @@ void GenerateMoonAssemblyVisitor::visit(AssignmentAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(OrAST* n)
 {
+	visitChildren(n);
+
 	codeOperations.push_back("% or operation");
 
 	SymTab* table = n->getNearestSymbolTable();
@@ -576,6 +619,8 @@ void GenerateMoonAssemblyVisitor::visit(OrAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(AndAST* n)
 {
+	visitChildren(n);
+
 	codeOperations.push_back("% and operation");
 
 	SymTab* table = n->getNearestSymbolTable();
@@ -619,6 +664,8 @@ void GenerateMoonAssemblyVisitor::visit(AndAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(NotAST* n)
 {
+	visitChildren(n);
+
 	codeOperations.push_back("% and operation");
 
 	SymTab* table = n->getNearestSymbolTable();
@@ -652,42 +699,62 @@ void GenerateMoonAssemblyVisitor::visit(NotAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(TernaryAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(PeriodAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(AParamsListAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(ArrayDimensionAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(ArraySizeReptListAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(AssignStatAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(ClassDeclBodyListAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(ClassListAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(FParamsListAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(FuncCallStatAST* n)
 {
+	visitChildren(n);
+
 	// if the parent node is of type PeriodAST then we must skip this funccall as the parent will take care of the operation
 	if (PeriodAST* period = dynamic_cast<PeriodAST*>(n->parent)) {
 		return;
@@ -709,20 +776,20 @@ void GenerateMoonAssemblyVisitor::visit(FuncCallStatAST* n)
 			functionEntry = entries[0];
 		}
 		// comment
-		codeOperations.push_back("\t% function call to " + functionNameNode->getData());
+		codeOperations.push_back("% function call to " + functionNameNode->getData());
 
 		// TODO handle parameter copying
 
 		// increment stack frame
 		codeOperations.push_back("\taddi " + stackFramePointerRegister + "," + stackFramePointerRegister + "," + std::to_string(table->computeInternalOffset()));
-		
+
 		// save jump register state
-		
+
 		// jump instruction
 		codeOperations.push_back("\tjl " + returnAddressRegister + "," + functionEntry->name);
-		
+
 		// restore jump register state
-		
+
 		// decrement stack frame
 		codeOperations.push_back("\tsubi " + stackFramePointerRegister + "," + stackFramePointerRegister + "," + std::to_string(table->computeInternalOffset()));
 	}
@@ -730,6 +797,8 @@ void GenerateMoonAssemblyVisitor::visit(FuncCallStatAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(FuncListAST* n)
 {
+	visitChildren(n);
+
 	// This node is visited right before we start visiting the main subtree
 	// Prepare a new deque for the main function
 	if (ProgAST* progParent = dynamic_cast<ProgAST*>(n->parent)) {
@@ -742,58 +811,86 @@ void GenerateMoonAssemblyVisitor::visit(FuncListAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(FuncOrVarListAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(IndiceRepListAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(InheritListAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(VarCallStatAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(VarDeclListAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(ArithExprAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(ClassDeclAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(ClassDeclBodyAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(ClassMethodAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(ExprAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(FParamsAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(FuncBodyAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(FuncDeclAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(FuncDefAST* n)
 {
+	visitChildren(n);
+
 	if (FunctionEntry* fEntry = dynamic_cast<FunctionEntry*>(n->getSymRec())) {
 		codeOperations.push_front(fEntry->name);
 		functions.push_back(codeOperations);
@@ -803,40 +900,98 @@ void GenerateMoonAssemblyVisitor::visit(FuncDefAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(FuncHeadAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(FuncStatAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(FunctionAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(IfAST* n)
 {
-	SymTab* table = n->getSymTab();
+	n->getChild(0)->accept(this, false);
+
+	SymTab* table = n->getNearestSymbolTable();
 	string boolExpr = loadVariable(n->getChild(0), table);
 
+	// If an else statement list exist
+	if (n->getChild(2)) {
+		codeOperations.push_back("% ifelse statement");
+
+		
+		string elseLabel = lg.generateElseLabel();
+		string endIfLabel = lg.generateEndIfLabel();
+
+		// If the expression evaluates to false, then jump to the else address
+		codeOperations.push_back("\tbz " + boolExpr + "," + elseLabel);
+
+		// Code for when the if statement resolves to true
+		n->getChild(1)->accept(this, false);
+		codeOperations.push_back("\tj " + endIfLabel);
+
+
+		// Code for when the if statement resolves to false
+		codeOperations.push_back(elseLabel + "\tnop");
+		n->getChild(2)->accept(this, false);
+
+		// End of if statement
+		codeOperations.push_back(endIfLabel + "\tnop");
+	}
+	// if an else statement list does not exist
+	else {
+		codeOperations.push_back("% if statement");
+
+		string endIfLabel = lg.generateEndIfLabel();
+
+		// If the expression evaluates to false, then jump to the else address
+		codeOperations.push_back("\tbz " + boolExpr + "," + endIfLabel);
+
+		// Code for when the if statement resolves to true
+		n->getChild(1)->accept(this, false);
+
+		// End of if statement
+		codeOperations.push_back(endIfLabel + "\tnop");
+	}
+
+	registers.push(boolExpr);
 
 }
 
 void GenerateMoonAssemblyVisitor::visit(IndiceRepAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(InheritAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(ProgAST* n)
 {
+	visitChildren(n);
+
 	if (SymTab* table = n->getSymTab()) {
 		// Setup program entry
 		codeOperations.push_front("MAIN");
+		codeOperations.push_front("\tsubi " + stackFramePointerRegister + "," + stackFramePointerRegister + ",4");
+		codeOperations.push_front("\tsub " + zeroRegister + "," + zeroRegister + "," + zeroRegister);
 		codeOperations.push_front("\taddi " + stackFramePointerRegister + "," + zeroRegister + ",topaddr");
 		codeOperations.push_front("\tentry");
 		// Add the hlt instruction to the end of main
+		reserveOperations.push_back("\t% buffer space used for console output");
+		reserveOperations.push_back("buf\tres 20");
 		codeOperations.push_back("\thlt");
 
 		functions.push_back(codeOperations);
@@ -845,36 +1000,121 @@ void GenerateMoonAssemblyVisitor::visit(ProgAST* n)
 
 void GenerateMoonAssemblyVisitor::visit(ReadAST* n)
 {
+	SymTab* table = n->getNearestSymbolTable();
+
+	codeOperations.push_back("% read integer from user");
+
+	string bufferRegister = getRegister();
+
+	string getStrLabel = lg.generateGetStrLabel();
+	string endGetLabel = lg.generateEndGetLabel();
+
+	// Link buffer to stack
+	codeOperations.push_back("\taddi " + bufferRegister + "," + zeroRegister + ",buf");
+	codeOperations.push_back("\tsw -8(" + stackFramePointerRegister + ")," + bufferRegister);
+
+	// Read string from console
+	codeOperations.push_back("\tjl " + returnAddressRegister + ",getstr");
+	
+	// Convert string to integer
+	codeOperations.push_back("\tjl " + returnAddressRegister + ",strint");
+	VariableEntry* tempRecord = table->findVariableRecord(n->getChild(0)->getAssemData());
+	codeOperations.push_back("\tsw " + std::to_string(tempRecord->getOffset()) + "(" + stackFramePointerRegister + "),r13");
+
+	registers.push(bufferRegister);
 }
 
 void GenerateMoonAssemblyVisitor::visit(ReturnAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(StartAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(StatementAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(StatementListAST* n)
 {
+	visitChildren(n);
 }
 
 void GenerateMoonAssemblyVisitor::visit(VarDeclAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(VariableAST* n)
 {
+	visitChildren(n);
+
 }
 
 void GenerateMoonAssemblyVisitor::visit(WhileAST* n)
 {
+	codeOperations.push_back("% while loop");
+	SymTab* table = n->getNearestSymbolTable();
+	string goWhileLabel = lg.generateGoWhileLabel();
+	string endWhileLabel = lg.generateEndWhileLabel();
+
+	// Loop statement
+	codeOperations.push_back(goWhileLabel + "\tnop");
+
+	// Generate while expresion code
+	n->getChild(0)->accept(this, false);
+
+	// Load variable used in while expression
+	string whileExprRegister = loadVariable(n->getChild(0), table);
+
+	// Check while expression truth value
+	codeOperations.push_back("\tbz " + whileExprRegister + "," + endWhileLabel);
+
+	// Generate while statement code
+	if (AST* statementListChild = n->getChild(1)) {
+		statementListChild->accept(this, false);
+	}
+
+	// Jump back to beginning of while
+	codeOperations.push_back("\tj " + goWhileLabel);
+
+	// End of while loop
+	codeOperations.push_back(endWhileLabel + "\tnop");
+
+	registers.push(whileExprRegister);
 }
 
 void GenerateMoonAssemblyVisitor::visit(WriteAST* n)
 {
+	SymTab* table = n->getNearestSymbolTable();
+
+	visitChildren(n);
+
+	codeOperations.push_back("% write statement");
+
+	string writeExprRegister = loadVariable(n->getChild(0), table);
+
+	// Put value on stack
+	codeOperations.push_back("\tsw -8(" + stackFramePointerRegister + ")," + writeExprRegister);
+
+	// Link buffer to stack
+	codeOperations.push_back("\taddi " + writeExprRegister + "," + zeroRegister + ",buf");
+	codeOperations.push_back("\tsw -12(" + stackFramePointerRegister + ")," + writeExprRegister);
+
+	// Convert int to string for output
+	codeOperations.push_back("\tjl " + returnAddressRegister + ",intstr");
+	codeOperations.push_back("\tsw -8(" + stackFramePointerRegister + "),r13");
+
+	// Output to console
+	codeOperations.push_back("\tjl r15,putstr");
+
+	registers.push(writeExprRegister);
 }

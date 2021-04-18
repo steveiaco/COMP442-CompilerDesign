@@ -6,7 +6,7 @@ PublicAST::PublicAST(Token token) : TokenAST(token)
 {
 }
 
-void PublicAST::accept(Visitor* visitor)
+void PublicAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
 	visitor->visit(this);
 }

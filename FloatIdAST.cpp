@@ -4,7 +4,7 @@ FloatIdAST::FloatIdAST(Token token) : TokenAST(token)
 {
 }
 
-void FloatIdAST::accept(Visitor* visitor)
+void FloatIdAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
 }
 

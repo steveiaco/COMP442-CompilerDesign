@@ -38,3 +38,23 @@ string LabelGenerator::generateEndIfLabel()
 {
 	return "endif" + std::to_string(endIfLabels++);
 }
+
+string LabelGenerator::generateGoWhileLabel()
+{
+	return "gowhile" + std::to_string(goWhileLabels++);
+}
+
+string LabelGenerator::generateEndWhileLabel()
+{
+	return "endwhile" + std::to_string(endWhileLabels++);
+}
+
+string LabelGenerator::generateGetStrLabel()
+{
+	return "getstr" + std::to_string(getStrLabels++);
+}
+
+string LabelGenerator::generateEndGetLabel()
+{
+	return "endget" + std::to_string(endGetLabels++);
+}

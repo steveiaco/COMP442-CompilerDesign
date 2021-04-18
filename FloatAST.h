@@ -8,5 +8,5 @@ public:
 
 	// Inherited via TokenAST
 	virtual string toString() override;
-	virtual void accept(Visitor* visitor) override;
+	virtual void accept(Visitor* visitor, bool handleDepthSearch = true) override;
 };

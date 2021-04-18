@@ -5,8 +5,8 @@ ProgAST::ProgAST(CompositeConcept c) : CompositeConceptAST(c)
 {
 }
 
-void ProgAST::accept(Visitor* visitor)
+void ProgAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptAST::accept(visitor);
+	CompositeConceptAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

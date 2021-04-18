@@ -13,7 +13,7 @@ string IntegerAST::toString()
 	return "integer: " + getValue() + " (" + ss.str() + ")";
 }
 
-void IntegerAST::accept(Visitor* visitor)
+void IntegerAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
 	visitor->visit(this);
 }

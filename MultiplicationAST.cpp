@@ -4,8 +4,8 @@ MultiplicationAST::MultiplicationAST(Token token) : CompositeConceptTokenAST(tok
 {
 }
 
-void MultiplicationAST::accept(Visitor* visitor)
+void MultiplicationAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptTokenAST::accept(visitor);
+	CompositeConceptTokenAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

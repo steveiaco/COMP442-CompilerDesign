@@ -149,6 +149,19 @@ TemporaryEntry* SymTab::findTemporaryRecord(string name)
 	return entryFound;
 }
 
+SymTabEntry* SymTab::findVarOrParamRecord(string name)
+{
+	if (SymTabEntry* paramRecord = findParameterRecord(name)) {
+		return paramRecord;
+	}
+	else if (SymTabEntry* varRecord = findVariableRecord(name)) {
+		return varRecord;
+	}
+	else {
+		return nullptr;
+	}
+}
+
 int SymTab::computeInternalOffset()
 {
 	int offset = 0;
@@ -182,10 +195,10 @@ string SymTab::toDotString()
 {
 	std::stringstream currentTable;
 
-	currentTable	<<	"\"" + name + "\"" + " [label=<\n"
-					<<	"<TABLE BORDER = \"0\" CELLBORDER = \"1\" CELLSPACING = \"0\">\n"
-					<<	"<TR><TD COLSPAN = \"3\">" + name + "</TD><TD COLSPAN=\"3\">" + std::to_string(computeInternalOffset()) + "</TD></TR>\n"
-					<<	"<TR><TD>Name</TD><TD>Kind</TD><TD>Type</TD><TD>Size</TD><TD>Offset</TD><TD>Link</TD></TR>\n";
+	currentTable << "\"" + name + "\"" + " [label=<\n"
+		<< "<TABLE BORDER = \"0\" CELLBORDER = \"1\" CELLSPACING = \"0\">\n"
+		<< "<TR><TD COLSPAN = \"3\">" + name + "</TD><TD COLSPAN=\"3\">" + std::to_string(computeInternalOffset()) + "</TD></TR>\n"
+		<< "<TR><TD>Name</TD><TD>Kind</TD><TD>Type</TD><TD>Size</TD><TD>Offset</TD><TD>Link</TD></TR>\n";
 
 	std::stringstream other;
 

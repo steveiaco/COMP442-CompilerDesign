@@ -4,7 +4,7 @@ class ClassDeclBodyAST :
 	public CompositeConceptAST
 {
 public:
-	ClassDeclBodyAST(CompositeConcept c);	
-	virtual void accept(Visitor* visitor) override;
+	ClassDeclBodyAST(CompositeConcept c);
+	virtual void accept(Visitor* visitor, bool handleDepthSearch = true) override;
 };
 

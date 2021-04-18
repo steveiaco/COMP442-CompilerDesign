@@ -5,8 +5,8 @@ StatementListAST::StatementListAST(CompositeConcept c) : CompositeConceptAST(c)
 {
 }
 
-void StatementListAST::accept(Visitor* visitor)
+void StatementListAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptAST::accept(visitor);
+	CompositeConceptAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

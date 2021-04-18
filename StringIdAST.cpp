@@ -5,7 +5,7 @@ StringIdAST::StringIdAST(Token token) : TokenAST(token)
 {
 }
 
-void StringIdAST::accept(Visitor* visitor)
+void StringIdAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
 	visitor->visit(this);
 }

@@ -4,8 +4,8 @@ AdditionAST::AdditionAST(Token token) : CompositeConceptTokenAST(token)
 {
 }
 
-void AdditionAST::accept(Visitor* visitor)
+void AdditionAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptTokenAST::accept(visitor);
+	CompositeConceptTokenAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

@@ -5,6 +5,6 @@ class PeriodAST :
 {
 public:
 	PeriodAST(Token t);
-	virtual void accept(Visitor* visitor) override;
+	virtual void accept(Visitor* visitor, bool handleDepthSearch = true) override;
 };
 

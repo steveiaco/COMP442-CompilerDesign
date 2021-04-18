@@ -11,12 +11,14 @@ CompositeConcept CompositeConceptAST::getCompositeConcept()
 	return cconcept;
 }
 
-void CompositeConceptAST::accept(Visitor* visitor)
+void CompositeConceptAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	AST* child = leftMostChild;
-	while (child != nullptr) {
-		child->accept(visitor);
-		child = child->rightSibling;
+	if (handleDepthSearch) {
+		AST* child = leftMostChild;
+		while (child != nullptr) {
+			child->accept(visitor);
+			child = child->rightSibling;
+		}
 	}
 }
 

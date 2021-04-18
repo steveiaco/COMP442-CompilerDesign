@@ -4,8 +4,8 @@ GreaterThanEqualToAST::GreaterThanEqualToAST(Token token) : CompositeConceptToke
 {
 }
 
-void GreaterThanEqualToAST::accept(Visitor* visitor)
+void GreaterThanEqualToAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptTokenAST::accept(visitor);
+	CompositeConceptTokenAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

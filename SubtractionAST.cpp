@@ -4,8 +4,8 @@ SubtractionAST::SubtractionAST(Token token) : CompositeConceptTokenAST(token)
 {
 }
 
-void SubtractionAST::accept(Visitor* visitor)
+void SubtractionAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptTokenAST::accept(visitor);
+	CompositeConceptTokenAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

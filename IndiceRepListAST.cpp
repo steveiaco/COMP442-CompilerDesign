@@ -5,8 +5,8 @@ IndiceRepListAST::IndiceRepListAST(CompositeConcept c) : CompositeConceptAST(c)
 {
 }
 
-void IndiceRepListAST::accept(Visitor* visitor)
+void IndiceRepListAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptAST::accept(visitor);
+	CompositeConceptAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

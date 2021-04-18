@@ -68,7 +68,7 @@ void CreateTempVariablesVisitor::visit(EqualToAST* n)
 	// setup the entry info
 	TemporaryEntry* tempVarEntry = SymTabFactory::makeSymTemporaryEntry();
 	tempVarEntry->name = tempVarName;
-	
+
 	n->setType("integer");
 	tempVarEntry->type = n->getType();
 
@@ -178,7 +178,7 @@ void CreateTempVariablesVisitor::visit(AdditionAST* n)
 
 	// The operator's return intermediate variable
 	n->setAssemData(tempVarName);
-	
+
 	// setup the entry info
 	TemporaryEntry* tempVarEntry = SymTabFactory::makeSymTemporaryEntry();
 	tempVarEntry->name = tempVarName;

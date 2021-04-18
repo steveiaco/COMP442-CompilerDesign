@@ -15,7 +15,7 @@ void Lexer::getChar()
 	if (lastChar == '\n') {
 		currentLine++;
 	}
-	
+
 	input.get(lastChar);
 	if (input.eof()) {
 		lastChar = -1;
@@ -221,7 +221,7 @@ Token Lexer::nextToken()
 				return Token(TokenType::INTEGER, s.str(), currentLine);
 			}
 		}
-	} 
+	}
 	else {
 
 		TokenType t;
@@ -236,7 +236,7 @@ Token Lexer::nextToken()
 		else if (lastChar == '&') { t = TokenType::AND;						getChar(s); }
 		else if (lastChar == '!') { t = TokenType::NOT;						getChar(s); }
 		else if (lastChar == '?') { t = TokenType::QUESTION_MARK;			getChar(s); }
-		else if (lastChar == '(') {	t = TokenType::LEFT_PARENTHESIS;		getChar(s); }
+		else if (lastChar == '(') { t = TokenType::LEFT_PARENTHESIS;		getChar(s); }
 		else if (lastChar == ')') { t = TokenType::RIGHT_PARENTHESIS;		getChar(s); }
 		else if (lastChar == '{') { t = TokenType::LEFT_CURLY_BRACKET;		getChar(s); }
 		else if (lastChar == '}') { t = TokenType::RIGHT_CURLY_BRACKET;		getChar(s); }
@@ -260,17 +260,17 @@ Token Lexer::nextToken()
 			while (lastChar != '"' && lastChar != -1) {
 				getChar(s);
 			}
-			
+
 			if (lastChar == -1) {
 				t = TokenType::INVALID_STRING;
 			}
-			
+
 			//Skip "
 			getChar();
 		}
-		
+
 		// START -> S23
-		else if (lastChar == '/') { 
+		else if (lastChar == '/') {
 
 			getChar(s);
 
@@ -321,13 +321,13 @@ Token Lexer::nextToken()
 			}
 			else {
 				t = TokenType::DIVISION;
-				s.put(lastChar); 
+				s.put(lastChar);
 			}
 		}
 
 		// START -> S13
 		else if (lastChar == '=') {
-			
+
 			getChar();
 
 			// S13 -> S14
@@ -341,7 +341,7 @@ Token Lexer::nextToken()
 				s << '=';
 			}
 		}
-		
+
 		// START -> S15
 		else if (lastChar == '<') {
 

@@ -6,7 +6,7 @@ ContinueAST::ContinueAST(Token token) : TokenAST(token)
 {
 }
 
-void ContinueAST::accept(Visitor* visitor)
+void ContinueAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
 	visitor->visit(this);
 }

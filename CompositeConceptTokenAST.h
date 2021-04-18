@@ -8,7 +8,7 @@ public:
 	CompositeConceptTokenAST(Token token);
 
 	// Inherited via AST
-	virtual void accept(Visitor* visitor) override;
+	virtual void accept(Visitor* visitor, bool handleDepthSearch = true) override;
 	virtual string toString() override;
 	virtual string getAssemData() override;
 };

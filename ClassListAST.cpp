@@ -5,8 +5,8 @@ ClassListAST::ClassListAST(CompositeConcept c) : CompositeConceptAST(c)
 {
 }
 
-void ClassListAST::accept(Visitor* visitor)
+void ClassListAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptAST::accept(visitor);
+	CompositeConceptAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

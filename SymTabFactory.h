@@ -17,7 +17,7 @@ class SymTabFactory
 public:
 
 	static SymTab* makeSymTab();
-	
+
 	static VariableEntry* makeSymVariableRec();
 	static ClassEntry* makeSymClassRec();
 	static FunctionEntry* makeSymFunctionEntry();

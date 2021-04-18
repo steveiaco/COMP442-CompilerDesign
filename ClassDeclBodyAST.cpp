@@ -5,8 +5,8 @@ ClassDeclBodyAST::ClassDeclBodyAST(CompositeConcept c) : CompositeConceptAST(c)
 {
 }
 
-void ClassDeclBodyAST::accept(Visitor* visitor)
+void ClassDeclBodyAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptAST::accept(visitor);
+	CompositeConceptAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

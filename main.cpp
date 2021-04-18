@@ -24,7 +24,7 @@ void writeOutlexErrorFile(vector<Token> tokens, string path) {
 	// Print out errors
 	for (Token t : tokens) {
 		string l = std::regex_replace(t.getLexeme(), std::regex("\n"), "\\n");
-		
+
 		switch (t.getTokenType()) {
 		case TokenType::INVALID_CHARACTER:
 			file << "Lexical error: Invalid character: \"" << l << "\": line " << t.getLineNumber() << "." << endl;
@@ -67,11 +67,11 @@ void writeOutlexTokensFile(vector<Token> tokens, string path) {
 
 void writeASTDotFile(AST* tree, string path) {
 
-	
+
 	ofstream file(path);
 
 	if (file.fail() || !tree) { return; }
-	
+
 	string dot = tree->toDotString();
 
 	file << "digraph finite_state_machine{\n";
@@ -87,7 +87,7 @@ void writeASTSymbolTableFile(AST* tree, string path) {
 	ofstream file(path);
 
 	if (file.fail() || !tree) { return; }
-	
+
 	string dot = tree->toDotString();
 
 	file << "strict digraph structs {\n";
@@ -111,8 +111,8 @@ void writeOutStringVector(vector<string> strings, string path) {
 	file.close();
 }
 
-int main(int argc, char* argv[]) 
-{ 
+int main(int argc, char* argv[])
+{
 	if (argc != 2) {
 		std::cout << "Error: Please include one parameter.";
 		return 0;
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
 	string outSymbolTablePath = p.parent_path().string() + "\\" + filename + ".outsymboltables";
 	string outSemanticErrorsPath = p.parent_path().string() + "\\" + filename + ".outsemanticerrors";
 	string outTypeErrorsPath = p.parent_path().string() + "\\" + filename + ".outtypeerrors";
-	string outMoonPath = p.parent_path().string() + "\\" + filename + ".moon";
+	string outMoonPath = p.parent_path().string() + "\\" + filename + ".m";
 
 	ifstream file(argv[1]);
 
@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
 	cout << parseSuccessful;
 
 	vector<Token>& tokens = parser->getTokens();
-	
+
 	writeOutlexErrorFile(tokens, outlexErrorsPath);
 	writeOutlexTokensFile(tokens, outlexTokensPath);
 	writeOutStringVector(parser->getSyntaxErrors(), outSyntaxErrorsPath);
@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
 		parser->getAST()->accept(symTabCreationVisitor);
 		parser->getAST()->accept(typeCheckingVisitor);
 		parser->getAST()->accept(createTempVariablesVisitor);
-		parser->getAST()->accept(generateMoonAssemblyVisitor);
+		parser->getAST()->accept(generateMoonAssemblyVisitor, false);
 	}
 	else {
 		return -1337;

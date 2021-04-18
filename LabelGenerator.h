@@ -12,11 +12,15 @@ class LabelGenerator
 	int endNotLabels = 0;
 	int elseLabels = 0;
 	int endIfLabels = 0;
+	int goWhileLabels = 0;
+	int endWhileLabels = 0;
+	int getStrLabels = 0;
+	int endGetLabels = 0;
 
 public:
 
 	LabelGenerator();
-	
+
 	string generateZeroLabel();
 	string generateNonZeroLabel();
 	string generateEndAndLabel();
@@ -24,5 +28,9 @@ public:
 	string generateEndNotLabel();
 	string generateElseLabel();
 	string generateEndIfLabel();
+	string generateGoWhileLabel();
+	string generateEndWhileLabel();
+	string generateGetStrLabel();
+	string generateEndGetLabel();
 };
 

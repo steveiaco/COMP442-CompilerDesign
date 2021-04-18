@@ -5,8 +5,8 @@ ExprAST::ExprAST(CompositeConcept c) : CompositeConceptAST(c)
 {
 }
 
-void ExprAST::accept(Visitor* visitor)
+void ExprAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptAST::accept(visitor);
+	CompositeConceptAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

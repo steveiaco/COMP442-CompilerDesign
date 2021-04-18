@@ -4,8 +4,8 @@ DivisionAST::DivisionAST(Token token) : CompositeConceptTokenAST(token)
 {
 }
 
-void DivisionAST::accept(Visitor* visitor)
+void DivisionAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptTokenAST::accept(visitor);
+	CompositeConceptTokenAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

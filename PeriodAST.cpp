@@ -5,8 +5,8 @@ PeriodAST::PeriodAST(Token t) : CompositeConceptTokenAST(t)
 {
 }
 
-void PeriodAST::accept(Visitor* visitor)
+void PeriodAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptTokenAST::accept(visitor);
+	CompositeConceptTokenAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

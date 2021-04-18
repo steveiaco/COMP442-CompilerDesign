@@ -40,7 +40,7 @@ private:
 	vector<string> syntaxErrors;
 
 	stack<AST*> attributeStack;
-	
+
 	bool match(TokenType t);
 	bool skipErrors(NonTerminal t);
 

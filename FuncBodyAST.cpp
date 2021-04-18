@@ -5,8 +5,8 @@ FuncBodyAST::FuncBodyAST(CompositeConcept c) : CompositeConceptAST(c)
 {
 }
 
-void FuncBodyAST::accept(Visitor* visitor)
+void FuncBodyAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptAST::accept(visitor);
+	CompositeConceptAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

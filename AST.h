@@ -38,7 +38,7 @@ public:
 	void adoptChildren(AST* y);
 
 	// visitor functions
-	virtual void accept(Visitor* visitor) = 0;
+	virtual void accept(Visitor* visitor, bool handleDepthSearch = true) = 0;
 
 
 	virtual string toString() = 0;

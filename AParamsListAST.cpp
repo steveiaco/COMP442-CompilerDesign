@@ -5,8 +5,8 @@ AParamsListAST::AParamsListAST(CompositeConcept c) : CompositeConceptAST(c)
 {
 }
 
-void AParamsListAST::accept(Visitor* visitor)
+void AParamsListAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptAST::accept(visitor);
+	CompositeConceptAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

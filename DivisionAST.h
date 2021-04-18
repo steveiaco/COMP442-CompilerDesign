@@ -4,6 +4,6 @@ class DivisionAST : public CompositeConceptTokenAST
 {
 public:
 	DivisionAST(Token token);
-	virtual void accept(Visitor* visitor) override;
+	virtual void accept(Visitor* visitor, bool handleDepthSearch = true) override;
 };
 

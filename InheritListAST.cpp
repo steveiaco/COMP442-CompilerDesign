@@ -5,8 +5,8 @@ InheritListAST::InheritListAST(CompositeConcept c) : CompositeConceptAST(c)
 {
 }
 
-void InheritListAST::accept(Visitor* visitor)
+void InheritListAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptAST::accept(visitor);
+	CompositeConceptAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }

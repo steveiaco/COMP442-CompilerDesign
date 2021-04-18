@@ -4,8 +4,8 @@ TernaryAST::TernaryAST(Token token) : CompositeConceptTokenAST(token)
 {
 }
 
-void TernaryAST::accept(Visitor* visitor)
+void TernaryAST::accept(Visitor* visitor, bool handleDepthSearch)
 {
-	CompositeConceptTokenAST::accept(visitor);
+	CompositeConceptTokenAST::accept(visitor, handleDepthSearch);
 	visitor->visit(this);
 }
