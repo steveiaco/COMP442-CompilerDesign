@@ -617,6 +617,7 @@ bool RecursiveDescentPredictiveParser::FParams(AST** fParams)
 	//<FParams> ::= EPSILON
 	else if (isElementOfFollow(NonTerminal::FPARAMS)) {
 		applyDerivation(NonTerminal::FPARAMS, { TokenType::EPSILON }, "<FParams> ::= EPSILON");
+		AST* fParamCurrent = ASTFactory::makeNode(CompositeConcept::FPARAMS);
 		return true;
 	}
 	else {

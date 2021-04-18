@@ -2,6 +2,11 @@
 #include "SymTabFactory.h"
 #include <iostream>
 
+int GenerateMoonAssemblyVisitor::getStackOffset(SymTab* table)
+{
+	return table->computeInternalOffset() + 4;
+}
+
 string GenerateMoonAssemblyVisitor::getRegister()
 {
 	string toReturn = registers.top();
@@ -765,33 +770,53 @@ void GenerateMoonAssemblyVisitor::visit(FuncCallStatAST* n)
 	// Handle free function call
 	AST* functionNameNode = n->getChild(0);
 	SymTab* table = n->getNearestSymbolTable();
+	int tableOffset = table->computeInternalOffset();
 
 	if (functionNameNode != nullptr && table != nullptr) {
 
 		FunctionEntry* functionEntry = nullptr;
 
 		// grab function name 
-		std::vector<FunctionEntry*> entries = table->findFunctionRecord(functionNameNode->getData());
+		std::vector<FunctionEntry*> entries = n->searchFunctionScope(functionNameNode->getData());
 		if (entries.size() != 0) {
 			functionEntry = entries[0];
 		}
 		// comment
 		codeOperations.push_back("% function call to " + functionNameNode->getData());
 
-		// TODO handle parameter copying
+		// handle parameter copying
+		if (AST* aParamListNode = n->getChild(1)) {
+			std::vector<AST*> paramsPassed = aParamListNode->getChildren();
 
-		// increment stack frame
-		codeOperations.push_back("\taddi " + stackFramePointerRegister + "," + stackFramePointerRegister + "," + std::to_string(table->computeInternalOffset()));
+			int calledFunctionOffset = functionEntry->link->computeInternalOffset();
+
+			string paramOffsetReg = getRegister();
+
+			for (int i = 0; i < paramsPassed.size(); i++) {
+				codeOperations.push_back("\t% copy param");
+				string paramPassedReg = loadVariable(paramsPassed[i], table);
+				// i+1 due to jump register state being stored above the current frame
+				codeOperations.push_back("\tsw " + std::to_string((tableOffset - 4) - 4*i) + "(" + stackFramePointerRegister + ")," + paramPassedReg);
+				registers.push(paramPassedReg);
+			}
+
+			registers.push(paramOffsetReg);
+		}
 
 		// save jump register state
+		codeOperations.push_back("\tsw " + std::to_string(tableOffset) + "(" + stackFramePointerRegister + ")," + returnAddressRegister);
+
+		// increment stack frame
+		codeOperations.push_back("\taddi " + stackFramePointerRegister + "," + stackFramePointerRegister + "," + std::to_string(tableOffset - 4));
 
 		// jump instruction
 		codeOperations.push_back("\tjl " + returnAddressRegister + "," + functionEntry->name);
 
-		// restore jump register state
-
 		// decrement stack frame
-		codeOperations.push_back("\tsubi " + stackFramePointerRegister + "," + stackFramePointerRegister + "," + std::to_string(table->computeInternalOffset()));
+		codeOperations.push_back("\tsubi " + stackFramePointerRegister + "," + stackFramePointerRegister + "," + std::to_string(tableOffset - 4));
+
+		// restore jump register state
+		codeOperations.push_back("\tlw " + returnAddressRegister + "," + std::to_string(tableOffset) + "(" + stackFramePointerRegister + ")");
 	}
 }
 
@@ -893,6 +918,10 @@ void GenerateMoonAssemblyVisitor::visit(FuncDefAST* n)
 
 	if (FunctionEntry* fEntry = dynamic_cast<FunctionEntry*>(n->getSymRec())) {
 		codeOperations.push_front(fEntry->name);
+
+		// Write return jump operation
+		codeOperations.push_back("jr " + returnAddressRegister);
+
 		functions.push_back(codeOperations);
 		codeOperations = std::deque<string>();
 	}
@@ -1013,11 +1042,25 @@ void GenerateMoonAssemblyVisitor::visit(ReadAST* n)
 	codeOperations.push_back("\taddi " + bufferRegister + "," + zeroRegister + ",buf");
 	codeOperations.push_back("\tsw -8(" + stackFramePointerRegister + ")," + bufferRegister);
 
+	// save jump register state
+	codeOperations.push_back("sw " + std::to_string(table->computeInternalOffset()) + "(" + stackFramePointerRegister + ")," + returnAddressRegister);
+
 	// Read string from console
 	codeOperations.push_back("\tjl " + returnAddressRegister + ",getstr");
+
+	// restore jump register state
+	codeOperations.push_back("lw " + returnAddressRegister + "," + std::to_string(table->computeInternalOffset()) + "(" + stackFramePointerRegister + ")");
 	
+
+	// save jump register state
+	codeOperations.push_back("sw " + std::to_string(table->computeInternalOffset()) + "(" + stackFramePointerRegister + ")," + returnAddressRegister);
+
 	// Convert string to integer
 	codeOperations.push_back("\tjl " + returnAddressRegister + ",strint");
+
+	// restore jump register state
+	codeOperations.push_back("lw " + returnAddressRegister + "," + std::to_string(table->computeInternalOffset()) + "(" + stackFramePointerRegister + ")");
+
 	VariableEntry* tempRecord = table->findVariableRecord(n->getChild(0)->getAssemData());
 	codeOperations.push_back("\tsw " + std::to_string(tempRecord->getOffset()) + "(" + stackFramePointerRegister + "),r13");
 
@@ -1102,6 +1145,12 @@ void GenerateMoonAssemblyVisitor::visit(WriteAST* n)
 
 	string writeExprRegister = loadVariable(n->getChild(0), table);
 
+	// save jump register state
+	codeOperations.push_back("sw " + std::to_string(table->computeInternalOffset()) + "(" + stackFramePointerRegister + ")," + returnAddressRegister);
+
+	// increment stack frame
+	codeOperations.push_back("\taddi " + stackFramePointerRegister + "," + stackFramePointerRegister + "," + std::to_string(table->computeInternalOffset() - 4));
+
 	// Put value on stack
 	codeOperations.push_back("\tsw -8(" + stackFramePointerRegister + ")," + writeExprRegister);
 
@@ -1111,10 +1160,18 @@ void GenerateMoonAssemblyVisitor::visit(WriteAST* n)
 
 	// Convert int to string for output
 	codeOperations.push_back("\tjl " + returnAddressRegister + ",intstr");
+	
+	// ?? im overwriting some memory on the stack for some reason
 	codeOperations.push_back("\tsw -8(" + stackFramePointerRegister + "),r13");
 
 	// Output to console
 	codeOperations.push_back("\tjl r15,putstr");
+
+	// decrement stack frame
+	codeOperations.push_back("\tsubi " + stackFramePointerRegister + "," + stackFramePointerRegister + "," + std::to_string(table->computeInternalOffset() - 4));
+
+	// restore jump register state
+	codeOperations.push_back("lw " + returnAddressRegister + "," + std::to_string(table->computeInternalOffset()) + "(" + stackFramePointerRegister + ")");
 
 	registers.push(writeExprRegister);
 }

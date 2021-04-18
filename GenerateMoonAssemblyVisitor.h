@@ -21,6 +21,8 @@ private:
 	string returnAddressRegister;
 	string stackFramePointerRegister;
 
+	int getStackOffset(SymTab* table);
+
 	string getRegister();
 
 	// Loads from VarCallStat, immediate value (integer, float, string, etc..), or temporary value
