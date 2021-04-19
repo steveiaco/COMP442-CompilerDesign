@@ -247,7 +247,6 @@
     <ClCompile Include="AssignmentAST.cpp" />
     <ClCompile Include="AssignStatAST.cpp" />
     <ClCompile Include="BreakAST.cpp" />
-    <ClCompile Include="CalculateSizeVisitor.cpp" />
     <ClCompile Include="ClassDeclAST.cpp" />
     <ClCompile Include="ClassDeclBodyAST.cpp" />
     <ClCompile Include="ClassDeclBodyListAST.cpp" />

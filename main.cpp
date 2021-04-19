@@ -166,18 +166,22 @@ int main(int argc, char* argv[])
 		parser->getAST()->accept(symTabCreationVisitor);
 		parser->getAST()->accept(typeCheckingVisitor);
 		parser->getAST()->accept(createTempVariablesVisitor);
-		parser->getAST()->accept(generateMoonAssemblyVisitor, false);
-	}
-	else {
-		return -1337;
-	}
 
-	writeASTDotFile(parser->getAST(), outASTPath);
-	writeOutStringVector(parser->getDerivation(), outSyntaxDerivationPath);
-	writeASTSymbolTableFile(parser->getAST(), outSymbolTablePath);
-	writeOutStringVector(symTabCreationVisitor->getErrors(), outSemanticErrorsPath);
-	writeOutStringVector(typeCheckingVisitor->getErrors(), outTypeErrorsPath);
-	writeOutStringVector(generateMoonAssemblyVisitor->getCode(), outMoonPath);
+		writeASTDotFile(parser->getAST(), outASTPath);
+		writeOutStringVector(parser->getDerivation(), outSyntaxDerivationPath);
+		writeASTSymbolTableFile(parser->getAST(), outSymbolTablePath);
+		writeOutStringVector(symTabCreationVisitor->getErrors(), outSemanticErrorsPath);
+		writeOutStringVector(typeCheckingVisitor->getErrors(), outTypeErrorsPath);
+
+		try {
+			parser->getAST()->accept(generateMoonAssemblyVisitor, false);
+		}
+		catch(...) {
+			cout << "\nFailed to generate code.";
+		}
+
+		writeOutStringVector(generateMoonAssemblyVisitor->getCode(), outMoonPath);
+	}
 
 	delete parser;
 	delete symTabCreationVisitor;

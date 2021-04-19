@@ -1,0 +1,21 @@
+func func1(integer x) : integer
+{
+  var
+  {
+  }
+  return (x*2);
+}  
+main  
+{
+  var
+  {
+    integer a;
+    integer b;
+    integer c;
+  }
+  a = 5;
+  b = 2;
+  c = 1;
+  // output is 7
+  write((func1(a) + b * c) - 5);
+}

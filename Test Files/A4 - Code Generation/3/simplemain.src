@@ -1,0 +1,61 @@
+func func2() : void
+{
+  var
+  {
+  }
+  write(37);
+}  
+
+func func1() : void
+{
+  var
+  {
+  }
+  write(13);
+  func2();
+}  
+
+func countDown(integer x) : void
+{
+  var
+  {
+  }
+  write(x);
+  if(x > 0)
+  then{
+    countDown(x-1);
+  }
+  else{
+
+  };
+}  
+
+main  
+{
+  var
+  {
+    integer x;
+    integer y;
+  }
+    read(x);
+
+    if(x == 0)
+    then{
+      countDown(5);
+    }
+    else{
+      if(x == 1)
+      then{
+        func1();
+      }
+      else{
+        func2();
+      };
+    };
+
+    y = 0;
+    while(y <= 10){
+      write(y);
+      y = y + 1;
+    };
+}

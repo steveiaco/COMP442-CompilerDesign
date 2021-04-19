@@ -1,0 +1,31 @@
+class A 
+{
+  private float a;
+	private float b;
+	public func printParam(float x) : integer;
+};
+
+func A::printParam(float x) : integer
+{
+  var
+  {
+  }
+  a = 12;
+  write(a);
+  write(x);
+}  
+
+main  
+{
+  var
+  {
+    integer x;                                       // 1.1
+    integer y;                                       // 1.1
+    integer z;                                       // 1.1
+    integer arrayInt[5];
+    integer arrayClassA[5];
+  }
+    y = 1 + 2 * 3;                                   // 3.1, 5.1
+    write(y);
+    arrayClassA[0].printParam(5);
+}

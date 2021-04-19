@@ -204,7 +204,7 @@ string SymTab::toDotString()
 
 	for (SymTabEntry* entry : table) {
 		currentTable << entry->toDotString();
-		if (entry->link) {
+		if (entry->link && (dynamic_cast<ClassEntry*>(entry) || dynamic_cast<FunctionEntry*>(entry))) {
 			other << entry->link->toDotString();
 			other << "\"" << name << "\"" << ":\"" << entry->toString() << "\"->\"" << entry->link->name << "\"\n";
 		}

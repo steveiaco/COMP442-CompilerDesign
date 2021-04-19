@@ -21,10 +21,19 @@ string GenerateMoonAssemblyVisitor::loadVariable(AST* valueNode, SymTab* table)
 	// If right child is VarCallStat
 	if (VarCallStatAST* varCallStatNode = dynamic_cast<VarCallStatAST*>(valueNode))
 	{
-
 		SymTabEntry* variable = table->findVarOrParamRecord(varCallStatNode->getData());
 
 		codeOperations.push_back("\tlw " + reg + "," + std::to_string(variable->getOffset()) + "(" + stackFramePointerRegister + ")");
+	}
+
+	// If the right child is a FuncCallStat
+	if (FuncCallStatAST* funcCallStatNode = dynamic_cast<FuncCallStatAST*>(valueNode))
+	{
+		// Get variable (or parameter) symbolic record
+		TemporaryEntry* tempAssignmentRHS = table->findTemporaryRecord(funcCallStatNode->getAssemData());
+
+		// Load the variable's contents into a register
+		codeOperations.push_back("\tlw " + reg + "," + std::to_string(tempAssignmentRHS->getOffset()) + "(" + stackFramePointerRegister + ")");
 	}
 
 	// If the right child is an expression (operator)
@@ -508,10 +517,37 @@ void GenerateMoonAssemblyVisitor::visit(AssignmentAST* n)
 	SymTab* table = n->getNearestSymbolTable();
 
 	// Search variable and parameter in symtab
-	SymTabEntry* varAssignmentLHS = table->findVariableRecord(leftChild->getData());
-	if (varAssignmentLHS == nullptr)
-	{
-		varAssignmentLHS = table->findParameterRecord(leftChild->getData());
+	SymTabEntry* varAssignmentLHS = nullptr;
+	int arrayOffsetLHS = 0;
+	VariableEntry* varEntry = table->findVariableRecord(leftChild->getData());
+	ParameterEntry* paramEntry = table->findParameterRecord(leftChild->getData());
+
+	string type;
+	// The dimensions of the array we are assigning to
+	std::vector<int> arraySize;
+	if (varEntry != nullptr) {
+		varAssignmentLHS = varEntry;
+		type = varEntry->type;
+		arraySize = varEntry->arrayIndices;
+	}
+	else if (paramEntry != nullptr) {
+		varAssignmentLHS = paramEntry;
+		type = paramEntry->type;
+		arraySize = paramEntry->arrayIndices;
+	}
+
+	if (arraySize.size() > 0) {
+		if (type == "integer") {
+
+		}
+		else if (type == "float") {
+
+		}
+		// it's a class type
+		else {
+
+		}
+
 	}
 
 	// If right child is VarCallStat
@@ -536,7 +572,24 @@ void GenerateMoonAssemblyVisitor::visit(AssignmentAST* n)
 		// Put the register back as we're done with it
 		registers.push(reg);
 	}
+	// If the right child is a FuncCallStat
+	if (FuncCallStatAST* funcCallStatNode = dynamic_cast<FuncCallStatAST*>(rightChild))
+	{
+		// Get variable (or parameter) symbolic record
+		TemporaryEntry* tempAssignmentRHS = table->findTemporaryRecord(funcCallStatNode->getAssemData());
 
+		// Get a register
+		string reg = registers.top(); registers.pop();
+
+		// Load the variable's contents into a register
+		codeOperations.push_back("\tlw " + reg + "," + std::to_string(tempAssignmentRHS->getOffset()) + "(" + stackFramePointerRegister + ")");
+
+		// Write the register contents to the variables stack offset
+		codeOperations.push_back("\tsw " + std::to_string(varAssignmentLHS->getOffset()) + "(" + stackFramePointerRegister + ")" + "," + reg);
+
+		// Put the register back as we're done with it
+		registers.push(reg);
+	}
 	// If the right child is an expression (operator)
 	else if (CompositeConceptTokenAST* operatorType = dynamic_cast<CompositeConceptTokenAST*>(rightChild))
 	{
@@ -555,7 +608,6 @@ void GenerateMoonAssemblyVisitor::visit(AssignmentAST* n)
 		// Put the register back as we're done with it
 		registers.push(reg);
 	}
-
 	// If right child is immediate type (integer, float, string)
 	else if (TokenAST* immType = dynamic_cast<TokenAST*>(rightChild))
 	{
@@ -784,11 +836,11 @@ void GenerateMoonAssemblyVisitor::visit(FuncCallStatAST* n)
 		// comment
 		codeOperations.push_back("% function call to " + functionNameNode->getData());
 
+		int calledFunctionOffset = functionEntry->link->computeInternalOffset();
 		// handle parameter copying
 		if (AST* aParamListNode = n->getChild(1)) {
 			std::vector<AST*> paramsPassed = aParamListNode->getChildren();
 
-			int calledFunctionOffset = functionEntry->link->computeInternalOffset();
 
 			string paramOffsetReg = getRegister();
 
@@ -817,6 +869,19 @@ void GenerateMoonAssemblyVisitor::visit(FuncCallStatAST* n)
 
 		// restore jump register state
 		codeOperations.push_back("\tlw " + returnAddressRegister + "," + std::to_string(tableOffset) + "(" + stackFramePointerRegister + ")");
+
+		// if we have a return type, grab return value from stack (which is located at the (stackFramePointerRegister + (tableOffset - 4) + calledFunctionOffset) and store it in the FunCallStat temp variable 
+		if (n->getType() != "void") {
+			codeOperations.push_back("% copy return value");
+			string returnReg = getRegister();
+			// load the return value into a register
+			codeOperations.push_back("\tlw " + returnReg + "," + std::to_string(tableOffset - 4 + calledFunctionOffset) + "(" + stackFramePointerRegister + ")");
+
+			// save the register value into the calling function's temporary variable
+			TemporaryEntry* tempReturnVar = table->findTemporaryRecord(n->getAssemData());
+			codeOperations.push_back("\tsw " + std::to_string(tempReturnVar->getOffset()) + "(" + stackFramePointerRegister + ")," + returnReg);
+		}
+
 	}
 }
 
@@ -920,7 +985,7 @@ void GenerateMoonAssemblyVisitor::visit(FuncDefAST* n)
 		codeOperations.push_front(fEntry->name);
 
 		// Write return jump operation
-		codeOperations.push_back("jr " + returnAddressRegister);
+		codeOperations.push_back("\tjr " + returnAddressRegister);
 
 		functions.push_back(codeOperations);
 		codeOperations = std::deque<string>();
@@ -1043,34 +1108,55 @@ void GenerateMoonAssemblyVisitor::visit(ReadAST* n)
 	codeOperations.push_back("\tsw -8(" + stackFramePointerRegister + ")," + bufferRegister);
 
 	// save jump register state
-	codeOperations.push_back("sw " + std::to_string(table->computeInternalOffset()) + "(" + stackFramePointerRegister + ")," + returnAddressRegister);
+	codeOperations.push_back("\tsw " + std::to_string(table->computeInternalOffset()) + "(" + stackFramePointerRegister + ")," + returnAddressRegister);
+
+	// print input statement to user
+	string charRegister = getRegister();
+	codeOperations.push_back("\taddi " + charRegister + "," + zeroRegister + ",10");
+	codeOperations.push_back("\tputc " + charRegister);
+	codeOperations.push_back("\taddi " + charRegister + "," + zeroRegister + ",63");
+	codeOperations.push_back("\tputc " + charRegister);
+	codeOperations.push_back("\taddi " + charRegister + "," + zeroRegister + ",58");
+	codeOperations.push_back("\tputc " + charRegister);
+
 
 	// Read string from console
 	codeOperations.push_back("\tjl " + returnAddressRegister + ",getstr");
 
 	// restore jump register state
-	codeOperations.push_back("lw " + returnAddressRegister + "," + std::to_string(table->computeInternalOffset()) + "(" + stackFramePointerRegister + ")");
+	codeOperations.push_back("\tlw " + returnAddressRegister + "," + std::to_string(table->computeInternalOffset()) + "(" + stackFramePointerRegister + ")");
 	
 
 	// save jump register state
-	codeOperations.push_back("sw " + std::to_string(table->computeInternalOffset()) + "(" + stackFramePointerRegister + ")," + returnAddressRegister);
+	codeOperations.push_back("\tsw " + std::to_string(table->computeInternalOffset()) + "(" + stackFramePointerRegister + ")," + returnAddressRegister);
 
 	// Convert string to integer
 	codeOperations.push_back("\tjl " + returnAddressRegister + ",strint");
 
 	// restore jump register state
-	codeOperations.push_back("lw " + returnAddressRegister + "," + std::to_string(table->computeInternalOffset()) + "(" + stackFramePointerRegister + ")");
+	codeOperations.push_back("\tlw " + returnAddressRegister + "," + std::to_string(table->computeInternalOffset()) + "(" + stackFramePointerRegister + ")");
 
 	VariableEntry* tempRecord = table->findVariableRecord(n->getChild(0)->getAssemData());
 	codeOperations.push_back("\tsw " + std::to_string(tempRecord->getOffset()) + "(" + stackFramePointerRegister + "),r13");
 
+	registers.push(charRegister);
 	registers.push(bufferRegister);
 }
 
 void GenerateMoonAssemblyVisitor::visit(ReturnAST* n)
 {
 	visitChildren(n);
+	SymTab* table = n->getNearestSymbolTable();
 
+	// load the return variable from the stack into a register
+	string returnValReg = loadVariable(n->getChild(0), table);
+
+	// store the contents of the register on top of the stack, so that the calling function can retrieve it
+	codeOperations.push_back("\tsw " + std::to_string(table->computeInternalOffset()) + "(" + stackFramePointerRegister + ")," + returnValReg);
+
+	// TODO handle arrays / aggregate types
+	// TODO add jump statement to actually exit function
+	registers.push(returnValReg);
 }
 
 void GenerateMoonAssemblyVisitor::visit(StartAST* n)
@@ -1146,7 +1232,7 @@ void GenerateMoonAssemblyVisitor::visit(WriteAST* n)
 	string writeExprRegister = loadVariable(n->getChild(0), table);
 
 	// save jump register state
-	codeOperations.push_back("sw " + std::to_string(table->computeInternalOffset()) + "(" + stackFramePointerRegister + ")," + returnAddressRegister);
+	codeOperations.push_back("\tsw " + std::to_string(table->computeInternalOffset()) + "(" + stackFramePointerRegister + ")," + returnAddressRegister);
 
 	// increment stack frame
 	codeOperations.push_back("\taddi " + stackFramePointerRegister + "," + stackFramePointerRegister + "," + std::to_string(table->computeInternalOffset() - 4));
@@ -1171,7 +1257,7 @@ void GenerateMoonAssemblyVisitor::visit(WriteAST* n)
 	codeOperations.push_back("\tsubi " + stackFramePointerRegister + "," + stackFramePointerRegister + "," + std::to_string(table->computeInternalOffset() - 4));
 
 	// restore jump register state
-	codeOperations.push_back("lw " + returnAddressRegister + "," + std::to_string(table->computeInternalOffset()) + "(" + stackFramePointerRegister + ")");
+	codeOperations.push_back("\tlw " + returnAddressRegister + "," + std::to_string(table->computeInternalOffset()) + "(" + stackFramePointerRegister + ")");
 
 	registers.push(writeExprRegister);
 }

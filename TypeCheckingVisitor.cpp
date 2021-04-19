@@ -78,7 +78,7 @@ void TypeCheckingVisitor::visit(EqualToAST* n)
 			reportError("comparison operation == left operand type \"" + children[0]->getType() + "\" and right operand type \"" + children[1]->getType() + "\" are incompatible", n->getToken().getLineNumber());
 		}
 		else {
-			n->setType("boolean");
+			n->setType("integer");
 		}
 	}
 }
@@ -92,7 +92,7 @@ void TypeCheckingVisitor::visit(NotEqualToAST* n)
 			reportError("comparison operation != left operand type \"" + children[0]->getType() + "\" and right operand type \"" + children[1]->getType() + "\" are incompatible", n->getToken().getLineNumber());
 		}
 		else {
-			n->setType("boolean");
+			n->setType("integer");
 		}
 	}
 }
@@ -106,7 +106,7 @@ void TypeCheckingVisitor::visit(LessThanAST* n)
 			reportError("comparison operation < left operand type \"" + children[0]->getType() + "\" and right operand type \"" + children[1]->getType() + "\" are incompatible", n->getToken().getLineNumber());
 		}
 		else {
-			n->setType("boolean");
+			n->setType("integer");
 		}
 	}
 }
@@ -120,7 +120,7 @@ void TypeCheckingVisitor::visit(GreaterThanAST* n)
 			reportError("comparison operation > left operand type \"" + children[0]->getType() + "\" and right operand type \"" + children[1]->getType() + "\" are incompatible", n->getToken().getLineNumber());
 		}
 		else {
-			n->setType("boolean");
+			n->setType("integer");
 		}
 	}
 }
@@ -134,7 +134,7 @@ void TypeCheckingVisitor::visit(LessThanEqualToAST* n)
 			reportError("comparison operation <= left operand type \"" + children[0]->getType() + "\" and right operand type \"" + children[1]->getType() + "\" are incompatible", n->getToken().getLineNumber());
 		}
 		else {
-			n->setType("boolean");
+			n->setType("integer");
 		}
 	}
 }
@@ -148,7 +148,7 @@ void TypeCheckingVisitor::visit(GreaterThanEqualToAST* n)
 			reportError("comparison operation >= left operand type \"" + children[0]->getType() + "\" and right operand type \"" + children[1]->getType() + "\" are incompatible", n->getToken().getLineNumber());
 		}
 		else {
-			n->setType("boolean");
+			n->setType("integer");
 		}
 	}
 }
@@ -407,7 +407,25 @@ void TypeCheckingVisitor::visit(VarCallStatAST* n)
 			}
 		}
 		else if (paramResults.size()) {
-			// parameter was found
+			ParameterEntry* record = paramResults[0];
+			n->setType(record->type);
+
+			if (children.size() == 2) {
+				std::vector<AST*> indices = children[1]->getChildren();
+
+				if (indices.size() == record->arrayIndices.size()) {
+					for (int i = 0; i < indices.size(); i++) {
+						AST* index = indices[i];
+
+						if (index->getType() != "integer") {
+							reportError("array dimension " + std::to_string(i) + " index does not resolve to integer type: " + id->getData(), id->getToken().getLineNumber());
+						}
+					}
+				}
+				else {
+					reportError("wrong number of dimensions used to access array: " + id->getData(), id->getToken().getLineNumber());
+				}
+			}
 		}
 		else {
 			reportError("use of undeclared variable: " + id->getData(), id->getToken().getLineNumber());
@@ -539,7 +557,7 @@ void TypeCheckingVisitor::visit(VarDeclAST* n)
 		}
 	}
 
-	// TODO this is a huge hack
+	// TODO this is a huge hack used to be able to compute the size of a class variable
 	VariableEntry* variableRec = (VariableEntry*)n->getSymRec();
 	if (ClassEntry* record = n->getNearestSymbolTable()->findClassRecord(variableRec->type)) {
 		variableRec->link = record->link;

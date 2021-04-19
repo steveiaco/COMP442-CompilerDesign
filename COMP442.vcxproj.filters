@@ -620,9 +620,6 @@
     <ClCompile Include="TypeCheckingVisitor.cpp">
       <Filter>Source Files\Visitors\Semantic Analyzer Module</Filter>
     </ClCompile>
-    <ClCompile Include="CalculateSizeVisitor.cpp">
-      <Filter>Source Files\Visitors\Code Generator Module</Filter>
-    </ClCompile>
     <ClCompile Include="GenerateMoonAssemblyVisitor.cpp">
       <Filter>Source Files\Visitors\Code Generator Module</Filter>
     </ClCompile>

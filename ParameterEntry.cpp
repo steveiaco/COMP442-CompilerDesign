@@ -48,6 +48,7 @@ int ParameterEntry::computeSize()
 	// class detected
 	else {
 		if (link != nullptr) {
+			// TODO i think this is incorrect
 			baseSize = link->computeSize();
 		}
 	}

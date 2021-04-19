@@ -338,7 +338,19 @@ void CreateTempVariablesVisitor::visit(FParamsListAST* n)
 
 void CreateTempVariablesVisitor::visit(FuncCallStatAST* n)
 {
+	// Generate a temp var name
+	string tempVarName = generateTemporaryVariableName();
 
+	// The operator's return intermediate variable
+	n->setAssemData(tempVarName);
+
+	// setup the entry info
+	TemporaryEntry* tempVarEntry = SymTabFactory::makeSymTemporaryEntry();
+	tempVarEntry->name = tempVarName;
+	tempVarEntry->type = n->getType();
+
+	// insert it into the table
+	n->insertIntoNearestTable(tempVarEntry);
 }
 
 void CreateTempVariablesVisitor::visit(FuncListAST* n)

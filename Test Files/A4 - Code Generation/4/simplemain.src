@@ -1,0 +1,19 @@
+class A 
+{
+  private float a;
+	private float b;
+	public func printParam(float x) : integer;
+};
+
+main  
+{
+  var
+  {
+    integer x[10];
+    A y[5];
+  }
+  x[1] = 5;
+  //y.a = 2;
+  write(x[1]);
+  //write(y.a);
+}
