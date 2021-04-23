@@ -23,7 +23,56 @@ string GenerateMoonAssemblyVisitor::loadVariable(AST* valueNode, SymTab* table)
 	{
 		SymTabEntry* variable = table->findVarOrParamRecord(varCallStatNode->getData());
 
-		codeOperations.push_back("\tlw " + reg + "," + std::to_string(variable->getOffset()) + "(" + stackFramePointerRegister + ")");
+		// TODO implement classes
+		if (variable == nullptr) {
+			return zeroRegister;
+		}
+
+		std::vector<AST*> children = varCallStatNode->getChildren();
+
+		int offset = 0;
+		// If there's an indicelist attached to the variable
+		if (children.size() == 2) {
+
+			// Array size
+			std::vector<int> arraySize;
+			string type;
+
+			if (VariableEntry* varEntry = dynamic_cast<VariableEntry*>(variable)) {
+				arraySize = varEntry->arrayIndices;
+				type = varEntry->type;
+			}
+			else if (ParameterEntry* paramEntry = dynamic_cast<ParameterEntry*>(variable)) {
+				arraySize = paramEntry->arrayIndices;
+				type = paramEntry->type;
+			}
+
+			int typeSize = 0;
+			if (type == "integer") {
+				typeSize = 4;
+			}
+			else if (type == "float") {
+				typeSize = 8;
+			}
+			// it's a class type
+			else {
+
+			}
+
+			// Indices being accessed
+			std::vector<AST*> indices = children[1]->getChildren();
+
+			for (int i = 0; i < indices.size(); i++) {
+				if (i == arraySize.size() - 1) {
+					offset += std::stoi(indices[i]->getData()) * typeSize;
+				}
+				else {
+					offset += std::stoi(indices[i]->getData()) * (arraySize[i] + 1) * typeSize;
+				}
+			}
+		}
+
+		codeOperations.push_back("\tlw " + reg + "," + std::to_string(variable->getOffset() - offset) + "(" + stackFramePointerRegister + ")");
 	}
 
 	// If the right child is a FuncCallStat
@@ -524,31 +573,51 @@ void GenerateMoonAssemblyVisitor::visit(AssignmentAST* n)
 
 	string type;
 	// The dimensions of the array we are assigning to
-	std::vector<int> arraySize;
+	std::vector<int> arraySizeLHS;
 	if (varEntry != nullptr) {
 		varAssignmentLHS = varEntry;
 		type = varEntry->type;
-		arraySize = varEntry->arrayIndices;
+		arraySizeLHS = varEntry->arrayIndices;
 	}
 	else if (paramEntry != nullptr) {
 		varAssignmentLHS = paramEntry;
 		type = paramEntry->type;
-		arraySize = paramEntry->arrayIndices;
+		arraySizeLHS = paramEntry->arrayIndices;
 	}
 
-	if (arraySize.size() > 0) {
-		if (type == "integer") {
+	// TODO implement classes
+	if (varAssignmentLHS == nullptr) {
+		return;
+	}
 
+	int offsetLHS = 0;
+	int typeSizeLHS = 0;
+	if (arraySizeLHS.size() > 0) {
+		if (type == "integer") {
+			typeSizeLHS = 4;
 		}
 		else if (type == "float") {
-
+			typeSizeLHS = 8;
 		}
 		// it's a class type
 		else {
 
 		}
 
+		// Indices being accessed
+		std::vector<AST*> indices = leftChild->getChildren()[1]->getChildren();
+
+		for (int i = 0; i < indices.size(); i++) {
+			if (i == arraySizeLHS.size() - 1) {
+				offsetLHS += std::stoi(indices[i]->getData()) * typeSizeLHS;
+			}
+			else {
+				offsetLHS += std::stoi(indices[i]->getData()) * (arraySizeLHS[i] + 1) * typeSizeLHS;
+			}
+		}
 	}
+
+
 
 	// If right child is VarCallStat
 	if (VarCallStatAST* varCallStatNode = dynamic_cast<VarCallStatAST*>(rightChild))
@@ -559,14 +628,55 @@ void GenerateMoonAssemblyVisitor::visit(AssignmentAST* n)
 			varAssignmentRHS = table->findParameterRecord(varCallStatNode->getData());
 		}
 
+		std::vector<AST*> children = varCallStatNode->getChildren();
+
+		int offsetRHS = 0;
+		// If there's an indicelist attached to the variable
+		if (children.size() == 2) {
+
+			// Array size
+			std::vector<int> arraySizeRHS;
+
+			if (VariableEntry* varEntry = dynamic_cast<VariableEntry*>(varAssignmentRHS)) {
+				arraySizeRHS = varEntry->arrayIndices;
+			}
+			else if (ParameterEntry* paramEntry = dynamic_cast<ParameterEntry*>(varAssignmentRHS)) {
+				arraySizeRHS = paramEntry->arrayIndices;
+			}
+
+			int typeSizeRHS = 0;
+			if (type == "integer") {
+				typeSizeRHS = 4;
+			}
+			else if (type == "float") {
+				typeSizeRHS = 8;
+			}
+			// it's a class type
+			else {
+
+			}
+
+			// Indices being accessed
+			std::vector<AST*> indices = children[1]->getChildren();
+
+			for (int i = 0; i < indices.size(); i++) {
+				if (i == arraySizeRHS.size() - 1) {
+					offsetRHS += std::stoi(indices[i]->getData()) * typeSizeRHS;
+				}
+				else {
+					offsetRHS += std::stoi(indices[i]->getData()) * (arraySizeRHS[i] + 1) * typeSizeRHS;
+				}
+			}
+		}
+
 		// Get a register
 		string reg = registers.top(); registers.pop();
 
 		// Load the variable's contents into a register
-		codeOperations.push_back("\tlw " + reg + "," + std::to_string(varAssignmentRHS->getOffset()) + "(" + stackFramePointerRegister + ")");
+		codeOperations.push_back("\tlw " + reg + "," + std::to_string(varAssignmentRHS->getOffset() - offsetRHS) + "(" + stackFramePointerRegister + ")");
 
 		// Write the register contents to the variables stack offset
-		codeOperations.push_back("\tsw " + std::to_string(varAssignmentLHS->getOffset()) + "(" + stackFramePointerRegister + ")" + "," + reg);
+		codeOperations.push_back("\tsw " + std::to_string(varAssignmentLHS->getOffset() - offsetLHS) + "(" + stackFramePointerRegister + ")" + "," + reg);
 
 
 		// Put the register back as we're done with it
@@ -585,7 +695,7 @@ void GenerateMoonAssemblyVisitor::visit(AssignmentAST* n)
 		codeOperations.push_back("\tlw " + reg + "," + std::to_string(tempAssignmentRHS->getOffset()) + "(" + stackFramePointerRegister + ")");
 
 		// Write the register contents to the variables stack offset
-		codeOperations.push_back("\tsw " + std::to_string(varAssignmentLHS->getOffset()) + "(" + stackFramePointerRegister + ")" + "," + reg);
+		codeOperations.push_back("\tsw " + std::to_string(varAssignmentLHS->getOffset() - offsetLHS) + "(" + stackFramePointerRegister + ")" + "," + reg);
 
 		// Put the register back as we're done with it
 		registers.push(reg);
@@ -603,7 +713,7 @@ void GenerateMoonAssemblyVisitor::visit(AssignmentAST* n)
 		codeOperations.push_back("\tlw " + reg + "," + std::to_string(varAssignmentRHS->getOffset()) + "(" + stackFramePointerRegister + ")");
 
 		// Write the register contents to the variables stack offset
-		codeOperations.push_back("\tsw " + std::to_string(varAssignmentLHS->getOffset()) + "(" + stackFramePointerRegister + ")" + "," + reg);
+		codeOperations.push_back("\tsw " + std::to_string(varAssignmentLHS->getOffset() - offsetLHS) + "(" + stackFramePointerRegister + ")" + "," + reg);
 
 		// Put the register back as we're done with it
 		registers.push(reg);
@@ -621,7 +731,7 @@ void GenerateMoonAssemblyVisitor::visit(AssignmentAST* n)
 		codeOperations.push_back("\taddi " + reg + "," + reg + "," + immType->getData());
 
 		// Write the register contents to the variable's stack offset
-		codeOperations.push_back("\tsw " + std::to_string(varAssignmentLHS->getOffset()) + "(" + stackFramePointerRegister + ")" + "," + reg);
+		codeOperations.push_back("\tsw " + std::to_string(varAssignmentLHS->getOffset() - offsetLHS) + "(" + stackFramePointerRegister + ")" + "," + reg);
 
 		// Put the register back as we're done with it
 		registers.push(reg);
