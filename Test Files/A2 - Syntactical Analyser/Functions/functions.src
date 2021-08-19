@@ -1,0 +1,270 @@
+func no_statement() : void { }
+
+func one_statement() : float 
+{
+  var 
+  {
+
+  }
+  n = 2;
+}
+
+func one_var_statement() : string 
+{
+  var 
+  {
+    integer n;
+  }
+  n = 2;
+}
+
+func n_statements() : id
+{
+  var 
+  {
+    integer n;
+    integer i;
+    integer j;
+    integer temp; 
+  }
+  n = 7;
+  i = 0;
+  j = 0;
+  temp = 0;
+  return (n + i);
+}
+
+func intr_return() : integer
+{
+  var 
+  {
+
+  }
+  n = 2;
+}
+
+func one_parameter(integer i) : integer
+{
+  n = 2;
+}
+
+func n_parameters(integer i, float f, string s, CLASSA c) : integer
+{
+  n = 2;
+}
+
+func array_parameters(integer i[], float f[][], string s[][][], CLASSA c[2], integer i2[2][3]) : integer
+{
+  n = 2;
+}
+
+main
+{
+    // function calls
+    intr_return();
+    one_parameter(15);
+    n_parameters(i, f, s, c);
+    one_parameter(a[1]);
+    one_parameter(a[1][2]);
+    one_parameter(i+x-5);
+
+    // no statement if
+    if(f1 > f2)
+    then {
+    }
+    else{
+
+    };
+
+    //1 statemetn if
+    if(f1 + 1 > f2)
+    then{
+        n1 = 2;
+    }
+    else{
+        n1 = 3;
+    };
+
+    // n statement if
+    if(f1 + 1 > f2)
+    then {
+        n1 = 2;
+        n5 = 6;
+    }
+    else{
+        n1 = 3;
+        n2 = 6;
+        n3 = 7;
+    };
+
+    // WHILE statements
+    while(true){ };
+    while(true){
+        n1 = n1 + 3;
+    };
+    while(true){
+        n1 = n1 + 3;
+        n2 = n1 + 6;
+        n3 = n1 + 7;
+    };
+
+    // read
+    read(n1);
+
+    //write
+    write(n1 + n5 * n9);
+
+    while(true){
+        n1 = n1 + 3;
+        break;
+    };
+    while(true){
+        n1 = n1 + 3;
+        n2 = n1 + 6;
+        n3 = n1 + 7;
+        continue;
+    };
+
+}
+
+/*
+    classes
+    --------------------------------------
+| | no class declaration
+| | class declaration
+| | multiple class declarations
+| | no data member declaration
+| | data member declaration
+| | multiple data member declaration
+| | no member function declaration
+| | member function declaration
+| | multiple member function declaration
+| | no member
+| | no inherited class
+| | one inherited class
+| | multiple inherited classes
+| | private member specifier
+| | public member specifier
+| | absence of member specifier
+
+    functions: definitions
+    --------------------------------------
+| | no main function definition (not allowed)
+|X| main function definition
+| | multiple main function definitions (not allowed)
+| | no free function definition
+|X| free function definition
+|X| multiple free function definitions
+|X| no member function definition
+|X| member function definition
+| | multiple member function definitions
+|X| return type: void
+|X| return type: integer
+|X| return type: float
+|X| return type: string
+|X| return type: id
+| | return type: array (not allowed)
+
+
+    functions: formal parameters
+    --------------------------------------
+|X| type: integer
+|X| type: float
+|X| type: string
+|X| type: id
+|X| type: 1-dim array 
+|X| type: n-dim array
+|X| type: array (with size)
+|X| type: array (without size)
+
+    functions: calls
+    --------------------------------------
+|X| free function call
+| | member function call
+|X| parameters:0
+|X| parameters:1
+|X| parameters:n
+|X| array parameter - 1-dim
+|X| array parameter - n-dim
+|X| array parameter - with size
+|X| array parameter - without size
+| | function call as statement
+| | function call as expression factor
+| | expression as parameter
+
+    variable declaration
+    --------------------------------------
+| | type: integer
+| | type: float
+| | type: string
+| | type: id
+| | type: 1-dim array 
+| | type: n-dim array
+| | type: array (with size)
+| | type: array (without size)
+
+    function body: local variable declaration block
+    --------------------------------------
+|X| no local variable declarations block
+|X| local variable declaration block
+| | multiple local variable declarations block (not allowed)
+|X| no variables in block
+|X| 1 variable declared in block
+|X| multiple variables declared in block
+
+    function body: statements
+    --------------------------------------
+|X| no statement
+|X| 1 statement
+|X| n statements
+|X| if statement
+|X| if: empty then or else blocks
+|X| if: 1-statement then or else blocks
+|X| if: n-statements then or else blocks
+|X| while statement
+|X| while: empty block
+|X| while: 1-statement block
+|X| while: n-statement block
+|X| read(<variable>) statement
+|X| write(<expr>) statement
+|X| return(<expr>) statement
+|X| break statement
+|X| continue statement
+|X| assignment statement
+
+    variable + idnest
+    --------------------------------------
+| | id
+| | id.id
+| | id.id(id)
+| | id(id).id
+| | id(id).id()
+| | id.id[id]
+| | id[id].id
+| | id[id].id[id]
+| | id.id[id][id]
+| | id[id][id].id
+| | id[id][id].id[id][id]
+| | id(id).id[id]
+| | id(id).id[id][id]
+| | expression as array index
+
+    expressions
+    --------------------------------------
+| | single variable
+| | involving addop
+| | involving multop
+| | involving relop
+| | involving addop + multop
+| | involving multop + relop
+| | involving addop + multop + relop
+| | involving parentheses
+| | involving nested parenhteses
+| | involving ternary operator
+| | involving not
+| | involving sign
+| | involving literals
+| | involving variable + idnest
+| | involving function calls
+| | involving all the above in one expression
+*/

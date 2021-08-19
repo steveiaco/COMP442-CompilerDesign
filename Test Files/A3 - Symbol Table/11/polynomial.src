@@ -1,0 +1,20 @@
+// ====== Class declarations ====== //
+class POLYNOMIAL {
+  public float a;
+	public func evaluate(float x) : float;
+};  
+
+// ====== main ====== //
+main
+{
+  var
+  {
+    LINEAR f1;
+    POLYNOMIAL p1;
+    integer counter;
+  }
+  
+  f1 = a1;
+  undefinedfreefunction();
+
+}

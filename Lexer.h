@@ -4,11 +4,11 @@
 #include <sstream>
 
 using std::stringstream;
-
+using std::ifstream;
 
 class Lexer {
 private:
-	
+
 	// Input variables and functions
 	std::ifstream& input;
 	char lastChar;
@@ -25,7 +25,7 @@ private:
 	bool isCharacter(char c);
 	bool isWhitespace(char c);
 	bool isFraction(char c);
-	
+
 	// Helper functions
 
 	// This function assumes we start at state S11 in our DFA
@@ -33,6 +33,6 @@ private:
 	Token tryGetFloat(stringstream& s);
 	Token tryGetIdentifier(stringstream& s);
 public:
-	Lexer(std::ifstream &input);
+	Lexer(ifstream& input);
 	Token nextToken();
 };

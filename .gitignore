@@ -338,3 +338,370 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+Test Files/A2 - Syntactical Analyser/
+
+Test Files/A3 - Symbol Table/10/polynomial.outast
+
+Test Files/A3 - Symbol Table/10/polynomial.outderivation
+
+Test Files/A3 - Symbol Table/10/polynomial.outlexerrors
+
+Test Files/A3 - Symbol Table/10/polynomial.outlextokens
+
+Test Files/A3 - Symbol Table/10/polynomial.outsemanticerrors
+
+Test Files/A3 - Symbol Table/10/polynomial.outsymboltables
+
+Test Files/A3 - Symbol Table/10/polynomial.outsyntaxerrors
+
+Test Files/A3 - Symbol Table/10/polynomial.outtypeerrors
+
+Test Files/A3 - Symbol Table/11/polynomial.outast
+
+Test Files/A3 - Symbol Table/11/polynomial.outderivation
+
+Test Files/A3 - Symbol Table/11/polynomial.outlexerrors
+
+Test Files/A3 - Symbol Table/11/polynomial.outlextokens
+
+Test Files/A3 - Symbol Table/11/polynomial.outsemanticerrors
+
+Test Files/A3 - Symbol Table/11/polynomial.outsymboltables
+
+Test Files/A3 - Symbol Table/11/polynomial.outsyntaxerrors
+
+Test Files/A3 - Symbol Table/11/polynomial.outtypeerrors
+
+Test Files/A3 - Symbol Table/12/polynomial.outast
+
+Test Files/A3 - Symbol Table/12/polynomial.outderivation
+
+Test Files/A3 - Symbol Table/12/polynomial.outlexerrors
+
+Test Files/A3 - Symbol Table/12/polynomial.outlextokens
+
+Test Files/A3 - Symbol Table/12/polynomial.outsemanticerrors
+
+Test Files/A3 - Symbol Table/12/polynomial.outsymboltables
+
+Test Files/A3 - Symbol Table/12/polynomial.outsyntaxerrors
+
+Test Files/A3 - Symbol Table/12/polynomial.outtypeerrors
+
+Test Files/A3 - Symbol Table/13/polynomial.outast
+
+Test Files/A3 - Symbol Table/13/polynomial.outderivation
+
+Test Files/A3 - Symbol Table/13/polynomial.outlexerrors
+
+Test Files/A3 - Symbol Table/13/polynomial.outlextokens
+
+Test Files/A3 - Symbol Table/13/polynomial.outsemanticerrors
+
+Test Files/A3 - Symbol Table/13/polynomial.outsymboltables
+
+Test Files/A3 - Symbol Table/13/polynomial.outsyntaxerrors
+
+Test Files/A3 - Symbol Table/13/polynomial.outtypeerrors
+
+Test Files/A3 - Symbol Table/15/polynomial.outast
+
+Test Files/A3 - Symbol Table/15/polynomial.outderivation
+
+Test Files/A3 - Symbol Table/15/polynomial.outlexerrors
+
+Test Files/A3 - Symbol Table/15/polynomial.outlextokens
+
+Test Files/A3 - Symbol Table/15/polynomial.outsemanticerrors
+
+Test Files/A3 - Symbol Table/15/polynomial.outsymboltables
+
+Test Files/A3 - Symbol Table/15/polynomial.outsyntaxerrors
+
+Test Files/A3 - Symbol Table/15/polynomial.outtypeerrors
+
+Test Files/A3 - Symbol Table/4/bubblesort.outast
+
+Test Files/A3 - Symbol Table/4/bubblesort.outderivation
+
+Test Files/A3 - Symbol Table/4/bubblesort.outlexerrors
+
+Test Files/A3 - Symbol Table/4/bubblesort.outlextokens
+
+Test Files/A3 - Symbol Table/4/bubblesort.outsemanticerrors
+
+Test Files/A3 - Symbol Table/4/bubblesort.outsymboltables
+
+Test Files/A3 - Symbol Table/4/bubblesort.outsyntaxerrors
+
+Test Files/A3 - Symbol Table/4/bubblesort.outtypeerrors
+
+Test Files/A3 - Symbol Table/4/polynomial.outast
+
+Test Files/A3 - Symbol Table/4/polynomial.outderivation
+
+Test Files/A3 - Symbol Table/4/polynomial.outlexerrors
+
+Test Files/A3 - Symbol Table/4/polynomial.outlextokens
+
+Test Files/A3 - Symbol Table/4/polynomial.outsemanticerrors
+
+Test Files/A3 - Symbol Table/4/polynomial.outsymboltables
+
+Test Files/A3 - Symbol Table/4/polynomial.outsyntaxerrors
+
+Test Files/A3 - Symbol Table/4/polynomial.outtypeerrors
+
+Test Files/A3 - Symbol Table/5/polynomial.outast
+
+Test Files/A3 - Symbol Table/5/polynomial.outderivation
+
+Test Files/A3 - Symbol Table/5/polynomial.outlexerrors
+
+Test Files/A3 - Symbol Table/5/polynomial.outlextokens
+
+Test Files/A3 - Symbol Table/5/polynomial.outsemanticerrors
+
+Test Files/A3 - Symbol Table/5/polynomial.outsymboltables
+
+Test Files/A3 - Symbol Table/5/polynomial.outsyntaxerrors
+
+Test Files/A3 - Symbol Table/5/polynomial.outtypeerrors
+
+Test Files/A3 - Symbol Table/6/polynomial.outast
+
+Test Files/A3 - Symbol Table/6/polynomial.outderivation
+
+Test Files/A3 - Symbol Table/6/polynomial.outlexerrors
+
+Test Files/A3 - Symbol Table/6/polynomial.outlextokens
+
+Test Files/A3 - Symbol Table/6/polynomial.outsemanticerrors
+
+Test Files/A3 - Symbol Table/6/polynomial.outsymboltables
+
+Test Files/A3 - Symbol Table/6/polynomial.outsyntaxerrors
+
+Test Files/A3 - Symbol Table/6/polynomial.outtypeerrors
+
+Test Files/A3 - Symbol Table/8/polynomial.outast
+
+Test Files/A3 - Symbol Table/8/polynomial.outderivation
+
+Test Files/A3 - Symbol Table/8/polynomial.outlexerrors
+
+Test Files/A3 - Symbol Table/8/polynomial.outlextokens
+
+Test Files/A3 - Symbol Table/8/polynomial.outsemanticerrors
+
+Test Files/A3 - Symbol Table/8/polynomial.outsymboltables
+
+Test Files/A3 - Symbol Table/8/polynomial.outsyntaxerrors
+
+Test Files/A3 - Symbol Table/8/polynomial.outtypeerrors
+
+Test Files/A3 - Symbol Table/9/bubblesort.outast
+
+Test Files/A3 - Symbol Table/9/bubblesort.outderivation
+
+Test Files/A3 - Symbol Table/9/bubblesort.outlexerrors
+
+Test Files/A3 - Symbol Table/9/bubblesort.outlextokens
+
+Test Files/A3 - Symbol Table/9/bubblesort.outsemanticerrors
+
+Test Files/A3 - Symbol Table/9/bubblesort.outsymboltables
+
+Test Files/A3 - Symbol Table/9/bubblesort.outsyntaxerrors
+
+Test Files/A3 - Symbol Table/9/bubblesort.outtypeerrors
+
+Test Files/A3 - Symbol Table/9/polynomial.outast
+
+Test Files/A3 - Symbol Table/9/polynomial.outderivation
+
+Test Files/A3 - Symbol Table/9/polynomial.outlexerrors
+
+Test Files/A3 - Symbol Table/9/polynomial.outlextokens
+
+Test Files/A3 - Symbol Table/9/polynomial.outsemanticerrors
+
+Test Files/A3 - Symbol Table/9/polynomial.outsymboltables
+
+Test Files/A3 - Symbol Table/9/polynomial.outsyntaxerrors
+
+Test Files/A3 - Symbol Table/9/polynomial.outtypeerrors
+
+Test Files/A4 - Code Generation/bubblesort.moon
+
+Test Files/A4 - Code Generation/bubblesort.outast
+
+Test Files/A4 - Code Generation/bubblesort.outderivation
+
+Test Files/A4 - Code Generation/bubblesort.outlexerrors
+
+Test Files/A4 - Code Generation/bubblesort.outlextokens
+
+Test Files/A4 - Code Generation/bubblesort.outsemanticerrors
+
+Test Files/A4 - Code Generation/bubblesort.outsymboltables
+
+Test Files/A4 - Code Generation/bubblesort.outsyntaxerrors
+
+Test Files/A4 - Code Generation/bubblesort.outtypeerrors
+
+Test Files/A4 - Code Generation/polynomial.moon
+
+Test Files/A4 - Code Generation/polynomial.outast
+
+Test Files/A4 - Code Generation/polynomial.outderivation
+
+Test Files/A4 - Code Generation/polynomial.outlexerrors
+
+Test Files/A4 - Code Generation/polynomial.outlextokens
+
+Test Files/A4 - Code Generation/polynomial.outsemanticerrors
+
+Test Files/A4 - Code Generation/polynomial.outsymboltables
+
+Test Files/A4 - Code Generation/polynomial.outsyntaxerrors
+
+Test Files/A4 - Code Generation/polynomial.outtypeerrors
+
+Test Files/A4 - Code Generation/simplemain.moon
+
+Test Files/A4 - Code Generation/simplemain.outast
+
+Test Files/A4 - Code Generation/simplemain.outderivation
+
+Test Files/A4 - Code Generation/simplemain.outlexerrors
+
+Test Files/A4 - Code Generation/simplemain.outlextokens
+
+Test Files/A4 - Code Generation/simplemain.outsemanticerrors
+
+Test Files/A4 - Code Generation/simplemain.outsymboltables
+
+Test Files/A4 - Code Generation/simplemain.outsyntaxerrors
+
+Test Files/A4 - Code Generation/simplemain.outtypeerrors
+
+Test Files/A4 - Code Generation/1/simplemain.m
+
+Test Files/A4 - Code Generation/1/simplemain.outast
+
+Test Files/A4 - Code Generation/1/simplemain.outderivation
+
+Test Files/A4 - Code Generation/1/simplemain.outlexerrors
+
+Test Files/A4 - Code Generation/1/simplemain.outlextokens
+
+Test Files/A4 - Code Generation/1/simplemain.outsemanticerrors
+
+Test Files/A4 - Code Generation/1/simplemain.outsymboltables
+
+Test Files/A4 - Code Generation/1/simplemain.outsyntaxerrors
+
+Test Files/A4 - Code Generation/1/simplemain.outtypeerrors
+
+Test Files/A4 - Code Generation/2/simplemain.m
+
+Test Files/A4 - Code Generation/2/simplemain.outast
+
+Test Files/A4 - Code Generation/2/simplemain.outderivation
+
+Test Files/A4 - Code Generation/2/simplemain.outlexerrors
+
+Test Files/A4 - Code Generation/2/simplemain.outlextokens
+
+Test Files/A4 - Code Generation/2/simplemain.outsemanticerrors
+
+Test Files/A4 - Code Generation/2/simplemain.outsymboltables
+
+Test Files/A4 - Code Generation/2/simplemain.outsyntaxerrors
+
+Test Files/A4 - Code Generation/2/simplemain.outtypeerrors
+
+Test Files/A4 - Code Generation/3/simplemain.m
+
+Test Files/A4 - Code Generation/3/simplemain.outast
+
+Test Files/A4 - Code Generation/3/simplemain.outderivation
+
+Test Files/A4 - Code Generation/3/simplemain.outlexerrors
+
+Test Files/A4 - Code Generation/3/simplemain.outlextokens
+
+Test Files/A4 - Code Generation/3/simplemain.outsemanticerrors
+
+Test Files/A4 - Code Generation/3/simplemain.outsymboltables
+
+Test Files/A4 - Code Generation/3/simplemain.outsyntaxerrors
+
+Test Files/A4 - Code Generation/3/simplemain.outtypeerrors
+
+Test Files/A4 - Code Generation/4/simplemain.m
+
+Test Files/A4 - Code Generation/4/simplemain.outast
+
+Test Files/A4 - Code Generation/4/simplemain.outderivation
+
+Test Files/A4 - Code Generation/4/simplemain.outlexerrors
+
+Test Files/A4 - Code Generation/4/simplemain.outlextokens
+
+Test Files/A4 - Code Generation/4/simplemain.outsemanticerrors
+
+Test Files/A4 - Code Generation/4/simplemain.outsymboltables
+
+Test Files/A4 - Code Generation/4/simplemain.outsyntaxerrors
+
+Test Files/A4 - Code Generation/4/simplemain.outtypeerrors
+
+Test Files/A4 - Code Generation/5/simplemain.m
+
+Test Files/A4 - Code Generation/5/simplemain.outast
+
+Test Files/A4 - Code Generation/5/simplemain.outderivation
+
+Test Files/A4 - Code Generation/5/simplemain.outlexerrors
+
+Test Files/A4 - Code Generation/5/simplemain.outlextokens
+
+Test Files/A4 - Code Generation/5/simplemain.outsemanticerrors
+
+Test Files/A4 - Code Generation/5/simplemain.outsymboltables
+
+Test Files/A4 - Code Generation/5/simplemain.outsyntaxerrors
+
+Test Files/A4 - Code Generation/5/simplemain.outtypeerrors
+
+Test Files/A4 - Code Generation/simplemain.m
+
+Test Files/Test env/execute.bat
+
+Test Files/Test env/lib.m
+
+Test Files/Test env/Moon.exe
+
+Test Files/Test env/moon.prn
+
+Test Files/Test env/prog.m
+
+Test Files/Test env/prog.outast
+
+Test Files/Test env/prog.outderivation
+
+Test Files/Test env/prog.outlexerrors
+
+Test Files/Test env/prog.outlextokens
+
+Test Files/Test env/prog.outsemanticerrors
+
+Test Files/Test env/prog.outsymboltables
+
+Test Files/Test env/prog.outsyntaxerrors
+
+Test Files/Test env/prog.outtypeerrors
+
+Test Files/Test env/prog.src

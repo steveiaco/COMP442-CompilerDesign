@@ -13,12 +13,348 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\SymTab Records">
+      <UniqueIdentifier>{dd1523de-b07b-49d4-b4f4-f8ab6b0fdece}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Visitors">
+      <UniqueIdentifier>{58157d2f-5ea5-4e74-acbf-066b5df24e6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Visitors">
+      <UniqueIdentifier>{c9e834d1-a509-440f-b481-e4f07fb93819}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\AST">
+      <UniqueIdentifier>{47a5a8b8-11f5-4488-a6cf-16b81d9ff371}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\AST\Atomic Concepts">
+      <UniqueIdentifier>{37d45fea-0c14-4fa8-ab3e-c92814f45d1c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\AST\Composite Concepts">
+      <UniqueIdentifier>{3e3d399f-7634-4d4c-9b39-32e023ab8088}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\AST">
+      <UniqueIdentifier>{e295c6ef-3d41-4b38-a30f-1af02c2793b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\AST\Atomic Concepts">
+      <UniqueIdentifier>{5ca0dd48-f693-4711-8382-d372ac80eb03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\AST\Composite Concepts">
+      <UniqueIdentifier>{a2e430ba-9e3f-4a5d-98ff-95e51447bf89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\AST\Atomic Concepts\Abstract">
+      <UniqueIdentifier>{331d3c1a-205d-4cda-ba65-938b6ed0ecd9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\AST\Atomic Concepts\Abstract">
+      <UniqueIdentifier>{3ea2a242-4423-43af-8fa9-6932609e0046}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\AST\Composite Concepts\Abstract">
+      <UniqueIdentifier>{89eb3950-a866-4b34-b8a5-17ed471f8592}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\AST\Composite Concepts\Operators">
+      <UniqueIdentifier>{2abbf78c-e9d7-498e-9462-3e9f4c50e66f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\AST\Composite Concepts\Abstract">
+      <UniqueIdentifier>{a505ccf2-5850-4ca6-8eb2-594749b6f86f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\AST\Composite Concepts\Operators">
+      <UniqueIdentifier>{ed2f7490-d6c7-433d-8b77-a667f7e63ab8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\SymTab">
+      <UniqueIdentifier>{ae8346cf-a0d3-4187-9919-138a8e4981d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SymTab Records\Entries">
+      <UniqueIdentifier>{d895fc0e-22f0-403f-a4d1-6978901e4400}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Visitors\Code Generator Module">
+      <UniqueIdentifier>{e88691de-5113-4c62-b813-6e76d9efd0e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Visitors\Semantic Analyzer Module">
+      <UniqueIdentifier>{d7ee00b0-7b61-497a-9e45-ac441ec4ea7f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Visitors\Code Generator Module">
+      <UniqueIdentifier>{a067fa4c-ffba-4893-9c8a-bdf119d32d08}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Visitors\Semantic Analyzer Module">
+      <UniqueIdentifier>{5d23824b-21a0-43a4-85ba-94415603b28b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\SymTab\Entries">
+      <UniqueIdentifier>{814048e5-2995-4cc2-9787-96a63b3c398e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Token.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Lexer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RecursiveDescentPredictiveParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IdAST.h">
+      <Filter>Header Files\AST\Atomic Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="IntegerAST.h">
+      <Filter>Header Files\AST\Atomic Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="EnumDeclarations.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FloatAST.h">
+      <Filter>Header Files\AST\Atomic Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="StringAST.h">
+      <Filter>Header Files\AST\Atomic Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="IntegerIdAST.h">
+      <Filter>Header Files\AST\Atomic Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="Visitor.h">
+      <Filter>Header Files\Visitors</Filter>
+    </ClInclude>
+    <ClInclude Include="AST.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="ASTFactory.h">
+      <Filter>Header Files\AST</Filter>
+    </ClInclude>
+    <ClInclude Include="FloatIdAST.h">
+      <Filter>Header Files\AST\Atomic Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="VoidAST.h">
+      <Filter>Header Files\AST\Atomic Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="PublicAST.h">
+      <Filter>Header Files\AST\Atomic Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="PrivateAST.h">
+      <Filter>Header Files\AST\Atomic Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="TokenAST.h">
+      <Filter>Header Files\AST\Atomic Concepts\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="CompositeConceptAST.h">
+      <Filter>Header Files\AST\Composite Concepts\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="CompositeConceptTokenAST.h">
+      <Filter>Header Files\AST\Composite Concepts\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="EqualToAST.h">
+      <Filter>Header Files\AST\Composite Concepts\Operators</Filter>
+    </ClInclude>
+    <ClInclude Include="NotEqualToAST.h">
+      <Filter>Header Files\AST\Composite Concepts\Operators</Filter>
+    </ClInclude>
+    <ClInclude Include="BreakAST.h">
+      <Filter>Header Files\AST\Atomic Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="ContinueAST.h">
+      <Filter>Header Files\AST\Atomic Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="LessThanAST.h">
+      <Filter>Header Files\AST\Composite Concepts\Operators</Filter>
+    </ClInclude>
+    <ClInclude Include="LessThanEqualToAST.h">
+      <Filter>Header Files\AST\Composite Concepts\Operators</Filter>
+    </ClInclude>
+    <ClInclude Include="GreaterThanAST.h">
+      <Filter>Header Files\AST\Composite Concepts\Operators</Filter>
+    </ClInclude>
+    <ClInclude Include="GreaterThanEqualToAST.h">
+      <Filter>Header Files\AST\Composite Concepts\Operators</Filter>
+    </ClInclude>
+    <ClInclude Include="SubtractionAST.h">
+      <Filter>Header Files\AST\Composite Concepts\Operators</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiplicationAST.h">
+      <Filter>Header Files\AST\Composite Concepts\Operators</Filter>
+    </ClInclude>
+    <ClInclude Include="NotAST.h">
+      <Filter>Header Files\AST\Composite Concepts\Operators</Filter>
+    </ClInclude>
+    <ClInclude Include="OrAST.h">
+      <Filter>Header Files\AST\Composite Concepts\Operators</Filter>
+    </ClInclude>
+    <ClInclude Include="DivisionAST.h">
+      <Filter>Header Files\AST\Composite Concepts\Operators</Filter>
+    </ClInclude>
+    <ClInclude Include="AssignmentAST.h">
+      <Filter>Header Files\AST\Composite Concepts\Operators</Filter>
+    </ClInclude>
+    <ClInclude Include="AndAST.h">
+      <Filter>Header Files\AST\Composite Concepts\Operators</Filter>
+    </ClInclude>
+    <ClInclude Include="AdditionAST.h">
+      <Filter>Header Files\AST\Composite Concepts\Operators</Filter>
+    </ClInclude>
+    <ClInclude Include="StringIdAST.h">
+      <Filter>Header Files\AST\Atomic Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="TernaryAST.h">
+      <Filter>Header Files\AST\Composite Concepts\Operators</Filter>
+    </ClInclude>
+    <ClInclude Include="WhileAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="ArithExprAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="ArrayDimensionAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="ArraySizeReptListAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="AssignStatAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="ClassDeclAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="ClassDeclBodyAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="ClassDeclBodyListAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="ClassListAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="ClassMethodAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="ExprAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="FParamsAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="FuncBodyAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="FuncCallStatAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="FuncDeclAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="FuncDefAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="FuncHeadAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="FuncListAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="FuncOrVarListAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="FuncStatAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="FunctionAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="IfAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="IndiceRepAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="InheritAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="InheritListAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="ProgAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="ReadAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="ReturnAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="StartAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="StatementAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="StatementListAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="VarCallStatAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="VarDeclAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="VarDeclListAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="VariableAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="WriteAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="AParamsListAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="FParamsListAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="IndiceRepListAST.h">
+      <Filter>Header Files\AST\Composite Concepts</Filter>
+    </ClInclude>
+    <ClInclude Include="SymTab.h">
+      <Filter>Header Files\SymTab</Filter>
+    </ClInclude>
+    <ClInclude Include="SymTabFactory.h">
+      <Filter>Header Files\SymTab</Filter>
+    </ClInclude>
+    <ClInclude Include="SymTabCreationVisitor.h">
+      <Filter>Header Files\Visitors\Semantic Analyzer Module</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeCheckingVisitor.h">
+      <Filter>Header Files\Visitors\Semantic Analyzer Module</Filter>
+    </ClInclude>
+    <ClInclude Include="CalculateSizeVisitor.h">
+      <Filter>Header Files\Visitors\Code Generator Module</Filter>
+    </ClInclude>
+    <ClInclude Include="GenerateMoonAssemblyVisitor.h">
+      <Filter>Header Files\Visitors\Code Generator Module</Filter>
+    </ClInclude>
+    <ClInclude Include="ClassEntry.h">
+      <Filter>Header Files\SymTab\Entries</Filter>
+    </ClInclude>
+    <ClInclude Include="FunctionEntry.h">
+      <Filter>Header Files\SymTab\Entries</Filter>
+    </ClInclude>
+    <ClInclude Include="ParameterEntry.h">
+      <Filter>Header Files\SymTab\Entries</Filter>
+    </ClInclude>
+    <ClInclude Include="SymTabEntry.h">
+      <Filter>Header Files\SymTab\Entries</Filter>
+    </ClInclude>
+    <ClInclude Include="TemporaryEntry.h">
+      <Filter>Header Files\SymTab\Entries</Filter>
+    </ClInclude>
+    <ClInclude Include="VariableEntry.h">
+      <Filter>Header Files\SymTab\Entries</Filter>
+    </ClInclude>
+    <ClInclude Include="VisibilityEntry.h">
+      <Filter>Header Files\SymTab\Entries</Filter>
+    </ClInclude>
+    <ClInclude Include="PeriodAST.h">
+      <Filter>Header Files\AST\Composite Concepts\Operators</Filter>
+    </ClInclude>
+    <ClInclude Include="CreateTempVariablesVisitor.h">
+      <Filter>Header Files\Visitors\Code Generator Module</Filter>
+    </ClInclude>
+    <ClInclude Include="LabelGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -30,6 +366,273 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Lexer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RecursiveDescentPredictiveParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IdAST.cpp">
+      <Filter>Source Files\AST\Atomic Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="IntegerAST.cpp">
+      <Filter>Source Files\AST\Atomic Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="StringAST.cpp">
+      <Filter>Source Files\AST\Atomic Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="FloatAST.cpp">
+      <Filter>Source Files\AST\Atomic Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="EnumDeclarations.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IntegerIdAST.cpp">
+      <Filter>Source Files\AST\Atomic Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="Visitor.cpp">
+      <Filter>Source Files\Visitors</Filter>
+    </ClCompile>
+    <ClCompile Include="SymTabEntry.cpp">
+      <Filter>Source Files\SymTab Records</Filter>
+    </ClCompile>
+    <ClCompile Include="FloatIdAST.cpp">
+      <Filter>Source Files\AST\Atomic Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="AST.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="ASTFactory.cpp">
+      <Filter>Source Files\AST</Filter>
+    </ClCompile>
+    <ClCompile Include="VoidAST.cpp">
+      <Filter>Source Files\AST\Atomic Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="PublicAST.cpp">
+      <Filter>Source Files\AST\Atomic Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="PrivateAST.cpp">
+      <Filter>Source Files\AST\Atomic Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="BreakAST.cpp">
+      <Filter>Source Files\AST\Atomic Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="ContinueAST.cpp">
+      <Filter>Source Files\AST\Atomic Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="TokenAST.cpp">
+      <Filter>Source Files\AST\Atomic Concepts\Abstract</Filter>
+    </ClCompile>
+    <ClCompile Include="CompositeConceptAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts\Abstract</Filter>
+    </ClCompile>
+    <ClCompile Include="CompositeConceptTokenAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts\Abstract</Filter>
+    </ClCompile>
+    <ClCompile Include="EqualToAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts\Operators</Filter>
+    </ClCompile>
+    <ClCompile Include="NotEqualToAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts\Operators</Filter>
+    </ClCompile>
+    <ClCompile Include="LessThanAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts\Operators</Filter>
+    </ClCompile>
+    <ClCompile Include="GreaterThanAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts\Operators</Filter>
+    </ClCompile>
+    <ClCompile Include="LessThanEqualToAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts\Operators</Filter>
+    </ClCompile>
+    <ClCompile Include="GreaterThanEqualToAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts\Operators</Filter>
+    </ClCompile>
+    <ClCompile Include="SubtractionAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts\Operators</Filter>
+    </ClCompile>
+    <ClCompile Include="OrAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts\Operators</Filter>
+    </ClCompile>
+    <ClCompile Include="NotAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts\Operators</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiplicationAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts\Operators</Filter>
+    </ClCompile>
+    <ClCompile Include="DivisionAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts\Operators</Filter>
+    </ClCompile>
+    <ClCompile Include="AndAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts\Operators</Filter>
+    </ClCompile>
+    <ClCompile Include="AssignmentAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts\Operators</Filter>
+    </ClCompile>
+    <ClCompile Include="AdditionAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts\Operators</Filter>
+    </ClCompile>
+    <ClCompile Include="StringIdAST.cpp">
+      <Filter>Source Files\AST\Atomic Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="TernaryAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts\Operators</Filter>
+    </ClCompile>
+    <ClCompile Include="AParamsListAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="ArithExprAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayDimensionAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="ArraySizeReptListAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="AssignStatAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="ClassDeclAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="ClassDeclBodyAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="ClassDeclBodyListAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="ClassListAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="ClassMethodAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="ExprAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="FParamsAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="FParamsListAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="FuncBodyAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="FuncCallStatAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="FuncDeclAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="FuncDefAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="FuncHeadAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="FuncListAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="FuncOrVarListAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="FuncStatAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="FunctionAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="IfAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="IndiceRepAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="InheritAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="InheritListAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="ProgAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="ReadAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="ReturnAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="StartAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="StatementAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="StatementListAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="VarCallStatAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="VarDeclAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="VarDeclListAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="VariableAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="WhileAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="WriteAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="IndiceRepListAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts</Filter>
+    </ClCompile>
+    <ClCompile Include="SymTab.cpp">
+      <Filter>Source Files\SymTab Records</Filter>
+    </ClCompile>
+    <ClCompile Include="SymTabFactory.cpp">
+      <Filter>Source Files\SymTab Records</Filter>
+    </ClCompile>
+    <ClCompile Include="ClassEntry.cpp">
+      <Filter>Source Files\SymTab Records\Entries</Filter>
+    </ClCompile>
+    <ClCompile Include="FunctionEntry.cpp">
+      <Filter>Source Files\SymTab Records\Entries</Filter>
+    </ClCompile>
+    <ClCompile Include="ParameterEntry.cpp">
+      <Filter>Source Files\SymTab Records\Entries</Filter>
+    </ClCompile>
+    <ClCompile Include="VisibilityEntry.cpp">
+      <Filter>Source Files\SymTab Records\Entries</Filter>
+    </ClCompile>
+    <ClCompile Include="VariableEntry.cpp">
+      <Filter>Source Files\SymTab Records\Entries</Filter>
+    </ClCompile>
+    <ClCompile Include="SymTabCreationVisitor.cpp">
+      <Filter>Source Files\Visitors\Semantic Analyzer Module</Filter>
+    </ClCompile>
+    <ClCompile Include="TypeCheckingVisitor.cpp">
+      <Filter>Source Files\Visitors\Semantic Analyzer Module</Filter>
+    </ClCompile>
+    <ClCompile Include="GenerateMoonAssemblyVisitor.cpp">
+      <Filter>Source Files\Visitors\Code Generator Module</Filter>
+    </ClCompile>
+    <ClCompile Include="TemporaryEntry.cpp">
+      <Filter>Source Files\SymTab Records\Entries</Filter>
+    </ClCompile>
+    <ClCompile Include="CreateTempVariablesVisitor.cpp">
+      <Filter>Source Files\Visitors\Code Generator Module</Filter>
+    </ClCompile>
+    <ClCompile Include="PeriodAST.cpp">
+      <Filter>Source Files\AST\Composite Concepts\Operators</Filter>
+    </ClCompile>
+    <ClCompile Include="LabelGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,0 +1,1 @@
+Lexical error: End of file reached before end of string: "this is an unterminated string\ny = x + z;": line 2.

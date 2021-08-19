@@ -1,0 +1,9 @@
+func one_statement() : float[] 
+{
+  var {  }
+  n = 2;
+}
+
+main{
+
+}

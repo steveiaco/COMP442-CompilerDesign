@@ -1,0 +1,71 @@
+
+digraph finite_state_machine {
+	rankdir=LR;
+	size="8,5"
+	node [shape = doublecircle]; 
+	# Regular
+	ID INT FLT STR CMT;
+	# Operators + punctuation
+	"/";
+
+	node [shape = circle];
+	#ID
+	START -> S1 [ label = "letter" ];
+	S1 -> S1 [ label = "alphanum" ];
+	S1 -> ID [ label = "ω"];
+	
+	#INTEGER
+	START -> S2 [ label = "non-zero"];
+	S2 -> S2 [label = "digit"];
+	S2 -> INT [ label = "ω"];
+	START -> S3 [label = "0"];
+	S3 -> INT [label = "ω"];
+	
+	#FLOAT
+	S2 -> S11 [label = "."];
+	S3 -> S11 [label = "."];
+	S4 -> FLT [label = "ω"];
+	#FLOAT-Exponent
+	S4 -> S5 [label = "e"];
+	S5 -> S6 [label = "+,-"];
+	S5 -> S8 [label = "non-zero"];
+	S5 -> S7 [label = "0"];
+	S6 -> S7 [label = "0"];
+	S7 -> FLT [label = "ω"]
+	S6 -> S8 [label = "non-zero"];
+	S8 -> S8 [label = "digit"];
+	S8 -> FLT [label = "ω"];
+	
+	#FRACTION
+	S11 -> S4 [label = "digit"];
+	S4 -> S4 [label = "non-zero"];
+	S4 -> S12 [label = "0"];
+	S12 -> S12 [label = "0"];
+	S12 -> S4 [label = "non-zero"];
+	
+	#STRING
+	START -> S9 [label = "\""];
+	S9 -> S9 [label = "character"];
+	S9 -> S10 [label = "\""];
+	S10 -> STR [label = "ω"];
+	
+	#BLOCK COMMENTS
+	S23 -> S116 [label = "*"];
+	S116 -> S116 [label = "/, ∑ / {*}"];
+	S116 -> S117 [label = "*"];
+	S117 -> S116 [label = "∑ / {/,*}"];
+	S117 -> S117 [label = "*"];
+	S117 -> CMT [label = "/"];
+
+	#INLINE COMMENTS
+	S23 -> S118 [label = "/"];
+	S118 -> S118 [label = "∑"];
+	S118 -> CMT [label = "newline"];
+	
+
+	START -> S23 [label = "/"];
+	S23 -> "/" [label = "ω"];
+	
+	
+}
+
